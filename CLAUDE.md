@@ -29,3 +29,6 @@ Within Docker, services reach each other by container name (`mysql`, `redis`, `m
 - **Google Maps runs in the browser.** No backend call to Google Maps at runtime. `api-gateway` injects the Maps API key into EJS templates and serves the destination list. Route calculation and rendering happen client-side via `DirectionsService` + `DirectionsRenderer`.
 
 
+
+
+test
