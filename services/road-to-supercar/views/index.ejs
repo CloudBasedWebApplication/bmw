@@ -8,6 +8,12 @@
       :root { --accent: #0066b1; --bg: #f3f5f7; --panel: #fff; --muted: #5c6670; }
       * { box-sizing: border-box; }
       body { margin: 0; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; background: var(--bg); }
+      .topbar { padding: 18px 16px 0; }
+      .topbar-inner { max-width: 960px; margin: 0 auto; padding: 14px 18px; background: var(--panel); border-radius: 18px; box-shadow: 0 8px 24px rgba(0,0,0,.06); display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+      .brand { text-decoration: none; color: #111; font-weight: 700; letter-spacing: .03em; white-space: nowrap; }
+      .nav-links { display: flex; flex-wrap: wrap; gap: 10px; }
+      .nav-links a { text-decoration: none; color: var(--muted); padding: 8px 12px; border-radius: 999px; }
+      .nav-links a.active, .nav-links a:hover { background: #eef4fb; color: var(--accent); }
       .layout { max-width: 960px; margin: 0 auto; padding: 40px 20px; }
       h1 { font-size: 2rem; margin: 0 0 8px; }
       .subtitle { color: var(--muted); margin: 0 0 28px; }
@@ -22,6 +28,19 @@
     </style>
   </head>
   <body>
+    <header class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="/">BMW Gateway</a>
+        <nav class="nav-links" aria-label="Hauptnavigation">
+          <a href="/">Home</a>
+          <a href="/car-configurator">Configurator</a>
+          <a href="/merch-shop">Merch Shop</a>
+          <a href="/ai-feature">AI Feature</a>
+          <a href="/road-to-supercar" class="active">Road To Supercar</a>
+          <a href="/shopping-cart">Warenkorb</a>
+        </nav>
+      </div>
+    </header>
     <div class="layout">
       <h1>Road to Supercar</h1>
       <p class="subtitle">Finde den nächsten BMW-Showroom und berechne deine Route.</p>
