@@ -39,6 +39,12 @@ services:
     ports:
       - "${MINIO_PORT:-9000}:9000"
       - "9001:9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
     volumes:
       - ./infrastructure/minio/data:/data
 
@@ -46,19 +52,26 @@ services:
     image: minio/mc:RELEASE.2025-08-13T08-35-41Z
     env_file: .env
     depends_on:
-      - minio
+      minio:
+        condition: service_healthy
     volumes:
-      - ./assets/configurator:/seed:ro
+      - ./Configurator:/seed/configurator:ro
+      - ./Webshop:/seed/webshop:ro
     entrypoint: >
       /bin/sh -c "
       until mc alias set local http://minio:${MINIO_PORT} ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD}; do
         sleep 2;
       done;
       mc mb --ignore-existing local/${MINIO_BUCKET};
-      if find /seed -type f | grep -q .; then
-        mc mirror --overwrite /seed local/${MINIO_BUCKET};
-      else
-        echo 'No configurator images found in assets/configurator. Bucket was created only.';
+      found=0;
+      for folder in configurator webshop; do
+        if find /seed/$$folder -type f \\( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.webp' -o -iname '*.gif' -o -iname '*.avif' \\) | grep -q .; then
+          found=1;
+          mc mirror --overwrite --exclude '*.xlsx' /seed/$$folder local/${MINIO_BUCKET}/$$folder;
+        fi;
+      done;
+      if [ $$found -eq 0 ]; then
+        echo 'No images found in Configurator/ or Webshop/. Bucket was created only.';
       fi
       "
 

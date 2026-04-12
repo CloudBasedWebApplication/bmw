@@ -78,16 +78,18 @@ cp .env.example .env  # fill in GEMINI_API_KEY and GOOGLE_MAPS_API_KEY
 
 ## MinIO Image Sync
 
-Configurator images should live in `assets/configurator/` locally and are mirrored into MinIO bucket `MINIO_BUCKET`.
+Images are imported from the project folders `Configurator/` and `Webshop/` into the MinIO bucket `MINIO_BUCKET`.
 
-1. Put the pre-generated car images into `assets/configurator/`.
+1. Put the car images into `Configurator/` and the merchandise images into `Webshop/`.
 2. Start the infrastructure:
 
 ```bash
-docker compose up -d mysql redis minio
+docker compose up -d mysql redis minio minio-init
 ```
 
-3. Create the bucket and upload or refresh the images:
+The `minio-init` service waits until MinIO is healthy, creates the bucket automatically, and syncs the images once on startup.
+
+3. If you want to re-sync the images later after adding or changing files:
 
 ```bash
 ./scripts/sync-minio-images.sh
@@ -95,4 +97,14 @@ docker compose up -d mysql redis minio
 
 4. Optional: open the MinIO console at `http://localhost:9001`.
 
-The sync keeps the folder structure from `assets/configurator/` inside the bucket, so your MySQL image keys should match those object paths.
+The sync writes object keys with stable prefixes:
+
+- `configurator/<filename>`
+- `webshop/<filename>`
+
+Example object keys:
+
+- `configurator/3BMWBlackFamily.webp`
+- `webshop/BMW_Merchandise_Sweatshirt.avif`
+
+Excel files in those folders are ignored during upload.
