@@ -38,7 +38,7 @@ const serviceCatalog = [
     name: "Merch Shop",
     description: "BMW Merchandise aus MySQL inklusive Produktdaten und Bildreferenzen.",
     views: "../services/merch-shop/views",
-    accent: "dark",
+    accent: "primary",
   },
   {
     path: "/ai-feature",
