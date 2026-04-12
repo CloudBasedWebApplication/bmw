@@ -1,6 +1,6 @@
 # BMW Cloud Web App
 
-Course project for a cloud-based web application built with a microservices architecture.
+Course project for a cloud-based web application built with a microservices architecture. 
 
 ## Directory Structure
 
