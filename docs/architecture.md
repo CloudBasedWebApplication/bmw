@@ -6,6 +6,8 @@ This document describes the high-level architecture of the BMW cloud web app cou
 
 The system is designed around one gateway-style web application with multiple backend microservices. The first version is optimized for local Docker-based development and demonstration, while still keeping service ownership clear.
 
+For product-level expected behavior, refer to `docs/PRD.md`. This architecture document focuses on responsibility boundaries and request/data flow rather than delivery status.
+
 ## 2. Architecture Diagram
 
 ```mermaid
@@ -89,6 +91,7 @@ Its role is to:
 - serve the UI pages
 - collect browser requests
 - call backend services
+- serve internal product-owned support data such as the predefined route destination list
 It should not own configuration validity, official pricing, or cart persistence rules.
 
 ### 4.2 Configurator Service
@@ -114,6 +117,7 @@ Its responsibilities are:
 - return product list and detail information
 - read merchandise data from MySQL
 - support cart addition and display use cases
+- provide stable product identifiers suitable for direct linking from AI recommendations and the web application
 
 ### 4.4 Route Planning (client-side)
 
@@ -132,7 +136,7 @@ Its responsibilities are:
 
 - accept user natural-language prompts
 - fetch relevant context: configuration options (both models) and merchandise catalog
-- send structured context and prompt to Gemini
+- send structured context and a stable prompt/template to Gemini
 - receive recommended parameters and rationale from Gemini
 - call `configurator` to resolve the official car configuration result
 - return recommendations as links: a link to the configurator page pre-filled with recommended options, and/or links to merchandise product pages
@@ -148,6 +152,7 @@ Its responsibilities are:
 - store cart state in Redis
 - aggregate both car configurations and merchandise items
 - store displayable snapshots rather than only raw identifiers
+- support quantity changes for merchandise items as part of standard cart editing
 
 For car items, the cart should persist enough snapshot data to show the selected result without requiring a fresh configurator lookup for every render.
 
@@ -237,7 +242,8 @@ Its role is to:
 
 1. the frontend sends a selected car configuration or merchandise item to the cart service
 2. the cart service stores a snapshot in Redis
-3. the frontend reads the aggregated cart from the cart service
+3. the frontend may update merchandise quantity through the cart service
+4. the frontend reads the aggregated cart from the cart service
 
 ### 7.4 Route Planning Flow
 
@@ -257,6 +263,7 @@ The architecture reflects the following agreed decisions:
 - backend services own business truth
 - configuration pricing is calculated in the backend
 - AI recommendation is implemented through a service-to-service flow, not a direct frontend-to-Gemini shortcut
+- AI recommendation should use a stable prompt/template plus structured output contract
 - cart stores snapshots for display stability
 - route planning runs client-side via Maps JS API; the key is injected by `api-gateway` and destination list is served by `api-gateway`
 
