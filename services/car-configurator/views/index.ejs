@@ -8,6 +8,12 @@
       :root { --accent: #0066b1; --bg: #f3f5f7; --panel: #fff; --text: #111; --muted: #5c6670; }
       * { box-sizing: border-box; }
       body { margin: 0; min-height: 100vh; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); }
+      .topbar { padding: 18px 16px 0; }
+      .topbar-inner { max-width: 960px; margin: 0 auto; padding: 14px 18px; background: var(--panel); border-radius: 18px; box-shadow: 0 8px 24px rgba(0,0,0,.06); display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+      .brand { text-decoration: none; color: var(--text); font-weight: 700; letter-spacing: .03em; white-space: nowrap; }
+      .nav-links { display: flex; flex-wrap: wrap; gap: 10px; }
+      .nav-links a { text-decoration: none; color: var(--muted); padding: 8px 12px; border-radius: 999px; }
+      .nav-links a.active, .nav-links a:hover { background: #eef4fb; color: var(--accent); }
       .layout { max-width: 960px; margin: 0 auto; padding: 40px 20px; }
       h1 { font-size: 2rem; margin: 0 0 32px; }
       .section-label { font-size: 0.8rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
@@ -35,9 +41,22 @@
       .skeleton { background: linear-gradient(90deg, #eee 25%, #f8f8f8 50%, #eee 75%); background-size: 200% 100%; animation: shimmer 1.2s infinite; border-radius: 8px; }
       @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
     </style>
-  </head>
-  <body>
-    <div class="layout">
+	  </head>
+	  <body>
+	    <header class="topbar">
+	      <div class="topbar-inner">
+	        <a class="brand" href="/">BMW Gateway</a>
+	        <nav class="nav-links" aria-label="Hauptnavigation">
+	          <a href="/">Home</a>
+	          <a href="/car-configurator" class="active">Configurator</a>
+	          <a href="/merch-shop">Merch Shop</a>
+	          <a href="/ai-feature">AI Feature</a>
+	          <a href="/road-to-supercar">Road To Supercar</a>
+	          <a href="/shopping-cart">Warenkorb</a>
+	        </nav>
+	      </div>
+	    </header>
+	    <div class="layout">
       <h1>Car Configurator</h1>
 
       <div class="section-label">Modell</div>

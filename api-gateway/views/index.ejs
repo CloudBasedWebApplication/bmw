@@ -31,6 +31,51 @@
         color: var(--text);
       }
 
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        padding: 18px 16px 0;
+      }
+
+      .topbar-inner {
+        width: min(1180px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 14px 18px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+      }
+
+      .brand {
+        text-decoration: none;
+        color: var(--accent-strong);
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        white-space: nowrap;
+      }
+
+      .nav-links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .nav-links a {
+        text-decoration: none;
+        color: var(--muted);
+        padding: 8px 12px;
+        border-radius: 999px;
+        transition: background 180ms ease, color 180ms ease;
+      }
+
+      .nav-links a:hover,
+      .nav-links a.active {
+        background: rgba(0, 89, 168, 0.10);
+        color: var(--accent);
+      }
+
       main {
         width: min(1180px, calc(100% - 32px));
         margin: 32px auto;
@@ -211,6 +256,11 @@
       }
 
       @media (max-width: 900px) {
+        .topbar-inner {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+
         .hero {
           grid-template-columns: 1fr;
         }
@@ -226,6 +276,19 @@
     </style>
   </head>
   <body>
+    <header class="topbar">
+      <div class="topbar-inner panel">
+        <a class="brand" href="/">BMW Gateway</a>
+        <nav class="nav-links" aria-label="Hauptnavigation">
+          <a href="/" class="active">Home</a>
+          <a href="/car-configurator">Configurator</a>
+          <a href="/merch-shop">Merch Shop</a>
+          <a href="/ai-feature">AI Feature</a>
+          <a href="/road-to-supercar">Road To Supercar</a>
+          <a href="/shopping-cart">Warenkorb</a>
+        </nav>
+      </div>
+    </header>
     <main>
       <section class="hero">
         <div class="panel hero-copy">
