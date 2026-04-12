@@ -17,52 +17,102 @@ const dbConfig = {
   database: process.env.MYSQL_DATABASE || "bmw_app",
 };
 
+const minioPublicUrl = `http://localhost:${process.env.MINIO_PORT || 9000}/${process.env.MINIO_BUCKET || "configurator-images"}`;
+
+const serviceCatalog = [
+  {
+    path: "/car-configurator",
+    name: "Car Configurator",
+    description: "Fahrzeugkonfigurationen mit Variantenlogik, Bildausgabe und MinIO-Anbindung.",
+    views: "../services/car-configurator/views",
+    accent: "primary",
+  },
+  {
+    path: "/merch-shop",
+    name: "Merch Shop",
+    description: "BMW Merchandise aus MySQL inklusive Produktdaten und Bildreferenzen.",
+    views: "../services/merch-shop/views",
+    accent: "dark",
+  },
+  {
+    path: "/ai-feature",
+    name: "AI Feature",
+    description: "Empfehlungen und Shopping-Unterstuetzung als eigener Microservice.",
+    views: "../services/ai-feature/views",
+    accent: "light",
+  },
+  {
+    path: "/road-to-supercar",
+    name: "Road To Supercar",
+    description: "Showroom- und Erlebnisansicht fuer die BMW-Plattform.",
+    views: "../services/road-to-supercar/views",
+    accent: "light",
+  },
+  {
+    path: "/shopping-cart",
+    name: "Shopping Cart",
+    description: "Warenkorb fuer Merchandise und spaetere Fahrzeug-Snapshots.",
+    views: "../services/shopping-cart/views",
+    accent: "primary",
+  },
+];
+
+function renderServiceView(res, viewsDirectory, locals = {}) {
+  const viewsPath = path.join(__dirname, viewsDirectory);
+
+  res.render(path.join(viewsPath, "index"), locals, (err, html) => {
+    if (err) {
+      return res.status(500).send(err.message);
+    }
+
+    return res.send(html);
+  });
+}
+
 app.get(["/", "/index.html"], (req, res) => {
   res.render("index", {
-    title: "BMW Microservice Platform",
-    headline: "BMW Microservice Platform",
-    message: "Diese Startseite wird ueber Node.js mit einer EJS-Datei gerendert."
+    title: "BMW API Gateway",
+    headline: "BMW API Gateway",
+    message: "Die Startseite buendelt alle Services, Infrastrukturinfos und die wichtigsten Einstiege an einem Ort.",
+    services: serviceCatalog,
+    infrastructure: [
+      { label: "MySQL", value: `${dbConfig.host}:${dbConfig.port}` },
+      { label: "MinIO Bucket", value: minioPublicUrl },
+      { label: "Gateway Port", value: String(port) },
+    ],
   });
 });
 
 app.get("/merch-shop", async (_req, res) => {
-  const viewsPath = path.join(__dirname, "../services/merch-shop/views");
   try {
     const conn = await mysql.createConnection(dbConfig);
     const [products] = await conn.query("SELECT * FROM merch_shop ORDER BY id");
     await conn.end();
-    res.render(path.join(viewsPath, "index"), { products }, (err, html) => {
-      if (err) return res.status(500).send(err.message);
-      res.send(html);
-    });
+
+    renderServiceView(res, "../services/merch-shop/views", { products });
   } catch (err) {
     res.status(500).send("Datenbankfehler: " + err.message);
   }
 });
 
-const minioPublicUrl = `http://localhost:${process.env.MINIO_PORT || 9000}/${process.env.MINIO_BUCKET || "configurator-images"}`;
-
 app.get("/car-configurator", (_req, res) => {
-  const viewsPath = path.join(__dirname, "../services/car-configurator/views");
-  res.render(path.join(viewsPath, "index"), { minioBaseUrl: minioPublicUrl }, (err, html) => {
-    if (err) return res.status(500).send(err.message);
-    res.send(html);
+  renderServiceView(res, "../services/car-configurator/views", {
+    minioBaseUrl: minioPublicUrl,
   });
 });
 
-const serviceRoutes = [
-  { path: "/ai-feature",       views: "../services/ai-feature/views" },
-  { path: "/road-to-supercar", views: "../services/road-to-supercar/views" },
-  { path: "/shopping-cart",    views: "../services/shopping-cart/views" },
-];
+app.get("/health", (_req, res) => {
+  res.json({
+    ok: true,
+    service: "api-gateway",
+    timestamp: new Date().toISOString(),
+    routes: serviceCatalog.map(({ path: routePath, name }) => ({ path: routePath, name })),
+  });
+});
 
-for (const route of serviceRoutes) {
-  const viewsPath = path.join(__dirname, route.views);
+for (const route of serviceCatalog.filter(({ path: routePath }) => !["/car-configurator", "/merch-shop"].includes(routePath))) {
   app.get(route.path, (_req, res) => {
-    res.render(path.join(viewsPath, "index"), (err, html) => {
-      if (err) return res.status(500).send(err.message);
-      res.send(html);
-    });
+    renderServiceView(res, route.views);
   });
 }
 
