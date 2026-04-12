@@ -37,7 +37,8 @@ flowchart LR
     gateway --> merchandise
     gateway --> ai
     gateway --> cart
-    gateway --> googlemaps
+
+    user --> googlemaps
 
     configurator --> mysql
     configurator --> minio
@@ -67,7 +68,7 @@ The architecture follows a simple microservice structure:
 - one cache store for cart state
 - one object storage service for configurator images
 - one backend AI integration (Gemini API via `ai-feature` service)
-- one map integration where route calculation is requested through the backend
+- one client-side map integration (Google Maps JavaScript API loaded in the browser)
 
 The API gateway is the single entry point for the user. Business truth remains in the backend services.
 
@@ -88,9 +89,6 @@ Its role is to:
 - serve the UI pages
 - collect browser requests
 - call backend services
-- accept a route-planning request using either the user's current location or a manually entered origin
-- display the route result returned by the backend
-
 It should not own configuration validity, official pricing, or cart persistence rules.
 
 ### 4.2 Configurator Service
@@ -101,11 +99,11 @@ Its responsibilities are:
 
 - support two car models; the user selects a model first, then configures options within that model
 - receive model and selected parameters, validate the combination
-- map the combination to a pre-generated image stored in MinIO
+- look up the image key in MySQL for the matching combination, then retrieve the image from MinIO
 - calculate final price in the backend
 - return structured metadata such as advantages, disadvantages, and recommendation labels
 
-The service does not perform live rendering. Instead, it resolves user choices against stored combinations and associated image objects in MinIO.
+The service does not generate images. It looks up a pre-uploaded image object in MinIO using the key stored in MySQL for the given combination.
 
 ### 4.3 Merch Shop Service
 
@@ -117,19 +115,14 @@ Its responsibilities are:
 - read merchandise data from MySQL
 - support cart addition and display use cases
 
-### 4.4 Route Planning in the Gateway
+### 4.4 Route Planning (client-side)
 
-There is currently no standalone `road` service directory in the repository.
+There is no standalone road service. Route planning runs entirely in the browser using the Google Maps JavaScript API.
 
-Route planning is currently represented as a backend capability inside the web or gateway layer:
-
-- the frontend can use the user's current location or allow manual origin input
-- the backend keeps a hardcoded list of store or showroom destinations
-- the frontend sends the origin and selected destination to the backend
-- the backend requests route data from Google Maps and returns the route result
-- the frontend renders the returned route information
-
-If the team later restores a standalone `road` service, this document should be updated accordingly.
+- the `api-gateway` injects the Maps API key server-side into the EJS template
+- the browser loads Maps JS API and uses `DirectionsService` + `DirectionsRenderer` for route calculation and map rendering
+- the `api-gateway` backend holds a hardcoded list of store and showroom destinations, returned to the frontend on request
+- no backend call is made to Google Maps at runtime
 
 ### 4.5 AI Feature Service
 
@@ -209,14 +202,15 @@ Its role is to:
 - recommend structured configuration parameters
 - generate recommendation rationale and trade-off explanations
 
-### 6.2 Google Maps API
+### 6.2 Google Maps JavaScript API
 
-Google Maps is used for route planning through the backend-facing web layer.
+The Maps JS API is loaded client-side in the browser. The API key is injected into the EJS template by `api-gateway` at render time and restricted by HTTP referrer in Google Cloud Console.
 
 Its role is to:
 
-- calculate routes from the user-provided origin to a hardcoded destination
-- provide route information that the frontend can render
+- render an interactive map in the browser
+- calculate routes from the user's current location to a selected store destination via `DirectionsService`
+- display the route on the map via `DirectionsRenderer`
 
 ## 7. Main Request Flows
 
@@ -247,12 +241,10 @@ Its role is to:
 
 ### 7.4 Route Planning Flow
 
-1. the user opens the route planning page in the web application
-2. the user either shares current location or enters an origin manually
-3. the user selects one of the hardcoded store destinations
-4. the web layer sends the route request to the backend
-5. the backend requests route data from Google Maps
-6. the frontend displays the returned route result
+1. the user opens the route planning page; the browser loads Maps JS API (key injected by `api-gateway`)
+2. the frontend fetches the destination list from `api-gateway`
+3. the user selects a destination; the browser calls `DirectionsService` directly
+4. `DirectionsRenderer` draws the route on the map in the browser
 
 ## 8. Key Design Decisions
 
@@ -266,7 +258,7 @@ The architecture reflects the following agreed decisions:
 - configuration pricing is calculated in the backend
 - AI recommendation is implemented through a service-to-service flow, not a direct frontend-to-Gemini shortcut
 - cart stores snapshots for display stability
-- route planning accepts current location or manual origin input and uses hardcoded store destinations through backend routing logic
+- route planning runs client-side via Maps JS API; the key is injected by `api-gateway` and destination list is served by `api-gateway`
 
 ## 9. First-Version Constraints
 

@@ -16,7 +16,7 @@ The main purpose is to demonstrate service decomposition, containerized local de
 | Cache | Redis |
 | Object Storage | MinIO |
 | AI | Gemini API |
-| Map | Google Maps routing API via backend |
+| Map | Google Maps JavaScript API (client-side, key injected by `api-gateway`) |
 | Orchestration | Docker Compose |
 
 ## 3. Scope
@@ -75,7 +75,7 @@ No login. Cart state is keyed by a session ID (generated client-side or by a coo
 - Supports **2 car models**; user first selects a model, then configures options within that model (e.g. color, trim, wheels)
 - All valid combinations per model are pre-generated; each maps to a stored image and a price
 - The service receives model + selected parameters, validates the combination, looks up the image, and calculates the final price
-- Configurator images are stored in MinIO rather than in the database
+- Images are pre-uploaded to MinIO; the service looks up the image key in MySQL and retrieves the object from MinIO — it does not generate images
 - Returns: model, selected options, image reference, base price, option price adjustments, final price, configuration ID, and structured rationale metadata (recommendation tags, advantages, disadvantages, suitability labels)
 - `configurator` is the sole source of truth for combination validity, image mapping, and price
 
@@ -86,13 +86,12 @@ No login. Cart state is keyed by a session ID (generated client-side or by a coo
 - Provides: product list, product detail, price, and metadata
 - Sufficient for display and adding items to cart
 
-### 5.3 Route Planning (`api-gateway` backend routing logic)
+### 5.3 Route Planning (client-side via Maps JS API)
 
-- The current repository structure does not include a standalone `road` service directory
-- Route planning is currently handled through the web layer backend
-- The frontend can either request the user's current location or allow manual origin input
-- The system uses a hardcoded set of store or showroom destinations in the backend
-- The backend requests route information from Google Maps and returns the route result to the frontend
+- No standalone road service; route planning runs entirely in the browser
+- `api-gateway` injects the Maps API key into the EJS template at render time and exposes an endpoint returning the hardcoded store/showroom destination list
+- The browser loads Maps JS API, calls `DirectionsService` to calculate the route, and renders it with `DirectionsRenderer`
+- No backend call to Google Maps at runtime
 
 ### 5.4 AI Assistant (`ai-feature`)
 
