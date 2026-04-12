@@ -15,30 +15,25 @@ services:
     profiles: ["placeholder"]
 
   mysql:
-    image: mysql:8.4
+    image: mysql:8.4.8
+    env_file: .env
     environment:
-      MYSQL_DATABASE: bmw_app
-      MYSQL_USER: bmw_user
-      MYSQL_PASSWORD: change_me
-      MYSQL_ROOT_PASSWORD: change_me_root
-    ports:
-      - "3306:3306"
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
     volumes:
       - ./infrastructure/mysql/init:/docker-entrypoint-initdb.d
 
   redis:
-    image: redis:7
-    ports:
-      - "6379:6379"
+    image: redis:7.4.2
 
   minio:
     image: minio/minio
     command: server /data --console-address ":9001"
+    env_file: .env
     environment:
-      MINIO_ROOT_USER: minio_user
-      MINIO_ROOT_PASSWORD: change_me
-    ports:
-      - "9000:9000"
-      - "9001:9001"
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
     volumes:
       - ./infrastructure/minio/data:/data
