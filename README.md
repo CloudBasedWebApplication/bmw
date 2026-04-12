@@ -75,3 +75,24 @@ The project is intended to run locally with Docker during the first development 
 ```bash
 cp .env.example .env  # fill in GEMINI_API_KEY and GOOGLE_MAPS_API_KEY
 ```
+
+## MinIO Image Sync
+
+Configurator images should live in `assets/configurator/` locally and are mirrored into MinIO bucket `MINIO_BUCKET`.
+
+1. Put the pre-generated car images into `assets/configurator/`.
+2. Start the infrastructure:
+
+```bash
+docker compose up -d mysql redis minio
+```
+
+3. Create the bucket and upload or refresh the images:
+
+```bash
+./scripts/sync-minio-images.sh
+```
+
+4. Optional: open the MinIO console at `http://localhost:9001`.
+
+The sync keeps the folder structure from `assets/configurator/` inside the bucket, so your MySQL image keys should match those object paths.
