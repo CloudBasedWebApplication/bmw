@@ -2,12 +2,12 @@ FROM node:22-alpine
 
 WORKDIR /app
 
-COPY package.json ./
-
+COPY api-gateway/package.json ./
 RUN npm install
 
-COPY src ./src
-COPY views ./views
+COPY api-gateway/src ./src
+COPY api-gateway/views ./views
+COPY services ./services
 
 EXPOSE 3000
 
