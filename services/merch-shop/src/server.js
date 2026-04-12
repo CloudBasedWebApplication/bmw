@@ -10,6 +10,7 @@ const dbConfig = {
   user: process.env.MYSQL_USER || "bmw_user",
   password: process.env.MYSQL_PASSWORD || "change_me",
   database: process.env.MYSQL_DATABASE || "bmw_app",
+  charset: "utf8mb4",
 };
 
 const minioBase = `http://${process.env.MINIO_PUBLIC_HOST || "localhost"}:${process.env.MINIO_PORT || 9000}/${process.env.MINIO_BUCKET || "configurator-images"}`;
