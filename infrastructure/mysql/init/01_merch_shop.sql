@@ -1,5 +1,7 @@
 USE bmw_app;
 
+SET NAMES utf8mb4;
+
 DROP TABLE IF EXISTS merch_shop;
 
 CREATE TABLE merch_shop (
@@ -12,13 +14,13 @@ CREATE TABLE merch_shop (
     sizes VARCHAR(255),
     description VARCHAR(255),
     minioObject VARCHAR(255)
-);
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 INSERT INTO merch_shop (
     id, name, category, color, price, gender, sizes, description, minioObject
 ) VALUES
 (1, 'BMW Poloshirt', 'clothes', 'Schwarz', 45.50, 'Unisex', 'S,M,L,XL', 'Bequemes Poloshirt mit lockerer Passform.', 'merch-shop/BMW_Merchandise_Schwarz.avif'),
-(2, 'BMW Poloshirt', 'clothes', 'Weiß', 45.50, 'Unisex', 'S,M,L,XL', 'Bequemes Poloshirt mit lockerer Passform.', 'merch-shop/BMW_Merchandise_weiß.avif'),
+(2, 'BMW Poloshirt', 'clothes', 'Weiß', 45.50, 'Unisex', 'S,M,L,XL', 'Bequemes Poloshirt mit lockerer Passform.', 'merch-shop/BMW_Merchandise_weiss.avif'),
 (3, 'BMW Isolierte Jacke', 'clothes', 'Schwarz', 258.30, 'Unisex', 'S,M,L,XL', 'Warme Jacke mit wasserabweisender Oberfläche.', 'merch-shop/BMW_Merchandise_Schwarz_Pullover.avif'),
 (4, 'BMW Kapuzenjacke', 'clothes', 'Blau', 77.00, 'Unisex', 'S,M,L,XL', 'Sportliche Kapuzenjacke mit hohem Tragekomfort.', 'merch-shop/BMW_Merchandise_Blau_Pullover.avif'),
 (5, 'BMW Sweatshirt', 'clothes', 'Schwarz', 70.00, 'Unisex', 'S,M,L,XL', 'Bequemes Sweatshirt mit weichem Material.', 'merch-shop/BMW_Merchandise_Sweatshirt.avif'),

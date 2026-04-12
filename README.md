@@ -72,8 +72,33 @@ Contains helper scripts for local development, setup, and data preparation. The 
 
 The project is intended to run locally with Docker during the first development phase.
 
+### 1. Prepare the environment file
+
+macOS:
+
 ```bash
-cp .env.example .env  # fill in GEMINI_API_KEY and GOOGLE_MAPS_API_KEY
+cp .env.example .env # MacOS
+Copy-Item .env.example .env # Windows
+```
+
+After copying the file, fill in at least `GEMINI_API_KEY` and `GOOGLE_MAPS_API_KEY` in `.env`.
+
+### 2. Start the full local stack
+
+```powershell
+docker compose up --build
+```
+
+This starts the gateway, all microservices, MySQL, Redis, MinIO, and the MinIO bootstrap container.
+
+### 3. Open the app
+
+After the containers are healthy, open [http://localhost:3000](http://localhost:3000).
+
+### 4. Stop the stack
+
+```powershell
+docker compose down
 ```
 
 ## MinIO Image Sync
@@ -91,8 +116,11 @@ The `minio-init` service waits until MinIO is healthy, creates the bucket automa
 
 3. If you want to re-sync the images later after adding or changing files:
 
+macOS:
+
 ```bash
-./scripts/sync-minio-images.sh
+./scripts/sync-minio-images.sh  # MacOS
+docker compose run --rm minio-init # Windows
 ```
 
 4. Optional: open the MinIO console at `http://localhost:9001`.
@@ -106,5 +134,7 @@ Example object keys:
 
 - `configurator/3BMWBlackFamily.webp`
 - `webshop/BMW_Merchandise_Sweatshirt.avif`
+
+For new merch assets, prefer ASCII-only filenames in `assets/merch-shop/` so object keys stay stable across encodings. For example, use `weiss` instead of `weiß` in filenames.
 
 Excel files in those folders are ignored during upload.

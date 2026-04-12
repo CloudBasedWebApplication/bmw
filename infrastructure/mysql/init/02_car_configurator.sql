@@ -1,5 +1,7 @@
 USE bmw_app;
 
+SET NAMES utf8mb4;
+
 DROP TABLE IF EXISTS car_combinations;
 DROP TABLE IF EXISTS car_models;
 
@@ -26,7 +28,7 @@ CREATE TABLE car_combinations (
   advantages       VARCHAR(500),
   disadvantages    VARCHAR(500),
   FOREIGN KEY (model_id) REFERENCES car_models(id)
-);
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- BMW 3er combinations
 INSERT INTO car_combinations
