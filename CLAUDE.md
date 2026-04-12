@@ -28,3 +28,4 @@ Within Docker, services reach each other by container name (`mysql`, `redis`, `m
 - **MySQL schemas are service-owned.** `car-configurator` owns `configurator_db`; `merch-shop` owns `merchandise_db`. Cross-schema queries are not allowed.
 - **Google Maps runs in the browser.** No backend call to Google Maps at runtime. `api-gateway` injects the Maps API key into EJS templates and serves the destination list. Route calculation and rendering happen client-side via `DirectionsService` + `DirectionsRenderer`.
 
+
