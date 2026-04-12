@@ -3,86 +3,185 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Warenkorb</title>
+    <title>BMW Warenkorb | Ihr Gateway</title>
     <style>
-      :root { --accent: #0066b1; --bg: #f3f5f7; --panel: #fff; --muted: #5c6670; }
-      * { box-sizing: border-box; }
-      body { margin: 0; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; background: var(--bg); }
-      .topbar { padding: 18px 16px 0; }
-      .topbar-inner { max-width: 760px; margin: 0 auto; padding: 14px 18px; background: var(--panel); border-radius: 18px; box-shadow: 0 8px 24px rgba(0,0,0,.06); display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-      .brand { text-decoration: none; color: #111; font-weight: 700; letter-spacing: .03em; white-space: nowrap; }
-      .nav-links { display: flex; flex-wrap: wrap; gap: 10px; }
-      .nav-links a { text-decoration: none; color: var(--muted); padding: 8px 12px; border-radius: 999px; }
-      .nav-links a.active, .nav-links a:hover { background: #eef4fb; color: var(--accent); }
-      .layout { max-width: 760px; margin: 0 auto; padding: 40px 20px; }
-      h1 { font-size: 2rem; margin: 0 0 32px; }
-      .empty { color: var(--muted); text-align: center; padding: 60px 0; font-size: 1.1rem; }
-      .item { background: var(--panel); border-radius: 14px; padding: 16px; display: flex; gap: 16px; align-items: center; margin-bottom: 14px; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
-      .item img { width: 80px; height: 60px; object-fit: cover; border-radius: 8px; background: #eee; flex-shrink: 0; }
+      :root {
+        --accent: #0066b1;
+        --bg: #f5f7f9;
+        --panel: #ffffff;
+        --text: #0f172a;
+        --muted: #64748b;
+        --danger: #ef4444;
+        --radius: 20px;
+        --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+      }
+
+      * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+
+      body {
+        margin: 0;
+        font-family: 'Inter', -apple-system, system-ui, sans-serif;
+        background-color: var(--bg);
+        color: var(--text);
+        line-height: 1.5;
+      }
+
+      /* Navbar */
+      .topbar { padding: 20px; }
+      .topbar-inner {
+        max-width: 800px; margin: 0 auto; padding: 12px 24px;
+        background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(15px);
+        border-radius: 999px; border: 1px solid rgba(255,255,255,0.4);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+        display: flex; align-items: center; justify-content: space-between;
+      }
+      .brand { text-decoration: none; color: var(--text); font-weight: 800; font-size: 1.1rem; }
+      .nav-links { display: flex; gap: 4px; }
+      .nav-links a {
+        text-decoration: none; color: var(--muted); padding: 8px 16px;
+        border-radius: 999px; font-size: 0.85rem; font-weight: 500; transition: 0.2s;
+      }
+      .nav-links a.active, .nav-links a:hover { background: var(--text); color: white; }
+
+      .layout { max-width: 800px; margin: 0 auto; padding: 40px 20px; }
+
+      h1 { font-size: 2.5rem; font-weight: 800; letter-spacing: -0.03em; margin: 0 0 32px; }
+
+      .empty-state {
+        text-align: center; padding: 80px 40px; background: var(--panel);
+        border-radius: var(--radius); box-shadow: var(--shadow);
+      }
+      .empty-state p { color: var(--muted); margin-bottom: 24px; font-size: 1.1rem; }
+      .btn-primary {
+        display: inline-block; padding: 12px 28px; background: var(--accent);
+        color: white; text-decoration: none; border-radius: 12px; font-weight: 700;
+        transition: 0.3s;
+      }
+      .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 102, 177, 0.2); }
+
+      /* Cart Items */
+      .item {
+        background: var(--panel); border-radius: var(--radius);
+        padding: 20px; display: flex; gap: 20px; align-items: center;
+        margin-bottom: 16px; border: 1px solid rgba(0,0,0,0.03);
+        box-shadow: var(--shadow); transition: transform 0.2s;
+      }
+      .item:hover { transform: scale(1.01); }
+
+      .item img {
+        width: 120px; height: 90px; object-fit: cover;
+        border-radius: 12px; background: #f8fafc; flex-shrink: 0;
+      }
+
       .item-info { flex: 1; }
-      .item-name { font-weight: 600; margin-bottom: 4px; }
-      .item-meta { font-size: 0.82rem; color: var(--muted); }
-      .item-price { font-weight: 700; color: var(--accent); font-size: 1.05rem; white-space: nowrap; }
-      .remove-btn { background: none; border: none; color: #c00; font-size: 1.2rem; cursor: pointer; padding: 4px 8px; border-radius: 6px; }
-      .remove-btn:hover { background: #ffeaea; }
-      .summary { background: var(--panel); border-radius: 14px; padding: 20px 24px; box-shadow: 0 2px 8px rgba(0,0,0,.06); display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
-      .total-label { font-size: 1rem; color: var(--muted); }
-      .total-value { font-size: 1.6rem; font-weight: 700; color: var(--accent); }
+      .item-name { font-size: 1.1rem; font-weight: 700; margin-bottom: 4px; color: var(--text); }
+      .item-meta {
+        font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+        letter-spacing: 0.05em; color: var(--accent);
+      }
+      .item-quantity { font-size: 0.85rem; color: var(--muted); margin-top: 4px; }
+
+      .item-right { text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+      .item-price { font-weight: 800; color: var(--text); font-size: 1.1rem; }
+
+      .remove-btn {
+        background: #fee2e2; border: none; color: var(--danger);
+        padding: 6px 12px; border-radius: 8px; cursor: pointer;
+        font-size: 0.8rem; font-weight: 700; transition: 0.2s;
+      }
+      .remove-btn:hover { background: var(--danger); color: white; }
+
+      /* Summary Section */
+      .summary {
+        margin-top: 32px; padding: 32px; background: var(--text);
+        border-radius: var(--radius); color: white;
+        display: flex; justify-content: space-between; align-items: center;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+      }
+      .total-label { font-size: 1.1rem; opacity: 0.7; }
+      .total-value { font-size: 2rem; font-weight: 800; }
+
+      /* Skeleton Loading */
+      .loading { text-align: center; padding: 40px; color: var(--muted); font-weight: 500; }
     </style>
   </head>
   <body>
     <header class="topbar">
       <div class="topbar-inner">
         <a class="brand" href="/">BMW Gateway</a>
-        <nav class="nav-links" aria-label="Hauptnavigation">
+        <nav class="nav-links">
           <a href="/">Home</a>
           <a href="/car-configurator">Configurator</a>
-          <a href="/merch-shop">Merch Shop</a>
-          <a href="/ai-feature">AI Feature</a>
-          <a href="/road-to-supercar">Road To Supercar</a>
+          <a href="/merch-shop">Shop</a>
+          <a href="/ai-feature">AI</a>
           <a href="/shopping-cart" class="active">Warenkorb</a>
         </nav>
       </div>
     </header>
+
     <div class="layout">
-      <h1>Warenkorb</h1>
-      <div id="cartContent"><p class="empty">Wird geladen…</p></div>
+      <h1>Ihr Warenkorb</h1>
+      <div id="cartContent">
+        <div class="loading">Inhalt wird sicher geladen...</div>
+      </div>
     </div>
+
     <script>
       async function loadCart() {
-        const res = await fetch("/api/cart");
-        const { items, total } = await res.json();
         const container = document.getElementById("cartContent");
+        try {
+          const res = await fetch("/api/cart");
+          const { items, total } = await res.json();
 
-        if (!items.length) {
-          container.innerHTML = '<p class="empty">Dein Warenkorb ist leer.</p>';
-          return;
-        }
+          if (!items || !items.length) {
+            container.innerHTML = `
+              <div class="empty-state">
+                <p>Ihr Warenkorb ist zurzeit noch leer.</p>
+                <a href="/merch-shop" class="btn-primary">Jetzt entdecken</a>
+              </div>`;
+            return;
+          }
 
-        const list = items.map(item => `
-          <div class="item" id="item-${item.id}">
-            ${item.imageUrl ? `<img src="${item.imageUrl}" alt="${item.name}" />` : '<div style="width:80px;height:60px;background:#eee;border-radius:8px;flex-shrink:0"></div>'}
-            <div class="item-info">
-              <div class="item-name">${item.name}</div>
-              <div class="item-meta">${item.type === "car" ? "Fahrzeug" : "Merchandise"} &middot; Menge: ${item.quantity}</div>
+          const list = items.map(item => `
+            <div class="item" id="item-${item.id}">
+              ${item.imageUrl 
+                ? `<img src="${item.imageUrl}" alt="${item.name}" />` 
+                : '<div style="width:120px;height:90px;background:#f1f5f9;border-radius:12px;flex-shrink:0"></div>'}
+              <div class="item-info">
+                <div class="item-meta">${item.type === "car" ? "Fahrzeug" : "Lifestyle & Merch"}</div>
+                <div class="item-name">${item.name}</div>
+                <div class="item-quantity">Anzahl: ${item.quantity}</div>
+              </div>
+              <div class="item-right">
+                <div class="item-price">${item.price.toLocaleString("de-DE", { style: "currency", currency: "EUR" })}</div>
+                <button class="remove-btn" data-id="${item.id}">Entfernen</button>
+              </div>
             </div>
-            <div class="item-price">${item.price.toLocaleString("de-DE", { style: "currency", currency: "EUR" })}</div>
-            <button class="remove-btn" data-id="${item.id}" title="Entfernen">✕</button>
-          </div>
-        `).join("");
+          `).join("");
 
-        container.innerHTML = list + `
-          <div class="summary">
-            <span class="total-label">Gesamt</span>
-            <span class="total-value">${total.toLocaleString("de-DE", { style: "currency", currency: "EUR" })}</span>
-          </div>`;
+          container.innerHTML = list + `
+            <div class="summary">
+              <div>
+                <div class="total-label">Gesamtsumme</div>
+                <div style="font-size: 0.8rem; opacity: 0.5;">Inkl. MwSt. zzgl. Versand</div>
+              </div>
+              <div class="total-value">${total.toLocaleString("de-DE", { style: "currency", currency: "EUR" })}</div>
+            </div>
+            <div style="margin-top: 24px; text-align: right;">
+                <button class="btn-primary" onclick="alert('Proceeding to payment...')">Zur Kasse gehen</button>
+            </div>`;
 
-        container.querySelectorAll(".remove-btn").forEach(btn => {
-          btn.addEventListener("click", async () => {
-            await fetch(`/api/cart/items/${btn.dataset.id}`, { method: "DELETE" });
-            loadCart();
+          container.querySelectorAll(".remove-btn").forEach(btn => {
+            btn.addEventListener("click", async () => {
+              btn.disabled = true;
+              btn.textContent = "...";
+              await fetch(`/api/cart/items/${btn.dataset.id}`, { method: "DELETE" });
+              loadCart();
+            });
           });
-        });
+        } catch (err) {
+          container.innerHTML = '<div class="empty-state"><p>Fehler beim Laden des Warenkorbs.</p></div>';
+        }
       }
 
       loadCart();

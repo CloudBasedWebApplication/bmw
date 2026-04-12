@@ -3,87 +3,243 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Merch Shop</title>
+    <title>BMW Merch Shop | Lifestyle</title>
     <style>
-      :root { --accent: #0066b1; --bg: #f3f5f7; --panel: #fff; --muted: #5c6670; }
-      * { box-sizing: border-box; }
-      body { margin: 0; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; background: var(--bg); }
-      .topbar { padding: 18px 16px 0; }
-      .topbar-inner { max-width: 1100px; margin: 0 auto; padding: 14px 18px; background: var(--panel); border-radius: 18px; box-shadow: 0 8px 24px rgba(0,0,0,.06); display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-      .brand { text-decoration: none; color: #111; font-weight: 700; letter-spacing: .03em; white-space: nowrap; }
-      .nav-links { display: flex; flex-wrap: wrap; gap: 10px; }
-      .nav-links a { text-decoration: none; color: var(--muted); padding: 8px 12px; border-radius: 999px; }
-      .nav-links a.active, .nav-links a:hover { background: #eef4fb; color: var(--accent); }
-      .layout { max-width: 1100px; margin: 0 auto; padding: 40px 20px; }
-      h1 { font-size: 2rem; margin: 0 0 32px; }
-      .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; }
-      .card { background: var(--panel); border-radius: 16px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,.07); display: flex; flex-direction: column; }
-      .card img { width: 100%; aspect-ratio: 4/3; object-fit: cover; background: #eee; }
-      .card-body { padding: 16px; flex: 1; display: flex; flex-direction: column; }
-      .card-body h2 { font-size: 1rem; margin: 0 0 4px; }
-      .badge { display: inline-block; font-size: 0.75rem; background: #eef4fb; color: var(--accent); border-radius: 20px; padding: 2px 10px; margin-bottom: 8px; }
-      .price { font-weight: 700; color: var(--accent); font-size: 1.1rem; margin-bottom: 6px; }
-      .detail { font-size: 0.82rem; color: var(--muted); margin-bottom: 4px; }
-      .add-btn { margin-top: auto; padding: 10px; border: none; border-radius: 8px; background: var(--accent); color: #fff; font-size: 0.9rem; cursor: pointer; font-weight: 600; }
-      .add-btn:hover { background: #0055a0; }
+      :root {
+        --accent: #0066b1;
+        --accent-dark: #004a80;
+        --bg: #f5f7f9;
+        --panel: #ffffff;
+        --text: #0f172a;
+        --muted: #64748b;
+        --radius: 20px;
+        --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+      }
+
+      * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+
+      body {
+        margin: 0;
+        font-family: 'Inter', -apple-system, system-ui, sans-serif;
+        background-color: var(--bg);
+        color: var(--text);
+        line-height: 1.5;
+      }
+
+      /* Navbar Refinement */
+      .topbar { padding: 20px; }
+      .topbar-inner {
+        max-width: 1200px; margin: 0 auto; padding: 12px 24px;
+        background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(15px);
+        border-radius: 999px; border: 1px solid rgba(255,255,255,0.4);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+        display: flex; align-items: center; justify-content: space-between;
+      }
+      .brand { text-decoration: none; color: var(--text); font-weight: 800; font-size: 1.1rem; }
+      .nav-links { display: flex; gap: 4px; }
+      .nav-links a {
+        text-decoration: none; color: var(--muted); padding: 8px 16px;
+        border-radius: 999px; font-size: 0.85rem; font-weight: 500; transition: 0.2s;
+      }
+      .nav-links a.active, .nav-links a:hover { background: var(--text); color: white; }
+
+      .layout { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+
+      header.shop-header { margin-bottom: 48px; }
+      h1 { font-size: 2.8rem; font-weight: 800; letter-spacing: -0.03em; margin: 0 0 8px; }
+      .shop-header p { color: var(--muted); font-size: 1.1rem; }
+
+      /* Product Grid */
+      .grid { 
+        display: grid; 
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
+        gap: 32px; 
+      }
+
+      .card {
+        background: var(--panel);
+        border-radius: var(--radius);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        border: 1px solid rgba(0,0,0,0.03);
+      }
+
+      .card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+      }
+
+      .image-container {
+        width: 100%;
+        aspect-ratio: 1/1;
+        overflow: hidden;
+        background: #f8fafc;
+      }
+
+      .card img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain; /* Besser für Merch-Produkte */
+        transition: transform 0.6s ease;
+        padding: 20px;
+      }
+
+      .card:hover img { transform: scale(1.08); }
+
+      .card-body {
+        padding: 24px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .category-tag {
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--accent);
+        margin-bottom: 8px;
+      }
+
+      .card-body h2 {
+        font-size: 1.2rem;
+        font-weight: 700;
+        margin: 0 0 12px;
+        color: var(--text);
+      }
+
+      .price {
+        font-size: 1.3rem;
+        font-weight: 800;
+        color: var(--text);
+        margin-bottom: 16px;
+      }
+
+      .detail {
+        font-size: 0.9rem;
+        color: var(--muted);
+        margin-bottom: 20px;
+        line-height: 1.5;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      .add-btn {
+        width: 100%;
+        padding: 14px;
+        border: none;
+        border-radius: 12px;
+        background: #f1f5f9;
+        color: var(--text);
+        font-size: 0.95rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        margin-top: auto;
+      }
+
+      .add-btn:hover {
+        background: var(--text);
+        color: white;
+      }
+
+      .add-btn.success {
+        background: #10b981;
+        color: white;
+      }
+
+      @media (max-width: 640px) {
+        h1 { font-size: 2.2rem; }
+        .grid { gap: 20px; }
+      }
     </style>
   </head>
   <body>
     <header class="topbar">
       <div class="topbar-inner">
         <a class="brand" href="/">BMW Gateway</a>
-        <nav class="nav-links" aria-label="Hauptnavigation">
+        <nav class="nav-links">
           <a href="/">Home</a>
           <a href="/car-configurator">Configurator</a>
           <a href="/merch-shop" class="active">Merch Shop</a>
-          <a href="/ai-feature">AI Feature</a>
-          <a href="/road-to-supercar">Road To Supercar</a>
+          <a href="/ai-feature">AI</a>
           <a href="/shopping-cart">Warenkorb</a>
         </nav>
       </div>
     </header>
+
     <div class="layout">
-      <h1>Merch Shop</h1>
+      <header class="shop-header">
+        <h1>Lifestyle & Merch</h1>
+        <p>Bringen Sie die Freude am Fahren in Ihren Alltag.</p>
+      </header>
+
       <div class="grid">
         <% products.forEach(function(p) { %>
-          <div class="card" id="product-<%= p.id %>">
-            <img src="<%= p.imageUrl %>" alt="<%= p.name %>" loading="lazy" />
+          <article class="card" id="product-<%= p.id %>">
+            <div class="image-container">
+              <img src="<%= p.imageUrl %>" alt="<%= p.name %>" loading="lazy" />
+            </div>
             <div class="card-body">
+              <div class="category-tag"><%= p.category %></div>
               <h2><%= p.name %></h2>
-              <span class="badge"><%= p.category %><% if (p.color) { %> &middot; <%= p.color %><% } %></span>
               <div class="price"><%= parseFloat(p.price).toLocaleString("de-DE", { style: "currency", currency: "EUR" }) %></div>
-              <% if (p.description) { %><div class="detail"><%= p.description %></div><% } %>
-              <% if (p.sizes) { %><div class="detail">Größen: <%= p.sizes %></div><% } %>
+              
+              <% if (p.description) { %>
+                <p class="detail"><%= p.description %></p>
+              <% } %>
+              
               <button class="add-btn"
                 data-id="<%= p.id %>"
-                data-name="<%= p.name %> <%= p.color || '' %>"
+                data-name="<%= p.name %>"
                 data-price="<%= p.price %>"
                 data-image="<%= p.imageUrl %>">
                 In den Warenkorb
               </button>
             </div>
-          </div>
+          </article>
         <% }) %>
       </div>
     </div>
+
     <script>
       document.querySelectorAll(".add-btn").forEach(btn => {
         btn.addEventListener("click", async () => {
+          const originalText = btn.textContent;
           btn.disabled = true;
-          await fetch("/api/cart/items", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              type: "merch",
-              name: btn.dataset.name.trim(),
-              price: parseFloat(btn.dataset.price),
-              imageUrl: btn.dataset.image,
-              quantity: 1,
-              details: { productId: parseInt(btn.dataset.id) },
-            }),
-          });
-          btn.textContent = "✓ Hinzugefügt";
-          setTimeout(() => { btn.textContent = "In den Warenkorb"; btn.disabled = false; }, 2000);
+          
+          try {
+            const response = await fetch("/api/cart/items", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                type: "merch",
+                name: btn.dataset.name.trim(),
+                price: parseFloat(btn.dataset.price),
+                imageUrl: btn.dataset.image,
+                quantity: 1,
+                details: { productId: parseInt(btn.dataset.id) },
+              }),
+            });
+
+            if (response.ok) {
+              btn.textContent = "✓ Hinzugefügt";
+              btn.classList.add("success");
+              setTimeout(() => {
+                btn.textContent = originalText;
+                btn.classList.remove("success");
+                btn.disabled = false;
+              }, 2000);
+            }
+          } catch (error) {
+            btn.textContent = "Fehler";
+            btn.disabled = false;
+          }
         });
       });
     </script>
