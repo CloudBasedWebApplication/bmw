@@ -25,63 +25,100 @@ app.use((req, res, next) => {
   next();
 });
 
+const serviceCatalog = [
+  {
+    path: "/car-configurator",
+    name: "Car Configurator",
+    description: "Fahrzeugkonfigurationen mit Variantenlogik, Bildausgabe und MinIO-Anbindung.",
+    views: "../services/car-configurator/views",
+    accent: "primary",
+  },
+  {
+    path: "/merch-shop",
+    name: "Merch Shop",
+    description: "BMW Merchandise aus MySQL inklusive Produktdaten und Bildreferenzen.",
+    views: "../services/merch-shop/views",
+    accent: "dark",
+  },
+  {
+    path: "/ai-feature",
+    name: "AI Feature",
+    description: "Empfehlungen und Shopping-Unterstuetzung als eigener Microservice.",
+    views: "../services/ai-feature/views",
+    accent: "light",
+  },
+  {
+    path: "/road-to-supercar",
+    name: "Road To Supercar",
+    description: "Showroom- und Erlebnisansicht fuer die BMW-Plattform.",
+    views: "../services/road-to-supercar/views",
+    accent: "light",
+  },
+  {
+    path: "/shopping-cart",
+    name: "Shopping Cart",
+    description: "Warenkorb fuer Merchandise und Fahrzeug-Snapshots.",
+    views: "../services/shopping-cart/views",
+    accent: "primary",
+  },
+];
+
+function renderServiceView(res, viewsDirectory, locals = {}) {
+  const viewsPath = path.join(__dirname, viewsDirectory);
+  res.render(path.join(viewsPath, "index"), locals, (err, html) => {
+    if (err) return res.status(500).send(err.message);
+    res.send(html);
+  });
+}
+
 // ── Page routes ──────────────────────────────────────────────────────────────
 
 app.get(["/", "/index.html"], (_req, res) => {
   res.render("index", {
-    title: "BMW Microservice Platform",
-    headline: "BMW Microservice Platform",
-    message: "Diese Startseite wird ueber Node.js mit einer EJS-Datei gerendert.",
+    title: "BMW API Gateway",
+    headline: "BMW API Gateway",
+    message: "Die Startseite buendelt alle Services, Infrastrukturinfos und die wichtigsten Einstiege an einem Ort.",
+    services: serviceCatalog,
+    infrastructure: [
+      { label: "MinIO", value: `localhost:${process.env.MINIO_PORT || 9000}/${process.env.MINIO_BUCKET || "configurator-images"}` },
+      { label: "Gateway Port", value: String(port) },
+    ],
+  });
+});
+
+app.get("/health", (_req, res) => {
+  res.json({
+    ok: true,
+    service: "api-gateway",
+    timestamp: new Date().toISOString(),
+    routes: serviceCatalog.map(({ path: routePath, name }) => ({ path: routePath, name })),
   });
 });
 
 app.get("/car-configurator", (_req, res) => {
-  const viewsPath = path.join(__dirname, "../services/car-configurator/views");
-  res.render(path.join(viewsPath, "index"), (err, html) => {
-    if (err) return res.status(500).send(err.message);
-    res.send(html);
-  });
+  renderServiceView(res, "../services/car-configurator/views");
 });
 
 app.get("/merch-shop", async (_req, res) => {
-  const viewsPath = path.join(__dirname, "../services/merch-shop/views");
   try {
     const response = await fetch(`${MERCH}/products`);
     const products = await response.json();
-    res.render(path.join(viewsPath, "index"), { products }, (err, html) => {
-      if (err) return res.status(500).send(err.message);
-      res.send(html);
-    });
+    renderServiceView(res, "../services/merch-shop/views", { products });
   } catch (err) {
     res.status(502).send("merch-shop service unavailable: " + err.message);
   }
 });
 
-app.get("/shopping-cart", (_req, res) => {
-  const viewsPath = path.join(__dirname, "../services/shopping-cart/views");
-  res.render(path.join(viewsPath, "index"), (err, html) => {
-    if (err) return res.status(500).send(err.message);
-    res.send(html);
-  });
-});
-
-app.get("/ai-feature", (_req, res) => {
-  const viewsPath = path.join(__dirname, "../services/ai-feature/views");
-  res.render(path.join(viewsPath, "index"), (err, html) => {
-    if (err) return res.status(500).send(err.message);
-    res.send(html);
-  });
-});
-
 app.get("/road-to-supercar", (_req, res) => {
-  const viewsPath = path.join(__dirname, "../services/road-to-supercar/views");
-  res.render(path.join(viewsPath, "index"), {
+  renderServiceView(res, "../services/road-to-supercar/views", {
     mapsApiKey: process.env.GOOGLE_MAPS_API_KEY || "",
-  }, (err, html) => {
-    if (err) return res.status(500).send(err.message);
-    res.send(html);
   });
 });
+
+// Remaining service views load their data client-side
+for (const route of serviceCatalog.filter(({ path: p }) => !["/car-configurator", "/merch-shop", "/road-to-supercar"].includes(p))) {
+  app.get(route.path, (_req, res) => renderServiceView(res, route.views));
+}
 
 // ── API proxy routes ─────────────────────────────────────────────────────────
 
