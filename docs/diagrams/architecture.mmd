@@ -1,0 +1,48 @@
+flowchart LR
+    user["User"]
+    web["Unified Web App"]
+
+    subgraph backend["Microservices"]
+        configurator["Configurator Service"]
+        merchandise["Merchandise Service"]
+        road["Road Service"]
+        ai["AI Feature Service"]
+        cart["Cart Service"]
+    end
+
+    subgraph data["Data Stores"]
+        mysql["MySQL"]
+        redis["Redis"]
+    end
+
+    subgraph external["External APIs"]
+        gemini["Gemini API"]
+        googlemaps["Google Maps API"]
+    end
+
+    assets["Pre-generated Configurator Images"]
+
+    user --> web
+
+    web --> configurator
+    web --> merchandise
+    web --> road
+    web --> ai
+    web --> cart
+
+    configurator --> mysql
+    configurator --> assets
+
+    merchandise --> mysql
+
+    road --> googlemaps
+
+    ai --> gemini
+    ai --> configurator
+    ai --> mysql
+    ai --> merchandise
+
+    cart --> redis
+
+    cart -. "stores car snapshot" .-> configurator
+    cart -. "stores merchandise snapshot" .-> merchandise

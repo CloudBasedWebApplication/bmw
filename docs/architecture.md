@@ -1,0 +1,260 @@
+# System Architecture
+
+## 1. Purpose
+
+This document describes the high-level architecture of the BMW cloud web app course project. It summarizes the agreed system boundaries, service responsibilities, main data flow, and infrastructure dependencies.
+
+The system is designed as one unified frontend with multiple backend microservices. The first version is optimized for local Docker-based development and demonstration, while still keeping service ownership clear.
+
+## 2. Architecture Diagram
+
+```mermaid
+flowchart LR
+    user["User"]
+    web["Unified Web App"]
+
+    subgraph backend["Microservices"]
+        configurator["Configurator Service"]
+        merchandise["Merchandise Service"]
+        road["Road Service"]
+        ai["AI Feature Service"]
+        cart["Cart Service"]
+    end
+
+    subgraph data["Data Stores"]
+        mysql["MySQL"]
+        redis["Redis"]
+    end
+
+    subgraph external["External APIs"]
+        gemini["Gemini API"]
+        googlemaps["Google Maps API"]
+    end
+
+    assets["Pre-generated Configurator Images"]
+
+    user --> web
+
+    web --> configurator
+    web --> merchandise
+    web --> road
+    web --> ai
+    web --> cart
+
+    configurator --> mysql
+    configurator --> assets
+
+    merchandise --> mysql
+
+    road --> googlemaps
+
+    ai --> gemini
+    ai --> configurator
+    ai --> mysql
+    ai --> merchandise
+
+    cart --> redis
+
+    cart -. "stores car snapshot" .-> configurator
+    cart -. "stores merchandise snapshot" .-> merchandise
+```
+
+The Mermaid source is also stored separately in `docs/diagrams/architecture.mmd`.
+
+## 3. Architecture Overview
+
+The architecture follows a simple microservice structure:
+
+- one frontend application for user interaction
+- five backend domain services
+- one relational database for persistent business data
+- one cache store for cart state
+- two external API integrations for AI and route planning
+
+The frontend is the single entry point for the user. Business truth remains in the backend services.
+
+## 4. Main Components
+
+### 4.1 Unified Web App
+
+The frontend provides one user-facing application that combines:
+
+- car configuration
+- merchandise browsing
+- route planning
+- AI recommendation
+- unified cart display
+
+The frontend should orchestrate UI behavior, but it should not own configuration validity, official pricing, or cart persistence rules.
+
+### 4.2 Configurator Service
+
+The configurator service is the source of truth for car configuration results.
+
+Its responsibilities are:
+
+- receive selected configuration parameters
+- validate whether the combination is supported
+- map the combination to a pre-generated image
+- calculate final price in the backend
+- return structured metadata such as advantages, disadvantages, and recommendation labels
+
+The service does not perform live rendering. Instead, it resolves user choices against stored combinations and associated image assets.
+
+### 4.3 Merchandise Service
+
+The merchandise service provides product information for the merchandise page.
+
+Its responsibilities are:
+
+- return product list and detail information
+- read merchandise data from MySQL
+- support cart addition and display use cases
+
+### 4.4 Road Service
+
+The road service is responsible for route planning.
+
+Its responsibilities are:
+
+- accept route planning requests from the frontend
+- use the user's location as a starting point
+- resolve routes to predefined destinations such as stores or showrooms
+- integrate Google Maps APIs
+- return route data for frontend display
+
+### 4.5 AI Feature Service
+
+The AI feature service is responsible for natural-language recommendation flow.
+
+Its responsibilities are:
+
+- accept user prompts
+- gather relevant product and configuration context
+- send structured context and prompt information to Gemini
+- receive recommended configuration parameters and natural-language rationale
+- call the configurator service to obtain the official configuration result
+- return the final recommendation payload to the frontend
+
+This service does not own official pricing or image truth. Those remain in the configurator service.
+
+### 4.6 Cart Service
+
+The cart service manages the unified cart.
+
+Its responsibilities are:
+
+- store cart state in Redis
+- aggregate both car configurations and merchandise items
+- store displayable snapshots rather than only raw identifiers
+
+For car items, the cart should persist enough snapshot data to show the selected result without requiring a fresh configurator lookup for every render.
+
+## 5. Data Stores
+
+### 5.1 MySQL
+
+MySQL stores persistent business data.
+
+Expected data domains include:
+
+- configuration option definitions
+- option values
+- valid configuration combinations
+- combination image paths or URLs
+- pricing information
+- rationale metadata
+- merchandise catalog data
+
+The first version uses a table-driven lookup model instead of a complex rules engine.
+
+### 5.2 Redis
+
+Redis stores shopping cart state.
+
+It is used because the cart is session-oriented and needs low-latency updates for:
+
+- add item
+- remove item
+- update quantity
+- display current cart content
+
+## 6. External Integrations
+
+### 6.1 Gemini API
+
+Gemini is used only by the AI feature service.
+
+Its role is to:
+
+- interpret natural-language user intent
+- recommend structured configuration parameters
+- generate recommendation rationale and trade-off explanations
+
+### 6.2 Google Maps API
+
+Google Maps related APIs are used by the road service.
+
+Their role is to:
+
+- calculate routes
+- provide map-related route information
+
+## 7. Main Request Flows
+
+### 7.1 Standard Configurator Flow
+
+1. the user selects configuration options in the frontend
+2. the frontend calls the configurator service
+3. the configurator service validates the selection
+4. the configurator service resolves the image and price
+5. the frontend displays the official result
+
+### 7.2 AI Recommendation Flow
+
+1. the user enters a natural-language request
+2. the frontend calls the AI feature service
+3. the AI feature service reads relevant context
+4. the AI feature service calls Gemini
+5. Gemini returns structured recommendation output and rationale
+6. the AI feature service calls the configurator service
+7. the configurator service returns the official configuration result
+8. the frontend shows the recommended configuration and explanation
+
+### 7.3 Cart Flow
+
+1. the frontend sends a selected car configuration or merchandise item to the cart service
+2. the cart service stores a snapshot in Redis
+3. the frontend reads the aggregated cart from the cart service
+
+### 7.4 Route Planning Flow
+
+1. the frontend sends a route request to the road service
+2. the road service calls Google Maps APIs
+3. the road service returns route information
+4. the frontend displays the route result
+
+## 8. Key Design Decisions
+
+The architecture reflects the following agreed decisions:
+
+- one unified web app is used instead of multiple frontend applications
+- the configurator uses pre-generated images instead of live rendering
+- backend services own business truth
+- configuration pricing is calculated in the backend
+- AI recommendation is implemented through a service-to-service flow, not a direct frontend-to-Gemini shortcut
+- cart stores snapshots for display stability
+- route planning is based on user location and predefined destinations
+
+## 9. First-Version Constraints
+
+To keep the course project deliverable realistic, the first version intentionally stays simple:
+
+- no authentication system
+- no production order flow
+- no live rendering engine
+- no complex pricing rule engine
+- no arbitrary destination search requirement
+
+These constraints reduce implementation cost while preserving architectural clarity.
+
