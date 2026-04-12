@@ -79,3 +79,7 @@ Contains helper scripts for local development, setup, and data preparation. The 
 ## Local Development
 
 The project is intended to run locally with Docker during the first development phase.
+
+```bash
+cp .env.example .env  # fill in GEMINI_API_KEY and GOOGLE_MAPS_API_KEY
+```

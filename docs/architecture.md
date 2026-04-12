@@ -69,7 +69,8 @@ The architecture follows a simple microservice structure:
 - five backend domain services
 - one relational database for persistent business data
 - one cache store for cart state
-- two external API integrations for AI and route planning
+- one backend AI integration (Gemini API via `ai-feature` service)
+- one client-side map integration (Google Maps JavaScript API loaded in the browser)
 
 The frontend is the single entry point for the user. Business truth remains in the backend services.
 
@@ -93,9 +94,9 @@ The configurator service is the source of truth for car configuration results.
 
 Its responsibilities are:
 
-- receive selected configuration parameters
-- validate whether the combination is supported
-- map the combination to a pre-generated image
+- support two car models; the user selects a model first, then configures options within that model
+- receive model and selected parameters, validate the combination
+- map the combination to a pre-generated image in `assets/configurator/`
 - calculate final price in the backend
 - return structured metadata such as advantages, disadvantages, and recommendation labels
 
@@ -113,28 +114,27 @@ Its responsibilities are:
 
 ### 4.4 Road Service
 
-The road service is responsible for route planning.
+The road service is responsible for supplying destination data to the frontend.
 
 Its responsibilities are:
 
-- accept route planning requests from the frontend
-- use the user's location as a starting point
-- resolve routes to predefined destinations such as stores or showrooms
-- integrate Google Maps APIs
-- return route data for frontend display
+- store predefined store and showroom destinations (name and coordinates)
+- return the destination list to the frontend
+
+Route calculation and map rendering are handled entirely client-side by the Google Maps JavaScript API embedded in the frontend. The road service does not call Google Maps directly.
 
 ### 4.5 AI Feature Service
 
-The AI feature service is responsible for natural-language recommendation flow.
+The AI feature service is a global shopping assistant accessible from any page. It handles both car configuration recommendations and merchandise recommendations.
 
 Its responsibilities are:
 
-- accept user prompts
-- gather relevant product and configuration context
-- send structured context and prompt information to Gemini
-- receive recommended configuration parameters and natural-language rationale
-- call the configurator service to obtain the official configuration result
-- return the final recommendation payload to the frontend
+- accept user natural-language prompts
+- fetch relevant context: configuration options (both models) and merchandise catalog
+- send structured context and prompt to Gemini
+- receive recommended parameters and rationale from Gemini
+- call `configurator` to resolve the official car configuration result
+- return recommendations as links: a link to the configurator page pre-filled with recommended options, and/or links to merchandise product pages
 
 This service does not own official pricing or image truth. Those remain in the configurator service.
 
