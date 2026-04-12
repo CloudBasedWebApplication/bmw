@@ -3,62 +3,144 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AI Einkaufsassistent</title>
+    <title>BMW AI Assistant</title>
     <style>
-      :root { --accent: #0066b1; --bg: #f3f5f7; --panel: #fff; --muted: #5c6670; }
-      * { box-sizing: border-box; }
-      body { margin: 0; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; background: var(--bg); }
-      .topbar { padding: 18px 16px 0; }
-      .topbar-inner { max-width: 700px; margin: 0 auto; padding: 14px 18px; background: var(--panel); border-radius: 18px; box-shadow: 0 8px 24px rgba(0,0,0,.06); display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-      .brand { text-decoration: none; color: #111; font-weight: 700; letter-spacing: .03em; white-space: nowrap; }
-      .nav-links { display: flex; flex-wrap: wrap; gap: 10px; }
-      .nav-links a { text-decoration: none; color: var(--muted); padding: 8px 12px; border-radius: 999px; }
-      .nav-links a.active, .nav-links a:hover { background: #eef4fb; color: var(--accent); }
-      .layout { max-width: 700px; margin: 0 auto; padding: 40px 20px; }
-      h1 { font-size: 2rem; margin: 0 0 8px; }
-      .subtitle { color: var(--muted); margin: 0 0 32px; font-size: 1rem; }
-      .input-row { display: flex; gap: 10px; margin-bottom: 24px; }
-      textarea { flex: 1; padding: 14px 16px; border: 2px solid #ddd; border-radius: 10px; font-size: 1rem; font-family: inherit; resize: vertical; min-height: 80px; transition: border-color .15s; }
-      textarea:focus { outline: none; border-color: var(--accent); }
-      .send-btn { padding: 14px 24px; border: none; border-radius: 10px; background: var(--accent); color: #fff; font-size: 1rem; font-weight: 600; cursor: pointer; align-self: flex-end; white-space: nowrap; }
-      .send-btn:disabled { background: #aac4e0; cursor: not-allowed; }
-      .result { background: var(--panel); border-radius: 16px; padding: 24px 28px; box-shadow: 0 4px 16px rgba(0,0,0,.07); display: none; }
-      .result.visible { display: block; }
-      .result-text { font-size: 1rem; line-height: 1.6; margin-bottom: 20px; }
-      .links-label { font-size: 0.8rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
-      .link-card { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: #eef4fb; border-radius: 10px; margin-bottom: 8px; text-decoration: none; color: var(--accent); font-weight: 600; font-size: 0.95rem; }
-      .link-card:hover { background: #ddeaf7; }
-      .link-icon { font-size: 1.4rem; }
-      .spinner { display: none; text-align: center; padding: 40px 0; color: var(--muted); }
-      .spinner.visible { display: block; }
-      .error { color: #c00; font-size: 0.9rem; margin-top: 8px; }
+      :root {
+        --accent: #0066b1;
+        --accent-dark: #004a80;
+        --bg: #f5f7f9;
+        --panel: #ffffff;
+        --text: #111111;
+        --muted: #636366;
+        --radius: 20px;
+        --shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+      }
+
+      * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+
+      body {
+        margin: 0;
+        font-family: 'Inter', -apple-system, system-ui, sans-serif;
+        background-color: var(--bg);
+        background-image: 
+          radial-gradient(at 0% 0%, rgba(0, 102, 177, 0.05) 0px, transparent 50%),
+          radial-gradient(at 100% 100%, rgba(0, 102, 177, 0.03) 0px, transparent 50%);
+        color: var(--text);
+        line-height: 1.6;
+      }
+
+      /* Navbar Refinement */
+      .topbar { padding: 20px; }
+      .topbar-inner {
+        max-width: 800px; margin: 0 auto; padding: 12px 24px;
+        background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(15px);
+        border-radius: 999px; border: 1px solid rgba(255,255,255,0.4);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+        display: flex; align-items: center; justify-content: space-between;
+      }
+      .brand { text-decoration: none; color: var(--text); font-weight: 800; font-size: 1.1rem; }
+      .nav-links { display: flex; gap: 4px; }
+      .nav-links a {
+        text-decoration: none; color: var(--muted); padding: 8px 16px;
+        border-radius: 999px; font-size: 0.85rem; font-weight: 500; transition: 0.2s;
+      }
+      .nav-links a.active, .nav-links a:hover { background: var(--text); color: white; }
+
+      .layout { max-width: 740px; margin: 0 auto; padding: 40px 20px; }
+
+      .header-area { text-align: center; margin-bottom: 40px; }
+      h1 { font-size: 2.4rem; font-weight: 800; letter-spacing: -0.03em; margin: 0 0 10px; }
+      .subtitle { color: var(--muted); font-size: 1.1rem; max-width: 500px; margin: 0 auto; }
+
+      /* Chat-like Input */
+      .chat-box {
+        background: var(--panel); border-radius: var(--radius);
+        padding: 8px; box-shadow: var(--shadow);
+        display: flex; flex-direction: column; gap: 8px;
+        border: 1px solid rgba(0,0,0,0.05); transition: transform 0.3s ease;
+      }
+      .chat-box:focus-within { transform: translateY(-2px); border-color: var(--accent); }
+
+      textarea {
+        width: 100%; padding: 20px; border: none; border-radius: var(--radius);
+        font-size: 1.1rem; font-family: inherit; resize: none; min-height: 120px; outline: none;
+      }
+
+      .actions { display: flex; justify-content: flex-end; padding: 10px; }
+      .send-btn {
+        padding: 12px 28px; border: none; border-radius: 999px;
+        background: var(--accent); color: #fff; font-size: 1rem; font-weight: 700;
+        cursor: pointer; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      }
+      .send-btn:hover:not(:disabled) { background: var(--accent-dark); transform: scale(1.05); }
+      .send-btn:disabled { background: #cbd5e1; cursor: not-allowed; }
+
+      /* Results */
+      .result {
+        background: var(--panel); border-radius: var(--radius);
+        padding: 40px; margin-top: 30px; box-shadow: var(--shadow);
+        border: 1px solid rgba(0,0,0,0.03);
+        display: none; opacity: 0; transform: translateY(10px);
+        transition: all 0.5s ease;
+      }
+      .result.visible { display: block; opacity: 1; transform: translateY(0); }
+
+      .result-text { font-size: 1.1rem; color: #334155; margin-bottom: 30px; line-height: 1.7; }
+      
+      .links-label {
+        font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+        letter-spacing: 0.1em; color: var(--muted); margin-bottom: 12px;
+      }
+
+      .link-card {
+        display: flex; align-items: center; gap: 15px; padding: 16px 20px;
+        background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px;
+        margin-bottom: 12px; text-decoration: none; color: var(--text);
+        font-weight: 600; transition: 0.2s;
+      }
+      .link-card:hover { border-color: var(--accent); background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+      .link-icon { font-size: 1.5rem; }
+
+      /* Loading State */
+      .spinner {
+        display: none; text-align: center; padding: 30px; font-weight: 600; color: var(--accent);
+      }
+      .spinner.visible { display: block; animation: pulse 1.5s infinite; }
+
+      @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+      .error { color: #dc2626; font-weight: 600; text-align: center; margin-top: 15px; }
     </style>
   </head>
   <body>
     <header class="topbar">
       <div class="topbar-inner">
         <a class="brand" href="/">BMW Gateway</a>
-        <nav class="nav-links" aria-label="Hauptnavigation">
+        <nav class="nav-links">
           <a href="/">Home</a>
           <a href="/car-configurator">Configurator</a>
-          <a href="/merch-shop">Merch Shop</a>
+          <a href="/merch-shop">Shop</a>
           <a href="/ai-feature" class="active">AI Feature</a>
-          <a href="/road-to-supercar">Road To Supercar</a>
           <a href="/shopping-cart">Warenkorb</a>
         </nav>
       </div>
     </header>
-    <div class="layout">
-      <h1>AI Einkaufsassistent</h1>
-      <p class="subtitle">Beschreibe, wonach du suchst – ich empfehle dir das passende BMW-Fahrzeug oder Merchandise.</p>
 
-      <div class="input-row">
-        <textarea id="prompt" placeholder="z.B. „Ich suche einen sportlichen BMW in Blau" oder „Was passt zu einem aktiven Lebensstil?""></textarea>
-        <button class="send-btn" id="sendBtn">Empfehlen</button>
+    <div class="layout">
+      <div class="header-area">
+        <h1>Wie kann ich helfen?</h1>
+        <p class="subtitle">Ihr persönlicher BMW-Berater. Finden Sie das Auto oder Zubehör, das perfekt zu Ihnen passt.</p>
       </div>
+
+      <div class="chat-box">
+        <textarea id="prompt" placeholder="Beschreiben Sie Ihre Wünsche... (z.B. 'Ein sportliches SUV für die Berge')"></textarea>
+        <div class="actions">
+          <button class="send-btn" id="sendBtn">Empfehlung erstellen</button>
+        </div>
+      </div>
+      
       <div class="error" id="errorMsg"></div>
 
-      <div class="spinner" id="spinner">Analysiere deine Anfrage…</div>
+      <div class="spinner" id="spinner">Analysiere Ihre Präferenzen...</div>
 
       <div class="result" id="result">
         <div class="result-text" id="resultText"></div>
@@ -67,14 +149,15 @@
     </div>
 
     <script>
-      document.getElementById("sendBtn").addEventListener("click", async () => {
-        const prompt = document.getElementById("prompt").value.trim();
-        if (!prompt) return;
+      const btn     = document.getElementById("sendBtn");
+      const promptInput = document.getElementById("prompt");
+      const spinner = document.getElementById("spinner");
+      const result  = document.getElementById("result");
+      const error   = document.getElementById("errorMsg");
 
-        const btn     = document.getElementById("sendBtn");
-        const spinner = document.getElementById("spinner");
-        const result  = document.getElementById("result");
-        const error   = document.getElementById("errorMsg");
+      btn.addEventListener("click", async () => {
+        const text = promptInput.value.trim();
+        if (!text) return;
 
         btn.disabled = true;
         spinner.classList.add("visible");
@@ -85,41 +168,50 @@
           const res  = await fetch("/api/ai/recommend", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ prompt }),
+            body: JSON.stringify({ prompt: text }),
           });
           const data = await res.json();
 
-          if (!res.ok) { error.textContent = data.error || "Fehler beim Abrufen der Empfehlung."; return; }
+          if (!res.ok) throw new Error(data.error || "Anfrage fehlgeschlagen");
 
           document.getElementById("resultText").textContent = data.text;
 
           let linksHtml = "";
           if (data.carLink) {
-            linksHtml += `<div class="links-label">Fahrzeugkonfiguration</div>
+            linksHtml += `<div class="links-label">Empfohlenes Fahrzeug</div>
               <a class="link-card" href="${data.carLink}">
-                <span class="link-icon">🚗</span> Konfiguration öffnen
+                <span class="link-icon">🚗</span> Konfiguration starten
               </a>`;
           }
           if (data.merchLinks?.length) {
-            linksHtml += `<div class="links-label" style="margin-top:16px">Merchandise</div>`;
+            linksHtml += `<div class="links-label" style="margin-top:24px">Passender Lifestyle & Merch</div>`;
             data.merchLinks.forEach(l => {
               linksHtml += `<a class="link-card" href="${l.url}">
-                <span class="link-icon">🛍️</span> Produkt ansehen (ID ${l.id})
+                <span class="link-icon">🛍️</span> Produkt entdecken
               </a>`;
             });
           }
           document.getElementById("linksSection").innerHTML = linksHtml;
-          result.classList.add("visible");
+          
+          // Small timeout for better visual transition
+          setTimeout(() => {
+            spinner.classList.remove("visible");
+            result.classList.add("visible");
+            btn.disabled = false;
+          }, 400);
+
         } catch (err) {
-          error.textContent = "Netzwerkfehler: " + err.message;
-        } finally {
+          error.textContent = err.message;
           btn.disabled = false;
           spinner.classList.remove("visible");
         }
       });
 
-      document.getElementById("prompt").addEventListener("keydown", e => {
-        if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); document.getElementById("sendBtn").click(); }
+      promptInput.addEventListener("keydown", e => {
+        if (e.key === "Enter" && !e.shiftKey) { 
+            e.preventDefault(); 
+            btn.click(); 
+        }
       });
     </script>
   </body>
