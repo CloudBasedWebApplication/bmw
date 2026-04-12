@@ -4,26 +4,26 @@
 
 This document describes the high-level architecture of the BMW cloud web app course project. It summarizes the agreed system boundaries, service responsibilities, main data flow, and infrastructure dependencies.
 
-The system is designed as one unified frontend with multiple backend microservices. The first version is optimized for local Docker-based development and demonstration, while still keeping service ownership clear.
+The system is designed around one gateway-style web application with multiple backend microservices. The first version is optimized for local Docker-based development and demonstration, while still keeping service ownership clear.
 
 ## 2. Architecture Diagram
 
 ```mermaid
 flowchart LR
     user["User"]
-    web["Unified Web App"]
+    gateway["API Gateway / Web App"]
 
     subgraph backend["Microservices"]
-        configurator["Configurator Service"]
-        merchandise["Merchandise Service"]
-        road["Road Service"]
+        configurator["Car Configurator Service"]
+        merchandise["Merch Shop Service"]
         ai["AI Feature Service"]
-        cart["Cart Service"]
+        cart["Shopping Cart Service"]
     end
 
     subgraph data["Data Stores"]
         mysql["MySQL"]
         redis["Redis"]
+        minio["MinIO"]
     end
 
     subgraph external["External APIs"]
@@ -31,22 +31,18 @@ flowchart LR
         googlemaps["Google Maps API"]
     end
 
-    assets["Pre-generated Configurator Images"]
+    user --> gateway
 
-    user --> web
-
-    web --> configurator
-    web --> merchandise
-    web --> road
-    web --> ai
-    web --> cart
+    gateway --> configurator
+    gateway --> merchandise
+    gateway --> ai
+    gateway --> cart
+    gateway --> googlemaps
 
     configurator --> mysql
-    configurator --> assets
+    configurator --> minio
 
     merchandise --> mysql
-
-    road --> googlemaps
 
     ai --> gemini
     ai --> configurator
@@ -65,20 +61,21 @@ The Mermaid source is also stored separately in `docs/diagrams/architecture.mmd`
 
 The architecture follows a simple microservice structure:
 
-- one frontend application for user interaction
-- five backend domain services
+- one gateway-style web application for user interaction and page rendering
+- four backend domain services
 - one relational database for persistent business data
 - one cache store for cart state
+- one object storage service for configurator images
 - one backend AI integration (Gemini API via `ai-feature` service)
-- one client-side map integration (Google Maps JavaScript API loaded in the browser)
+- one map integration where route calculation is requested through the backend
 
-The frontend is the single entry point for the user. Business truth remains in the backend services.
+The API gateway is the single entry point for the user. Business truth remains in the backend services.
 
 ## 4. Main Components
 
-### 4.1 Unified Web App
+### 4.1 API Gateway / Web App
 
-The frontend provides one user-facing application that combines:
+The `api-gateway` directory provides one user-facing application that combines:
 
 - car configuration
 - merchandise browsing
@@ -86,7 +83,15 @@ The frontend provides one user-facing application that combines:
 - AI recommendation
 - unified cart display
 
-The frontend should orchestrate UI behavior, but it should not own configuration validity, official pricing, or cart persistence rules.
+Its role is to:
+
+- serve the UI pages
+- collect browser requests
+- call backend services
+- accept a route-planning request using either the user's current location or a manually entered origin
+- display the route result returned by the backend
+
+It should not own configuration validity, official pricing, or cart persistence rules.
 
 ### 4.2 Configurator Service
 
@@ -96,15 +101,15 @@ Its responsibilities are:
 
 - support two car models; the user selects a model first, then configures options within that model
 - receive model and selected parameters, validate the combination
-- map the combination to a pre-generated image in `assets/configurator/`
+- map the combination to a pre-generated image stored in MinIO
 - calculate final price in the backend
 - return structured metadata such as advantages, disadvantages, and recommendation labels
 
-The service does not perform live rendering. Instead, it resolves user choices against stored combinations and associated image assets.
+The service does not perform live rendering. Instead, it resolves user choices against stored combinations and associated image objects in MinIO.
 
-### 4.3 Merchandise Service
+### 4.3 Merch Shop Service
 
-The merchandise service provides product information for the merchandise page.
+The merch shop service provides product information for the merchandise page.
 
 Its responsibilities are:
 
@@ -112,16 +117,19 @@ Its responsibilities are:
 - read merchandise data from MySQL
 - support cart addition and display use cases
 
-### 4.4 Road Service
+### 4.4 Route Planning in the Gateway
 
-The road service is responsible for supplying destination data to the frontend.
+There is currently no standalone `road` service directory in the repository.
 
-Its responsibilities are:
+Route planning is currently represented as a backend capability inside the web or gateway layer:
 
-- store predefined store and showroom destinations (name and coordinates)
-- return the destination list to the frontend
+- the frontend can use the user's current location or allow manual origin input
+- the backend keeps a hardcoded list of store or showroom destinations
+- the frontend sends the origin and selected destination to the backend
+- the backend requests route data from Google Maps and returns the route result
+- the frontend renders the returned route information
 
-Route calculation and map rendering are handled entirely client-side by the Google Maps JavaScript API embedded in the frontend. The road service does not call Google Maps directly.
+If the team later restores a standalone `road` service, this document should be updated accordingly.
 
 ### 4.5 AI Feature Service
 
@@ -138,7 +146,7 @@ Its responsibilities are:
 
 This service does not own official pricing or image truth. Those remain in the configurator service.
 
-### 4.6 Cart Service
+### 4.6 Shopping Cart Service
 
 The cart service manages the unified cart.
 
@@ -179,6 +187,16 @@ It is used because the cart is session-oriented and needs low-latency updates fo
 - update quantity
 - display current cart content
 
+### 5.3 MinIO
+
+MinIO stores pre-generated configurator images.
+
+It is used because:
+
+- configurator images are binary assets rather than relational records
+- the configurator service can return stable object URLs or object keys
+- it matches the intended object-storage pattern better than storing image files directly in the service codebase
+
 ## 6. External Integrations
 
 ### 6.1 Gemini API
@@ -193,12 +211,12 @@ Its role is to:
 
 ### 6.2 Google Maps API
 
-Google Maps related APIs are used by the road service.
+Google Maps is used for route planning through the backend-facing web layer.
 
-Their role is to:
+Its role is to:
 
-- calculate routes
-- provide map-related route information
+- calculate routes from the user-provided origin to a hardcoded destination
+- provide route information that the frontend can render
 
 ## 7. Main Request Flows
 
@@ -229,22 +247,26 @@ Their role is to:
 
 ### 7.4 Route Planning Flow
 
-1. the frontend sends a route request to the road service
-2. the road service calls Google Maps APIs
-3. the road service returns route information
-4. the frontend displays the route result
+1. the user opens the route planning page in the web application
+2. the user either shares current location or enters an origin manually
+3. the user selects one of the hardcoded store destinations
+4. the web layer sends the route request to the backend
+5. the backend requests route data from Google Maps
+6. the frontend displays the returned route result
 
 ## 8. Key Design Decisions
 
 The architecture reflects the following agreed decisions:
 
 - one unified web app is used instead of multiple frontend applications
+- the repository currently uses an `api-gateway` directory as the web entry point
 - the configurator uses pre-generated images instead of live rendering
+- pre-generated configurator images are stored in MinIO
 - backend services own business truth
 - configuration pricing is calculated in the backend
 - AI recommendation is implemented through a service-to-service flow, not a direct frontend-to-Gemini shortcut
 - cart stores snapshots for display stability
-- route planning is based on user location and predefined destinations
+- route planning accepts current location or manual origin input and uses hardcoded store destinations through backend routing logic
 
 ## 9. First-Version Constraints
 
@@ -257,4 +279,3 @@ To keep the course project deliverable realistic, the first version intentionall
 - no arbitrary destination search requirement
 
 These constraints reduce implementation cost while preserving architectural clarity.
-

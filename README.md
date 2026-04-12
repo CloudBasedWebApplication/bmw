@@ -6,19 +6,16 @@ Course project for a cloud-based web application built with a microservices arch
 
 ```text
 bmw/
-├─ apps/
-│  └─ web/
+├─ api-gateway/
+│  ├─ src/
+│  └─ views/
 ├─ services/
-│  ├─ configurator/
-│  ├─ merchandise/
-│  ├─ road/
+│  ├─ car-configurator/
+│  ├─ merch-shop/
 │  ├─ ai-feature/
-│  └─ cart/
-├─ infrastructure/
-│  └─ mysql/
+│  └─ shopping-cart/
 ├─ assets/
-│  ├─ configurator/
-│  └─ merchandise/
+│  └─ configurator/
 ├─ docs/
 │  └─ diagrams/
 ├─ scripts/
@@ -29,34 +26,29 @@ bmw/
 
 ## What Each Directory Is For
 
-### `apps/`
+### `api-gateway/`
 
-Contains user-facing applications.
+Contains the user-facing entry application.
 
-- `apps/web/`: the unified frontend for configurator, merchandise, route planning, AI assistant, and cart
+- `api-gateway/src/`: gateway and server-side application code
+- `api-gateway/views/`: EJS templates rendered for the web UI
+
+This directory acts as the unified entry point for the app. It serves the pages and coordinates calls to backend services.
 
 ### `services/`
 
 Contains all backend microservices.
 
-- `services/configurator/`: resolves selected options into a pre-generated image, validates combinations, and calculates price
-- `services/merchandise/`: provides merchandise catalog and product detail data
-- `services/road/`: handles route planning through Google Maps related APIs
+- `services/car-configurator/`: resolves selected options into a pre-generated image, validates combinations, and calculates price
+- `services/merch-shop/`: provides merchandise catalog and product detail data
 - `services/ai-feature/`: integrates Gemini, generates recommendations, and calls the configurator service
-- `services/cart/`: stores and returns unified cart state for both car configurations and merchandise
-
-### `infrastructure/`
-
-Contains local infrastructure-related files used by Docker.
-
-- `infrastructure/mysql/`: MySQL initialization scripts and seed data for local development
+- `services/shopping-cart/`: stores and returns unified cart state for both car configurations and merchandise
 
 ### `assets/`
 
 Contains business assets that are not source code.
 
 - `assets/configurator/`: pre-generated configurator images and related metadata
-- `assets/merchandise/`: merchandise-related static assets if needed later
 
 ### `docs/`
 
