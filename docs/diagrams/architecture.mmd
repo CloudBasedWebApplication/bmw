@@ -1,18 +1,18 @@
 flowchart LR
     user["User"]
-    web["Unified Web App"]
+    gateway["API Gateway / Web App"]
 
     subgraph backend["Microservices"]
-        configurator["Configurator Service"]
-        merchandise["Merchandise Service"]
-        road["Road Service"]
+        configurator["Car Configurator Service"]
+        merchandise["Merch Shop Service"]
         ai["AI Feature Service"]
-        cart["Cart Service"]
+        cart["Shopping Cart Service"]
     end
 
     subgraph data["Data Stores"]
         mysql["MySQL"]
         redis["Redis"]
+        minio["MinIO"]
     end
 
     subgraph external["External APIs"]
@@ -20,22 +20,18 @@ flowchart LR
         googlemaps["Google Maps API"]
     end
 
-    assets["Pre-generated Configurator Images"]
+    user --> gateway
 
-    user --> web
-
-    web --> configurator
-    web --> merchandise
-    web --> road
-    web --> ai
-    web --> cart
+    gateway --> configurator
+    gateway --> merchandise
+    gateway --> ai
+    gateway --> cart
+    gateway --> googlemaps
 
     configurator --> mysql
-    configurator --> assets
+    configurator --> minio
 
     merchandise --> mysql
-
-    road --> googlemaps
 
     ai --> gemini
     ai --> configurator
