@@ -37,6 +37,7 @@ venv/
 tmp/
 .tmp/
 data/
+infrastructure/minio/data/
 
 # Misc
 *.swp
