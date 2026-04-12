@@ -1,23 +1,29 @@
 const path = require("path");
 const express = require("express");
-const mysql = require("mysql2/promise");
+const cookieParser = require("cookie-parser");
 
 const app = express();
-const port = process.env.PORT || 8080;
+const port = process.env.PORT || 3000;
 
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "..", "views"));
 app.disable("view cache");
+app.use(express.json());
+app.use(cookieParser());
 
-const dbConfig = {
-  host: process.env.MYSQL_HOST || "mysql",
-  port: process.env.MYSQL_PORT || 3306,
-  user: process.env.MYSQL_USER || "bmw_user",
-  password: process.env.MYSQL_PASSWORD || "change_me",
-  database: process.env.MYSQL_DATABASE || "bmw_app",
-};
+// Service base URLs (container-internal)
+const CONFIGURATOR = process.env.CONFIGURATOR_URL || "http://car-configurator:3001";
+const MERCH        = process.env.MERCH_URL        || "http://merch-shop:3002";
+const CART         = process.env.CART_URL         || "http://shopping-cart:3005";
+const AI           = process.env.AI_URL           || "http://ai-feature:3004";
 
-const minioPublicUrl = `http://localhost:${process.env.MINIO_PORT || 9000}/${process.env.MINIO_BUCKET || "configurator-images"}`;
+// Ensure every request has a session cookie for cart tracking
+app.use((req, res, next) => {
+  if (!req.cookies.sessionId) {
+    res.cookie("sessionId", crypto.randomUUID(), { httpOnly: true });
+  }
+  next();
+});
 
 const serviceCatalog = [
   {
@@ -51,7 +57,7 @@ const serviceCatalog = [
   {
     path: "/shopping-cart",
     name: "Shopping Cart",
-    description: "Warenkorb fuer Merchandise und spaetere Fahrzeug-Snapshots.",
+    description: "Warenkorb fuer Merchandise und Fahrzeug-Snapshots.",
     views: "../services/shopping-cart/views",
     accent: "primary",
   },
@@ -59,45 +65,24 @@ const serviceCatalog = [
 
 function renderServiceView(res, viewsDirectory, locals = {}) {
   const viewsPath = path.join(__dirname, viewsDirectory);
-
   res.render(path.join(viewsPath, "index"), locals, (err, html) => {
-    if (err) {
-      return res.status(500).send(err.message);
-    }
-
-    return res.send(html);
+    if (err) return res.status(500).send(err.message);
+    res.send(html);
   });
 }
 
-app.get(["/", "/index.html"], (req, res) => {
+// ── Page routes ──────────────────────────────────────────────────────────────
+
+app.get(["/", "/index.html"], (_req, res) => {
   res.render("index", {
     title: "BMW API Gateway",
     headline: "BMW API Gateway",
     message: "Die Startseite buendelt alle Services, Infrastrukturinfos und die wichtigsten Einstiege an einem Ort.",
     services: serviceCatalog,
     infrastructure: [
-      { label: "MySQL", value: `${dbConfig.host}:${dbConfig.port}` },
-      { label: "MinIO Bucket", value: minioPublicUrl },
+      { label: "MinIO", value: `localhost:${process.env.MINIO_PORT || 9000}/${process.env.MINIO_BUCKET || "configurator-images"}` },
       { label: "Gateway Port", value: String(port) },
     ],
-  });
-});
-
-app.get("/merch-shop", async (_req, res) => {
-  try {
-    const conn = await mysql.createConnection(dbConfig);
-    const [products] = await conn.query("SELECT * FROM merch_shop ORDER BY id");
-    await conn.end();
-
-    renderServiceView(res, "../services/merch-shop/views", { products });
-  } catch (err) {
-    res.status(500).send("Datenbankfehler: " + err.message);
-  }
-});
-
-app.get("/car-configurator", (_req, res) => {
-  renderServiceView(res, "../services/car-configurator/views", {
-    minioBaseUrl: minioPublicUrl,
   });
 });
 
@@ -110,12 +95,99 @@ app.get("/health", (_req, res) => {
   });
 });
 
-for (const route of serviceCatalog.filter(({ path: routePath }) => !["/car-configurator", "/merch-shop"].includes(routePath))) {
-  app.get(route.path, (_req, res) => {
-    renderServiceView(res, route.views);
+app.get("/car-configurator", (_req, res) => {
+  renderServiceView(res, "../services/car-configurator/views");
+});
+
+app.get("/merch-shop", async (_req, res) => {
+  try {
+    const response = await fetch(`${MERCH}/products`);
+    const products = await response.json();
+    renderServiceView(res, "../services/merch-shop/views", { products });
+  } catch (err) {
+    res.status(502).send("merch-shop service unavailable: " + err.message);
+  }
+});
+
+app.get("/road-to-supercar", (_req, res) => {
+  renderServiceView(res, "../services/road-to-supercar/views", {
+    mapsApiKey: process.env.GOOGLE_MAPS_API_KEY || "",
   });
+});
+
+// Remaining service views load their data client-side
+for (const route of serviceCatalog.filter(({ path: p }) => !["/car-configurator", "/merch-shop", "/road-to-supercar"].includes(p))) {
+  app.get(route.path, (_req, res) => renderServiceView(res, route.views));
 }
 
-app.listen(port, () => {
-  console.log(`API gateway listening on port ${port}`);
+// ── API proxy routes ─────────────────────────────────────────────────────────
+
+app.get("/api/configurator/models", async (_req, res) => {
+  try {
+    const r = await fetch(`${CONFIGURATOR}/models`);
+    res.status(r.status).json(await r.json());
+  } catch (err) {
+    res.status(502).json({ error: err.message });
+  }
 });
+
+app.get("/api/configurator/configure", async (req, res) => {
+  const { model, color } = req.query;
+  try {
+    const r = await fetch(`${CONFIGURATOR}/configure?model=${encodeURIComponent(model)}&color=${encodeURIComponent(color)}`);
+    res.status(r.status).json(await r.json());
+  } catch (err) {
+    res.status(502).json({ error: err.message });
+  }
+});
+
+app.get("/api/cart", async (req, res) => {
+  const sessionId = req.cookies.sessionId;
+  try {
+    const r = await fetch(`${CART}/cart/${sessionId}`);
+    res.status(r.status).json(await r.json());
+  } catch (err) {
+    res.status(502).json({ error: err.message });
+  }
+});
+
+app.post("/api/cart/items", async (req, res) => {
+  const sessionId = req.cookies.sessionId;
+  try {
+    const r = await fetch(`${CART}/cart/${sessionId}/items`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(req.body),
+    });
+    res.status(r.status).json(await r.json());
+  } catch (err) {
+    res.status(502).json({ error: err.message });
+  }
+});
+
+app.delete("/api/cart/items/:itemId", async (req, res) => {
+  const sessionId = req.cookies.sessionId;
+  try {
+    const r = await fetch(`${CART}/cart/${sessionId}/items/${req.params.itemId}`, {
+      method: "DELETE",
+    });
+    res.status(r.status).json(await r.json());
+  } catch (err) {
+    res.status(502).json({ error: err.message });
+  }
+});
+
+app.post("/api/ai/recommend", async (req, res) => {
+  try {
+    const r = await fetch(`${AI}/recommend`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(req.body),
+    });
+    res.status(r.status).json(await r.json());
+  } catch (err) {
+    res.status(502).json({ error: err.message });
+  }
+});
+
+app.listen(port, () => console.log(`API gateway listening on port ${port}`));

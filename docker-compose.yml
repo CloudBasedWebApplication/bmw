@@ -8,24 +8,70 @@ services:
     env_file: .env
     environment:
       PORT: 3000
+      CONFIGURATOR_URL: http://car-configurator:3001
+      MERCH_URL: http://merch-shop:3002
+      CART_URL: http://shopping-cart:3005
+      AI_URL: http://ai-feature:3004
     depends_on:
-      - mysql
+      - car-configurator
+      - merch-shop
+      - shopping-cart
+      - ai-feature
     volumes:
       - ./api-gateway/src:/app/src
       - ./api-gateway/views:/app/views
       - ./services:/app/services
 
   car-configurator:
-    profiles: ["placeholder"]
+    build:
+      context: ./services/car-configurator
+    ports:
+      - "3001:3001"
+    env_file: .env
+    environment:
+      PORT: 3001
+      MINIO_PUBLIC_HOST: localhost
+    depends_on:
+      mysql:
+        condition: service_healthy
 
   merch-shop:
-    profiles: ["placeholder"]
-
-  ai-feature:
-    profiles: ["placeholder"]
+    build:
+      context: ./services/merch-shop
+    ports:
+      - "3002:3002"
+    env_file: .env
+    environment:
+      PORT: 3002
+      MINIO_PUBLIC_HOST: localhost
+    depends_on:
+      mysql:
+        condition: service_healthy
 
   shopping-cart:
-    profiles: ["placeholder"]
+    build:
+      context: ./services/shopping-cart
+    ports:
+      - "3005:3005"
+    env_file: .env
+    environment:
+      PORT: 3005
+    depends_on:
+      - redis
+
+  ai-feature:
+    build:
+      context: ./services/ai-feature
+    ports:
+      - "3004:3004"
+    env_file: .env
+    environment:
+      PORT: 3004
+      CONFIGURATOR_URL: http://car-configurator:3001
+      MERCH_URL: http://merch-shop:3002
+    depends_on:
+      - car-configurator
+      - merch-shop
 
   mysql:
     image: mysql:8.4.8
@@ -55,12 +101,8 @@ services:
       - ./infrastructure/mysql/init:/seed:ro
     entrypoint: >
       /bin/sh -c "
-      mysql
-      -h mysql
-      -u root
-      -p${MYSQL_ROOT_PASSWORD}
-      ${MYSQL_DATABASE}
-      < /seed/01_merch_shop.sql
+      mysql -h mysql -u root -p${MYSQL_ROOT_PASSWORD} ${MYSQL_DATABASE} < /seed/01_merch_shop.sql &&
+      mysql -h mysql -u root -p${MYSQL_ROOT_PASSWORD} ${MYSQL_DATABASE} < /seed/02_car_configurator.sql
       "
 
   redis:

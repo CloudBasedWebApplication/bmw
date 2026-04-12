@@ -2,9 +2,106 @@
 <html lang="de">
   <head>
     <meta charset="UTF-8" />
-    <title>AI Feature</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Einkaufsassistent</title>
+    <style>
+      :root { --accent: #0066b1; --bg: #f3f5f7; --panel: #fff; --muted: #5c6670; }
+      * { box-sizing: border-box; }
+      body { margin: 0; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; background: var(--bg); }
+      .layout { max-width: 700px; margin: 0 auto; padding: 40px 20px; }
+      h1 { font-size: 2rem; margin: 0 0 8px; }
+      .subtitle { color: var(--muted); margin: 0 0 32px; font-size: 1rem; }
+      .input-row { display: flex; gap: 10px; margin-bottom: 24px; }
+      textarea { flex: 1; padding: 14px 16px; border: 2px solid #ddd; border-radius: 10px; font-size: 1rem; font-family: inherit; resize: vertical; min-height: 80px; transition: border-color .15s; }
+      textarea:focus { outline: none; border-color: var(--accent); }
+      .send-btn { padding: 14px 24px; border: none; border-radius: 10px; background: var(--accent); color: #fff; font-size: 1rem; font-weight: 600; cursor: pointer; align-self: flex-end; white-space: nowrap; }
+      .send-btn:disabled { background: #aac4e0; cursor: not-allowed; }
+      .result { background: var(--panel); border-radius: 16px; padding: 24px 28px; box-shadow: 0 4px 16px rgba(0,0,0,.07); display: none; }
+      .result.visible { display: block; }
+      .result-text { font-size: 1rem; line-height: 1.6; margin-bottom: 20px; }
+      .links-label { font-size: 0.8rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+      .link-card { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: #eef4fb; border-radius: 10px; margin-bottom: 8px; text-decoration: none; color: var(--accent); font-weight: 600; font-size: 0.95rem; }
+      .link-card:hover { background: #ddeaf7; }
+      .link-icon { font-size: 1.4rem; }
+      .spinner { display: none; text-align: center; padding: 40px 0; color: var(--muted); }
+      .spinner.visible { display: block; }
+      .error { color: #c00; font-size: 0.9rem; margin-top: 8px; }
+    </style>
   </head>
   <body>
-    <h1>AI Feature</h1>
+    <div class="layout">
+      <h1>AI Einkaufsassistent</h1>
+      <p class="subtitle">Beschreibe, wonach du suchst – ich empfehle dir das passende BMW-Fahrzeug oder Merchandise.</p>
+
+      <div class="input-row">
+        <textarea id="prompt" placeholder="z.B. „Ich suche einen sportlichen BMW in Blau" oder „Was passt zu einem aktiven Lebensstil?""></textarea>
+        <button class="send-btn" id="sendBtn">Empfehlen</button>
+      </div>
+      <div class="error" id="errorMsg"></div>
+
+      <div class="spinner" id="spinner">Analysiere deine Anfrage…</div>
+
+      <div class="result" id="result">
+        <div class="result-text" id="resultText"></div>
+        <div id="linksSection"></div>
+      </div>
+    </div>
+
+    <script>
+      document.getElementById("sendBtn").addEventListener("click", async () => {
+        const prompt = document.getElementById("prompt").value.trim();
+        if (!prompt) return;
+
+        const btn     = document.getElementById("sendBtn");
+        const spinner = document.getElementById("spinner");
+        const result  = document.getElementById("result");
+        const error   = document.getElementById("errorMsg");
+
+        btn.disabled = true;
+        spinner.classList.add("visible");
+        result.classList.remove("visible");
+        error.textContent = "";
+
+        try {
+          const res  = await fetch("/api/ai/recommend", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ prompt }),
+          });
+          const data = await res.json();
+
+          if (!res.ok) { error.textContent = data.error || "Fehler beim Abrufen der Empfehlung."; return; }
+
+          document.getElementById("resultText").textContent = data.text;
+
+          let linksHtml = "";
+          if (data.carLink) {
+            linksHtml += `<div class="links-label">Fahrzeugkonfiguration</div>
+              <a class="link-card" href="${data.carLink}">
+                <span class="link-icon">🚗</span> Konfiguration öffnen
+              </a>`;
+          }
+          if (data.merchLinks?.length) {
+            linksHtml += `<div class="links-label" style="margin-top:16px">Merchandise</div>`;
+            data.merchLinks.forEach(l => {
+              linksHtml += `<a class="link-card" href="${l.url}">
+                <span class="link-icon">🛍️</span> Produkt ansehen (ID ${l.id})
+              </a>`;
+            });
+          }
+          document.getElementById("linksSection").innerHTML = linksHtml;
+          result.classList.add("visible");
+        } catch (err) {
+          error.textContent = "Netzwerkfehler: " + err.message;
+        } finally {
+          btn.disabled = false;
+          spinner.classList.remove("visible");
+        }
+      });
+
+      document.getElementById("prompt").addEventListener("keydown", e => {
+        if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); document.getElementById("sendBtn").click(); }
+      });
+    </script>
   </body>
 </html>

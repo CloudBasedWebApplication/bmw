@@ -5,71 +5,185 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Car Configurator</title>
     <style>
-      :root {
-        --bg: #f3f5f7;
-        --panel: #ffffff;
-        --text: #111111;
-        --muted: #5c6670;
-        --accent: #0066b1;
-      }
-
+      :root { --accent: #0066b1; --bg: #f3f5f7; --panel: #fff; --text: #111; --muted: #5c6670; }
       * { box-sizing: border-box; }
-
-      body {
-        margin: 0;
-        min-height: 100vh;
-        display: grid;
-        place-items: center;
-        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-        background:
-          radial-gradient(circle at top left, rgba(0, 102, 177, 0.12), transparent 30%),
-          linear-gradient(180deg, #fafbfc 0%, var(--bg) 100%);
-        color: var(--text);
-      }
-
-      main {
-        width: min(800px, calc(100% - 32px));
-        padding: 40px;
-        border-radius: 24px;
-        background: var(--panel);
-        box-shadow: 0 18px 48px rgba(17, 17, 17, 0.08);
-      }
-
-      h1 {
-        margin: 0 0 24px;
-        font-size: clamp(1.8rem, 4vw, 2.8rem);
-        line-height: 1;
-      }
-
-      .car-image {
-        width: 100%;
-        border-radius: 16px;
-        overflow: hidden;
-      }
-
-      .car-image img {
-        width: 100%;
-        display: block;
-        object-fit: cover;
-      }
-
-      p {
-        margin: 16px 0 0;
-        font-size: 1rem;
-        color: var(--muted);
-      }
+      body { margin: 0; min-height: 100vh; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); }
+      .layout { max-width: 960px; margin: 0 auto; padding: 40px 20px; }
+      h1 { font-size: 2rem; margin: 0 0 32px; }
+      .section-label { font-size: 0.8rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+      .btn-group { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 28px; }
+      .btn { padding: 10px 22px; border: 2px solid #ddd; border-radius: 8px; background: #fff; font-size: 0.95rem; cursor: pointer; transition: border-color .15s, background .15s; }
+      .btn.active { border-color: var(--accent); background: var(--accent); color: #fff; }
+      .swatch { width: 36px; height: 36px; border-radius: 50%; border: 3px solid #ddd; cursor: pointer; transition: border-color .15s; }
+      .swatch.active { border-color: var(--accent); }
+      .swatch.black { background: #1a1a1a; }
+      .swatch.blue  { background: #1c69d4; }
+      .swatch.white { background: #f0f0f0; }
+      .car-stage { position: relative; background: var(--panel); border-radius: 20px; overflow: hidden; box-shadow: 0 12px 40px rgba(0,0,0,.08); margin-bottom: 24px; }
+      .car-stage img { width: 100%; display: block; object-fit: cover; min-height: 260px; }
+      .view-tabs { display: flex; gap: 8px; margin-bottom: 24px; }
+      .view-tab { padding: 7px 16px; border-radius: 20px; border: 1px solid #ddd; background: #fff; font-size: 0.85rem; cursor: pointer; }
+      .view-tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+      .info-panel { background: var(--panel); border-radius: 16px; padding: 24px 28px; box-shadow: 0 4px 16px rgba(0,0,0,.06); }
+      .price { font-size: 1.8rem; font-weight: 700; color: var(--accent); margin-bottom: 16px; }
+      .lists { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+      .list-box h3 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 8px; }
+      .list-box ul { margin: 0; padding-left: 18px; font-size: 0.9rem; line-height: 1.7; }
+      .add-btn { width: 100%; padding: 14px; border-radius: 10px; border: none; background: var(--accent); color: #fff; font-size: 1rem; font-weight: 600; cursor: pointer; }
+      .add-btn:hover { background: #0055a0; }
+      #status { margin-top: 10px; font-size: 0.85rem; color: var(--muted); text-align: center; min-height: 20px; }
+      .skeleton { background: linear-gradient(90deg, #eee 25%, #f8f8f8 50%, #eee 75%); background-size: 200% 100%; animation: shimmer 1.2s infinite; border-radius: 8px; }
+      @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
     </style>
   </head>
   <body>
-    <main>
+    <div class="layout">
       <h1>Car Configurator</h1>
-      <div class="car-image">
-        <img
-          src="<%= minioBaseUrl %>/configurator/3BMWBlackFamily.webp"
-          alt="BMW 3er – Schwarz"
-        />
+
+      <div class="section-label">Modell</div>
+      <div class="btn-group" id="modelBtns"></div>
+
+      <div class="section-label">Farbe</div>
+      <div class="btn-group" id="colorBtns">
+        <button class="swatch black" data-color="Black" title="Schwarz"></button>
+        <button class="swatch blue"  data-color="Blue"  title="Blau"></button>
+        <button class="swatch white" data-color="White" title="Weiß"></button>
       </div>
-      <p>Bild geladen aus MinIO: <code><%= minioBaseUrl %>/configurator/</code></p>
-    </main>
+
+      <div class="view-tabs" id="viewTabs" style="display:none">
+        <button class="view-tab active" data-view="front">Vorne</button>
+        <button class="view-tab" data-view="back">Hinten</button>
+        <button class="view-tab" data-view="wheels" id="wheelsTab">Räder</button>
+      </div>
+
+      <div class="car-stage">
+        <img id="carImg" src="" alt="Konfiguriertes Fahrzeug" style="min-height:320px" />
+      </div>
+
+      <div class="info-panel" id="infoPanel">
+        <div class="price" id="price">– €</div>
+        <div class="lists">
+          <div class="list-box">
+            <h3>Vorteile</h3>
+            <ul id="advantages"><li style="color:#ccc">–</li></ul>
+          </div>
+          <div class="list-box">
+            <h3>Nachteile</h3>
+            <ul id="disadvantages"><li style="color:#ccc">–</li></ul>
+          </div>
+        </div>
+        <button class="add-btn" id="addBtn" disabled>Zum Warenkorb hinzufügen</button>
+        <div id="status"></div>
+      </div>
+    </div>
+
+    <script>
+      let models = [];
+      let current = { model: null, color: "Black", view: "front", config: null };
+
+      async function loadModels() {
+        const res = await fetch("/api/configurator/models");
+        models = await res.json();
+        const container = document.getElementById("modelBtns");
+        models.forEach((m, i) => {
+          const btn = document.createElement("button");
+          btn.className = "btn" + (i === 0 ? " active" : "");
+          btn.textContent = m.name + " " + m.packageName;
+          btn.dataset.code = m.code;
+          btn.addEventListener("click", () => selectModel(m.code, btn));
+          container.appendChild(btn);
+        });
+        if (models.length) selectModel(models[0].code, container.firstChild);
+      }
+
+      function selectModel(code, btn) {
+        current.model = code;
+        document.querySelectorAll("#modelBtns .btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        loadConfig();
+      }
+
+      document.querySelectorAll(".swatch").forEach(s => {
+        s.addEventListener("click", () => {
+          current.color = s.dataset.color;
+          document.querySelectorAll(".swatch").forEach(x => x.classList.remove("active"));
+          s.classList.add("active");
+          loadConfig();
+        });
+      });
+      // default color active
+      document.querySelector('.swatch.black').classList.add("active");
+
+      document.querySelectorAll(".view-tab").forEach(t => {
+        t.addEventListener("click", () => {
+          current.view = t.dataset.view;
+          document.querySelectorAll(".view-tab").forEach(x => x.classList.remove("active"));
+          t.classList.add("active");
+          updateImage();
+        });
+      });
+
+      async function loadConfig() {
+        if (!current.model) return;
+        const res = await fetch(`/api/configurator/configure?model=${current.model}&color=${current.color}`);
+        if (!res.ok) { current.config = null; updateUI(); return; }
+        current.config = await res.json();
+        updateUI();
+      }
+
+      function updateUI() {
+        const cfg = current.config;
+        const panel = document.getElementById("viewTabs");
+        if (!cfg) {
+          document.getElementById("carImg").src = "";
+          document.getElementById("price").textContent = "Kombination nicht verfügbar";
+          document.getElementById("addBtn").disabled = true;
+          panel.style.display = "none";
+          return;
+        }
+        panel.style.display = "flex";
+        document.getElementById("wheelsTab").style.display = cfg.imageUrlWheels ? "" : "none";
+        if (current.view === "wheels" && !cfg.imageUrlWheels) current.view = "front";
+        updateImage();
+        document.getElementById("price").textContent = cfg.price.toLocaleString("de-DE", { style: "currency", currency: "EUR" });
+        const adv = document.getElementById("advantages");
+        const dis = document.getElementById("disadvantages");
+        adv.innerHTML = cfg.advantages.map(a => `<li>${a}</li>`).join("") || "<li>–</li>";
+        dis.innerHTML = cfg.disadvantages.map(d => `<li>${d}</li>`).join("") || "<li>–</li>";
+        document.getElementById("addBtn").disabled = false;
+      }
+
+      function updateImage() {
+        const cfg = current.config;
+        if (!cfg) return;
+        const urls = { front: cfg.imageUrl, back: cfg.imageUrlBack, wheels: cfg.imageUrlWheels };
+        document.getElementById("carImg").src = urls[current.view] || cfg.imageUrl;
+      }
+
+      document.getElementById("addBtn").addEventListener("click", async () => {
+        const cfg = current.config;
+        if (!cfg) return;
+        const btn = document.getElementById("addBtn");
+        const status = document.getElementById("status");
+        btn.disabled = true;
+        const res = await fetch("/api/cart/items", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type: "car",
+            name: `${cfg.modelName} ${cfg.packageName} – ${cfg.color}`,
+            price: cfg.price,
+            imageUrl: cfg.imageUrl,
+            quantity: 1,
+            details: { model: cfg.model, color: cfg.color, packageName: cfg.packageName },
+          }),
+        });
+        btn.disabled = false;
+        status.textContent = res.ok ? "✓ Zum Warenkorb hinzugefügt" : "Fehler beim Hinzufügen";
+        setTimeout(() => (status.textContent = ""), 3000);
+      });
+
+      loadModels();
+    </script>
   </body>
 </html>
