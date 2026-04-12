@@ -40,9 +40,18 @@ app.get("/merch-shop", async (_req, res) => {
   }
 });
 
+const minioPublicUrl = `http://localhost:${process.env.MINIO_PORT || 9000}/${process.env.MINIO_BUCKET || "configurator-images"}`;
+
+app.get("/car-configurator", (_req, res) => {
+  const viewsPath = path.join(__dirname, "../services/car-configurator/views");
+  res.render(path.join(viewsPath, "index"), { minioBaseUrl: minioPublicUrl }, (err, html) => {
+    if (err) return res.status(500).send(err.message);
+    res.send(html);
+  });
+});
+
 const serviceRoutes = [
   { path: "/ai-feature",       views: "../services/ai-feature/views" },
-  { path: "/car-configurator", views: "../services/car-configurator/views" },
   { path: "/road-to-supercar", views: "../services/road-to-supercar/views" },
   { path: "/shopping-cart",    views: "../services/shopping-cart/views" },
 ];

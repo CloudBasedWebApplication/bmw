@@ -2,7 +2,7 @@
 
 set -eu
 
-echo "Syncing Configurator/ -> ${MINIO_BUCKET:-configurator-images}/configurator"
-echo "Syncing Webshop/ -> ${MINIO_BUCKET:-configurator-images}/webshop"
+echo "Syncing assets/configurator/ -> ${MINIO_BUCKET:-configurator-images}/configurator"
+echo "Syncing assets/merch-shop/ -> ${MINIO_BUCKET:-configurator-images}/merch-shop"
 
 docker compose run --rm minio-init
