@@ -2,9 +2,71 @@
 <html lang="de">
   <head>
     <meta charset="UTF-8" />
-    <title>Shopping Cart</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Warenkorb</title>
+    <style>
+      :root { --accent: #0066b1; --bg: #f3f5f7; --panel: #fff; --muted: #5c6670; }
+      * { box-sizing: border-box; }
+      body { margin: 0; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; background: var(--bg); }
+      .layout { max-width: 760px; margin: 0 auto; padding: 40px 20px; }
+      h1 { font-size: 2rem; margin: 0 0 32px; }
+      .empty { color: var(--muted); text-align: center; padding: 60px 0; font-size: 1.1rem; }
+      .item { background: var(--panel); border-radius: 14px; padding: 16px; display: flex; gap: 16px; align-items: center; margin-bottom: 14px; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+      .item img { width: 80px; height: 60px; object-fit: cover; border-radius: 8px; background: #eee; flex-shrink: 0; }
+      .item-info { flex: 1; }
+      .item-name { font-weight: 600; margin-bottom: 4px; }
+      .item-meta { font-size: 0.82rem; color: var(--muted); }
+      .item-price { font-weight: 700; color: var(--accent); font-size: 1.05rem; white-space: nowrap; }
+      .remove-btn { background: none; border: none; color: #c00; font-size: 1.2rem; cursor: pointer; padding: 4px 8px; border-radius: 6px; }
+      .remove-btn:hover { background: #ffeaea; }
+      .summary { background: var(--panel); border-radius: 14px; padding: 20px 24px; box-shadow: 0 2px 8px rgba(0,0,0,.06); display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+      .total-label { font-size: 1rem; color: var(--muted); }
+      .total-value { font-size: 1.6rem; font-weight: 700; color: var(--accent); }
+    </style>
   </head>
   <body>
-    <h1>Shopping Cart</h1>
+    <div class="layout">
+      <h1>Warenkorb</h1>
+      <div id="cartContent"><p class="empty">Wird geladen…</p></div>
+    </div>
+    <script>
+      async function loadCart() {
+        const res = await fetch("/api/cart");
+        const { items, total } = await res.json();
+        const container = document.getElementById("cartContent");
+
+        if (!items.length) {
+          container.innerHTML = '<p class="empty">Dein Warenkorb ist leer.</p>';
+          return;
+        }
+
+        const list = items.map(item => `
+          <div class="item" id="item-${item.id}">
+            ${item.imageUrl ? `<img src="${item.imageUrl}" alt="${item.name}" />` : '<div style="width:80px;height:60px;background:#eee;border-radius:8px;flex-shrink:0"></div>'}
+            <div class="item-info">
+              <div class="item-name">${item.name}</div>
+              <div class="item-meta">${item.type === "car" ? "Fahrzeug" : "Merchandise"} &middot; Menge: ${item.quantity}</div>
+            </div>
+            <div class="item-price">${item.price.toLocaleString("de-DE", { style: "currency", currency: "EUR" })}</div>
+            <button class="remove-btn" data-id="${item.id}" title="Entfernen">✕</button>
+          </div>
+        `).join("");
+
+        container.innerHTML = list + `
+          <div class="summary">
+            <span class="total-label">Gesamt</span>
+            <span class="total-value">${total.toLocaleString("de-DE", { style: "currency", currency: "EUR" })}</span>
+          </div>`;
+
+        container.querySelectorAll(".remove-btn").forEach(btn => {
+          btn.addEventListener("click", async () => {
+            await fetch(`/api/cart/items/${btn.dataset.id}`, { method: "DELETE" });
+            loadCart();
+          });
+        });
+      }
+
+      loadCart();
+    </script>
   </body>
 </html>

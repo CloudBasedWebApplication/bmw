@@ -2,43 +2,71 @@
 <html lang="de">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Merch Shop</title>
     <style>
-      body { font-family: sans-serif; margin: 2rem; background: #f4f4f4; }
-      h1 { margin-bottom: 1.5rem; }
-      .grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-        gap: 1.5rem;
-      }
-      .card {
-        background: #fff;
-        border-radius: 8px;
-        padding: 1rem;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      }
-      .card h2 { font-size: 1rem; margin: 0 0 0.25rem; }
-      .card .category { font-size: 0.8rem; color: #888; margin-bottom: 0.5rem; }
-      .card .price { font-weight: bold; color: #1c69d4; margin-bottom: 0.5rem; }
-      .card .detail { font-size: 0.85rem; color: #555; }
+      :root { --accent: #0066b1; --bg: #f3f5f7; --panel: #fff; --muted: #5c6670; }
+      * { box-sizing: border-box; }
+      body { margin: 0; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; background: var(--bg); }
+      .layout { max-width: 1100px; margin: 0 auto; padding: 40px 20px; }
+      h1 { font-size: 2rem; margin: 0 0 32px; }
+      .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; }
+      .card { background: var(--panel); border-radius: 16px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,.07); display: flex; flex-direction: column; }
+      .card img { width: 100%; aspect-ratio: 4/3; object-fit: cover; background: #eee; }
+      .card-body { padding: 16px; flex: 1; display: flex; flex-direction: column; }
+      .card-body h2 { font-size: 1rem; margin: 0 0 4px; }
+      .badge { display: inline-block; font-size: 0.75rem; background: #eef4fb; color: var(--accent); border-radius: 20px; padding: 2px 10px; margin-bottom: 8px; }
+      .price { font-weight: 700; color: var(--accent); font-size: 1.1rem; margin-bottom: 6px; }
+      .detail { font-size: 0.82rem; color: var(--muted); margin-bottom: 4px; }
+      .add-btn { margin-top: auto; padding: 10px; border: none; border-radius: 8px; background: var(--accent); color: #fff; font-size: 0.9rem; cursor: pointer; font-weight: 600; }
+      .add-btn:hover { background: #0055a0; }
     </style>
   </head>
   <body>
-    <h1>Merch Shop</h1>
-    <div class="grid">
-      <% products.forEach(function(p) { %>
-        <div class="card">
-          <h2><%= p.name %></h2>
-          <div class="category"><%= p.category %><% if (p.color) { %> &middot; <%= p.color %><% } %></div>
-          <div class="price"><%= parseFloat(p.price).toFixed(2) %> &euro;</div>
-          <% if (p.description) { %>
-            <div class="detail"><%= p.description %></div>
-          <% } %>
-          <% if (p.sizes) { %>
-            <div class="detail" style="margin-top:0.4rem;">Gr&ouml;&szlig;en: <%= p.sizes %></div>
-          <% } %>
-        </div>
-      <% }) %>
+    <div class="layout">
+      <h1>Merch Shop</h1>
+      <div class="grid">
+        <% products.forEach(function(p) { %>
+          <div class="card" id="product-<%= p.id %>">
+            <img src="<%= p.imageUrl %>" alt="<%= p.name %>" loading="lazy" />
+            <div class="card-body">
+              <h2><%= p.name %></h2>
+              <span class="badge"><%= p.category %><% if (p.color) { %> &middot; <%= p.color %><% } %></span>
+              <div class="price"><%= parseFloat(p.price).toLocaleString("de-DE", { style: "currency", currency: "EUR" }) %></div>
+              <% if (p.description) { %><div class="detail"><%= p.description %></div><% } %>
+              <% if (p.sizes) { %><div class="detail">Größen: <%= p.sizes %></div><% } %>
+              <button class="add-btn"
+                data-id="<%= p.id %>"
+                data-name="<%= p.name %> <%= p.color || '' %>"
+                data-price="<%= p.price %>"
+                data-image="<%= p.imageUrl %>">
+                In den Warenkorb
+              </button>
+            </div>
+          </div>
+        <% }) %>
+      </div>
     </div>
+    <script>
+      document.querySelectorAll(".add-btn").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          btn.disabled = true;
+          await fetch("/api/cart/items", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              type: "merch",
+              name: btn.dataset.name.trim(),
+              price: parseFloat(btn.dataset.price),
+              imageUrl: btn.dataset.image,
+              quantity: 1,
+              details: { productId: parseInt(btn.dataset.id) },
+            }),
+          });
+          btn.textContent = "✓ Hinzugefügt";
+          setTimeout(() => { btn.textContent = "In den Warenkorb"; btn.disabled = false; }, 2000);
+        });
+      });
+    </script>
   </body>
 </html>

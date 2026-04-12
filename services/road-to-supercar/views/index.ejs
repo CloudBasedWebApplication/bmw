@@ -2,9 +2,96 @@
 <html lang="de">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Road to Supercar</title>
+    <style>
+      :root { --accent: #0066b1; --bg: #f3f5f7; --panel: #fff; --muted: #5c6670; }
+      * { box-sizing: border-box; }
+      body { margin: 0; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; background: var(--bg); }
+      .layout { max-width: 960px; margin: 0 auto; padding: 40px 20px; }
+      h1 { font-size: 2rem; margin: 0 0 8px; }
+      .subtitle { color: var(--muted); margin: 0 0 28px; }
+      .controls { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+      select { padding: 10px 14px; border: 2px solid #ddd; border-radius: 8px; font-size: 0.95rem; font-family: inherit; background: #fff; }
+      select:focus { outline: none; border-color: var(--accent); }
+      .route-btn { padding: 10px 22px; border: none; border-radius: 8px; background: var(--accent); color: #fff; font-size: 0.95rem; font-weight: 600; cursor: pointer; }
+      .route-btn:hover { background: #0055a0; }
+      #map { width: 100%; height: 520px; border-radius: 16px; box-shadow: 0 4px 16px rgba(0,0,0,.1); background: #e8ecef; }
+      .info { font-size: 0.85rem; color: var(--muted); margin-top: 10px; }
+      .no-key { text-align: center; padding: 80px 20px; color: var(--muted); background: var(--panel); border-radius: 16px; }
+    </style>
   </head>
   <body>
-    <h1>Road to Supercar</h1>
+    <div class="layout">
+      <h1>Road to Supercar</h1>
+      <p class="subtitle">Finde den nächsten BMW-Showroom und berechne deine Route.</p>
+
+      <% if (mapsApiKey) { %>
+        <div class="controls">
+          <select id="destination">
+            <option value="" disabled selected>Ziel auswählen…</option>
+            <option value="BMW Welt München,Germany">BMW Welt München</option>
+            <option value="BMW Group Werk Leipzig,Germany">BMW Werk Leipzig</option>
+            <option value="BMW Museum München,Germany">BMW Museum München</option>
+            <option value="BMW Niederlassung Berlin,Germany">BMW Niederlassung Berlin</option>
+            <option value="BMW Niederlassung Hamburg,Germany">BMW Niederlassung Hamburg</option>
+            <option value="BMW Niederlassung Frankfurt,Germany">BMW Niederlassung Frankfurt</option>
+          </select>
+          <button class="route-btn" id="routeBtn">Route berechnen</button>
+        </div>
+        <div id="map"></div>
+        <div class="info" id="routeInfo"></div>
+
+        <script>
+          let map, directionsService, directionsRenderer;
+
+          function initMap() {
+            map = new google.maps.Map(document.getElementById("map"), {
+              zoom: 6,
+              center: { lat: 51.1657, lng: 10.4515 },
+            });
+            directionsService  = new google.maps.DirectionsService();
+            directionsRenderer = new google.maps.DirectionsRenderer();
+            directionsRenderer.setMap(map);
+          }
+
+          document.getElementById("routeBtn").addEventListener("click", () => {
+            const dest = document.getElementById("destination").value;
+            if (!dest) return;
+            const info = document.getElementById("routeInfo");
+
+            if (!navigator.geolocation) {
+              info.textContent = "Geolocation wird von deinem Browser nicht unterstützt.";
+              return;
+            }
+            info.textContent = "Standort wird ermittelt…";
+            navigator.geolocation.getCurrentPosition(pos => {
+              const origin = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+              directionsService.route({
+                origin,
+                destination: dest,
+                travelMode: google.maps.TravelMode.DRIVING,
+              }, (result, status) => {
+                if (status === "OK") {
+                  directionsRenderer.setDirections(result);
+                  const leg = result.routes[0].legs[0];
+                  info.textContent = `Entfernung: ${leg.distance.text} · Fahrzeit: ${leg.duration.text}`;
+                } else {
+                  info.textContent = "Route konnte nicht berechnet werden: " + status;
+                }
+              });
+            }, () => {
+              info.textContent = "Standortzugriff verweigert. Bitte Berechtigung erteilen.";
+            });
+          });
+        </script>
+        <script src="https://maps.googleapis.com/maps/api/js?key=<%= mapsApiKey %>&callback=initMap" async defer></script>
+      <% } else { %>
+        <div class="no-key">
+          <p>Google Maps API-Schlüssel nicht konfiguriert.</p>
+          <p>Bitte <code>GOOGLE_MAPS_API_KEY</code> in der <code>.env</code>-Datei setzen.</p>
+        </div>
+      <% } %>
+    </div>
   </body>
 </html>
