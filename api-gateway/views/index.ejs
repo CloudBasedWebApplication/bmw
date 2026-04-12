@@ -54,10 +54,27 @@
       strong {
         color: var(--accent);
       }
+
+      .video-wrapper {
+        width: 100%;
+        margin-bottom: 32px;
+        border-radius: 16px;
+        overflow: hidden;
+      }
+
+      .video-wrapper video {
+        width: 100%;
+        display: block;
+      }
     </style>
   </head>
   <body>
     <main>
+      <div class="video-wrapper">
+        <video autoplay muted loop playsinline>
+          <source src="https://www.bmw.com/content/dam/bmw/marketBMWCOM/bmw_com/home/sky-04-media-hd-recut-v2b.mp4" type="video/mp4" />
+        </video>
+      </div>
       <h1><%= headline %></h1>
       <p>
         <strong>index.html</strong> zeigt auf diese EJS-Ansicht.
