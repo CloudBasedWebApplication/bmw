@@ -129,8 +129,26 @@
         overflow: hidden;
       }
 
+      .purchase-row {
+        display: flex;
+        gap: 12px;
+        align-items: stretch;
+        margin-top: auto;
+      }
+
+      .quantity-field {
+        width: 88px;
+        border: 1px solid rgba(15, 23, 42, 0.10);
+        border-radius: 12px;
+        background: #fff;
+        padding: 0 12px;
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--text);
+      }
+
       .add-btn {
-        width: 100%;
+        flex: 1;
         padding: 14px;
         border: none;
         border-radius: 12px;
@@ -193,14 +211,23 @@
               <% if (p.description) { %>
                 <p class="detail"><%= p.description %></p>
               <% } %>
-              
-              <button class="add-btn"
-                data-id="<%= p.id %>"
-                data-name="<%= p.name %>"
-                data-price="<%= p.price %>"
-                data-image="<%= p.imageUrl %>">
-                In den Warenkorb
-              </button>
+
+              <div class="purchase-row">
+                <input
+                  class="quantity-field"
+                  type="number"
+                  min="1"
+                  value="1"
+                  aria-label="Menge für <%= p.name %>"
+                />
+                <button class="add-btn"
+                  data-id="<%= p.id %>"
+                  data-name="<%= p.name %>"
+                  data-price="<%= p.price %>"
+                  data-image="<%= p.imageUrl %>">
+                  In den Warenkorb
+                </button>
+              </div>
             </div>
           </article>
         <% }) %>
@@ -211,7 +238,12 @@
       document.querySelectorAll(".add-btn").forEach(btn => {
         btn.addEventListener("click", async () => {
           const originalText = btn.textContent;
+          const quantityInput = btn.parentElement.querySelector(".quantity-field");
+          const quantity = Math.max(1, parseInt(quantityInput.value, 10) || 1);
+
+          quantityInput.value = quantity;
           btn.disabled = true;
+          quantityInput.disabled = true;
           
           try {
             const response = await fetch("/api/cart/items", {
@@ -222,23 +254,29 @@
                 name: btn.dataset.name.trim(),
                 price: parseFloat(btn.dataset.price),
                 imageUrl: btn.dataset.image,
-                quantity: 1,
+                quantity,
                 details: { productId: parseInt(btn.dataset.id) },
               }),
             });
 
             if (response.ok) {
-              btn.textContent = "✓ Hinzugefügt";
+              btn.textContent = `✓ ${quantity} hinzugefügt`;
               btn.classList.add("success");
               setTimeout(() => {
                 btn.textContent = originalText;
                 btn.classList.remove("success");
                 btn.disabled = false;
+                quantityInput.disabled = false;
               }, 2000);
+            } else {
+              btn.textContent = "Fehler";
+              btn.disabled = false;
+              quantityInput.disabled = false;
             }
           } catch (error) {
             btn.textContent = "Fehler";
             btn.disabled = false;
+            quantityInput.disabled = false;
           }
         });
       });
