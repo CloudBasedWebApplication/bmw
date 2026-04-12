@@ -35,9 +35,33 @@ services:
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
     volumes:
       - mysql_data:/var/lib/mysql
       - ./infrastructure/mysql/init:/docker-entrypoint-initdb.d
+
+  mysql-seed:
+    image: mysql:8.4.8
+    env_file: .env
+    depends_on:
+      mysql:
+        condition: service_healthy
+    volumes:
+      - ./infrastructure/mysql/init:/seed:ro
+    entrypoint: >
+      /bin/sh -c "
+      mysql
+      -h mysql
+      -u root
+      -p${MYSQL_ROOT_PASSWORD}
+      ${MYSQL_DATABASE}
+      < /seed/01_merch_shop.sql
+      "
 
   redis:
     image: redis:7.4.2
