@@ -23,6 +23,7 @@ services:
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
     volumes:
+      - mysql_data:/var/lib/mysql
       - ./infrastructure/mysql/init:/docker-entrypoint-initdb.d
 
   redis:
@@ -37,3 +38,6 @@ services:
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
     volumes:
       - ./infrastructure/minio/data:/data
+
+volumes:
+  mysql_data:
