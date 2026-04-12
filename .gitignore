@@ -38,6 +38,7 @@ tmp/
 .tmp/
 data/
 infrastructure/minio/data/
+!assets/data/
 
 # Misc
 *.swp

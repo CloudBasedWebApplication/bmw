@@ -68,24 +68,18 @@ services:
       minio:
         condition: service_healthy
     volumes:
-      - ./Configurator:/seed/configurator:ro
-      - ./Webshop:/seed/webshop:ro
+      - ./assets/configurator:/seed/configurator:ro
+      - ./assets/merch-shop:/seed/merch-shop:ro
     entrypoint: >
       /bin/sh -c "
       until mc alias set local http://minio:${MINIO_PORT} ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD}; do
         sleep 2;
       done;
       mc mb --ignore-existing local/${MINIO_BUCKET};
-      found=0;
-      for folder in configurator webshop; do
-        if find /seed/$$folder -type f \\( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.webp' -o -iname '*.gif' -o -iname '*.avif' \\) | grep -q .; then
-          found=1;
-          mc mirror --overwrite --exclude '*.xlsx' /seed/$$folder local/${MINIO_BUCKET}/$$folder;
-        fi;
-      done;
-      if [ $$found -eq 0 ]; then
-        echo 'No images found in Configurator/ or Webshop/. Bucket was created only.';
-      fi
+      mc anonymous set download local/${MINIO_BUCKET};
+      mc mirror --overwrite /seed/configurator local/${MINIO_BUCKET}/configurator;
+      mc mirror --overwrite /seed/merch-shop local/${MINIO_BUCKET}/merch-shop;
+      echo 'Done.';
       "
 
 volumes:
