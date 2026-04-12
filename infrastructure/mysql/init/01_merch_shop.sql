@@ -1,8 +1,8 @@
 USE bmw_app;
 
-DROP TABLE IF EXISTS products;
+DROP TABLE IF EXISTS merch_shop;
 
-CREATE TABLE products (
+CREATE TABLE merch_shop (
     id INT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     category VARCHAR(255) NOT NULL,
@@ -14,7 +14,7 @@ CREATE TABLE products (
     minioObject VARCHAR(255)
 );
 
-INSERT INTO products (
+INSERT INTO merch_shop (
     id, name, category, color, price, gender, sizes, description, minioObject
 ) VALUES
 (1, 'BMW Poloshirt', 'clothes', 'Schwarz', 45.50, 'Unisex', 'S,M,L,XL', 'Bequemes Poloshirt mit lockerer Passform.', 'products/polo-black.webp'),

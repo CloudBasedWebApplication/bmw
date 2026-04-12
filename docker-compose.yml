@@ -1,6 +1,19 @@
 services:
   api-gateway:
-    profiles: ["placeholder"]
+    build:
+      context: .
+      dockerfile: api-gateway/Dockerfile
+    ports:
+      - "3000:3000"
+    env_file: .env
+    environment:
+      PORT: 3000
+    depends_on:
+      - mysql
+    volumes:
+      - ./api-gateway/src:/app/src
+      - ./api-gateway/views:/app/views
+      - ./services:/app/services
 
   car-configurator:
     profiles: ["placeholder"]
