@@ -122,6 +122,19 @@ for (const route of serviceCatalog.filter(({ path: p }) => !["/car-configurator"
 
 // ── API proxy routes ─────────────────────────────────────────────────────────
 
+const DESTINATIONS = [
+  { label: "BMW Welt München",          value: "BMW Welt München,Germany" },
+  { label: "BMW Werk Leipzig",          value: "BMW Group Werk Leipzig,Germany" },
+  { label: "BMW Museum München",        value: "BMW Museum München,Germany" },
+  { label: "BMW Niederlassung Berlin",  value: "BMW Niederlassung Berlin,Germany" },
+  { label: "BMW Niederlassung Hamburg", value: "BMW Niederlassung Hamburg,Germany" },
+  { label: "BMW Niederlassung Frankfurt", value: "BMW Niederlassung Frankfurt,Germany" },
+];
+
+app.get("/api/destinations", (_req, res) => {
+  res.json(DESTINATIONS);
+});
+
 app.get("/api/configurator/models", async (_req, res) => {
   try {
     const r = await fetch(`${CONFIGURATOR}/models`);
