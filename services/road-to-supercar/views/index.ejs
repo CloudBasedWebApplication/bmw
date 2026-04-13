@@ -127,12 +127,6 @@
         <div class="controls">
           <select id="destination">
             <option value="" disabled selected>Zielort wählen...</option>
-            <option value="BMW Welt München,Germany">BMW Welt München</option>
-            <option value="BMW Group Werk Leipzig,Germany">BMW Werk Leipzig</option>
-            <option value="BMW Museum München,Germany">BMW Museum München</option>
-            <option value="BMW Niederlassung Berlin,Germany">BMW Niederlassung Berlin</option>
-            <option value="BMW Niederlassung Hamburg,Germany">BMW Niederlassung Hamburg</option>
-            <option value="BMW Niederlassung Frankfurt,Germany">BMW Niederlassung Frankfurt</option>
           </select>
           <button class="route-btn" id="routeBtn">Route berechnen</button>
         </div>
@@ -142,6 +136,18 @@
         <div class="info-badge" id="routeInfo"></div>
 
         <script>
+          fetch("/api/destinations")
+            .then(r => r.json())
+            .then(destinations => {
+              const sel = document.getElementById("destination");
+              destinations.forEach(d => {
+                const opt = document.createElement("option");
+                opt.value = d.value;
+                opt.textContent = d.label;
+                sel.appendChild(opt);
+              });
+            });
+
           let map, directionsService, directionsRenderer;
 
           function initMap() {

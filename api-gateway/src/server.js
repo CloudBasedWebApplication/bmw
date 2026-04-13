@@ -122,6 +122,19 @@ for (const route of serviceCatalog.filter(({ path: p }) => !["/car-configurator"
 
 // ── API proxy routes ─────────────────────────────────────────────────────────
 
+const DESTINATIONS = [
+  { label: "BMW Welt München",          value: "BMW Welt München,Germany" },
+  { label: "BMW Werk Leipzig",          value: "BMW Group Werk Leipzig,Germany" },
+  { label: "BMW Museum München",        value: "BMW Museum München,Germany" },
+  { label: "BMW Niederlassung Berlin",  value: "BMW Niederlassung Berlin,Germany" },
+  { label: "BMW Niederlassung Hamburg", value: "BMW Niederlassung Hamburg,Germany" },
+  { label: "BMW Niederlassung Frankfurt", value: "BMW Niederlassung Frankfurt,Germany" },
+];
+
+app.get("/api/destinations", (_req, res) => {
+  res.json(DESTINATIONS);
+});
+
 app.get("/api/configurator/models", async (_req, res) => {
   try {
     const r = await fetch(`${CONFIGURATOR}/models`);
@@ -159,6 +172,30 @@ app.post("/api/cart/items", async (req, res) => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(req.body),
     });
+    res.status(r.status).json(await r.json());
+  } catch (err) {
+    res.status(502).json({ error: err.message });
+  }
+});
+
+app.patch("/api/cart/items/:itemId", async (req, res) => {
+  const sessionId = req.cookies.sessionId;
+  try {
+    const r = await fetch(`${CART}/cart/${sessionId}/items/${req.params.itemId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(req.body),
+    });
+    res.status(r.status).json(await r.json());
+  } catch (err) {
+    res.status(502).json({ error: err.message });
+  }
+});
+
+app.delete("/api/cart", async (req, res) => {
+  const sessionId = req.cookies.sessionId;
+  try {
+    const r = await fetch(`${CART}/cart/${sessionId}`, { method: "DELETE" });
     res.status(r.status).json(await r.json());
   } catch (err) {
     res.status(502).json({ error: err.message });

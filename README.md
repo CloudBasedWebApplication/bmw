@@ -101,6 +101,17 @@ After the containers are healthy, open [http://localhost:3000](http://localhost:
 docker compose down
 ```
 
+### When to restart vs. recreate a container
+
+| What changed | Command | Why |
+|---|---|---|
+| Source code (service **with** volume mount) | `docker compose restart <service>` | Code is read from the host at runtime — a process restart is enough |
+| Source code (service **without** volume mount) | `docker compose up --build -d <service>` | Code is baked into the image — a rebuild is required |
+| `.env` / environment variables | `docker compose up -d <service>` | Env vars are injected at container creation; `restart` keeps the old values |
+| `Dockerfile` or `docker-compose.yml` | `docker compose up --build -d <service>` | Image or container config changed — rebuild and recreate |
+
+**Rule of thumb:** `docker compose restart` only restarts the process inside an existing container. Anything frozen at container-creation time (env vars, built-in code, image layers) requires `up -d` (recreate) or `up --build -d` (rebuild + recreate) to take effect.
+
 ## MinIO Image Sync
 
 Images are imported from the project folders `Configurator/` and `Webshop/` into the MinIO bucket `MINIO_BUCKET`.
