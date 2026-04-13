@@ -10,7 +10,7 @@ Grundregeln fuer die Task-Arbeit:
 - `★★★`-Tasks werden zuerst als Vertrags- oder Schnittstellenaufgabe abgestimmt und erst danach implementiert.
 - Ein Task soll moeglichst in einem PR schliessbar sein.
 
-Die Datenbasis fuer dieses Dokument ist fest priorisiert: `docs/2026-04-12-phase-1-progress-report.md` → `docs/PRD.md` → `docs/architecture.md` → Code und Git-Historie nur zur Klaerung offener Punkte.
+Die Datenbasis fuer dieses Dokument ist fest priorisiert: `docs/project-status.md` → `docs/PRD.md` → `docs/architecture.md` → Code und Git-Historie nur zur Klaerung offener Punkte.
 
 ## 2. Aktueller Stand
 
