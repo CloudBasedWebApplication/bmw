@@ -178,6 +178,30 @@ app.post("/api/cart/items", async (req, res) => {
   }
 });
 
+app.patch("/api/cart/items/:itemId", async (req, res) => {
+  const sessionId = req.cookies.sessionId;
+  try {
+    const r = await fetch(`${CART}/cart/${sessionId}/items/${req.params.itemId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(req.body),
+    });
+    res.status(r.status).json(await r.json());
+  } catch (err) {
+    res.status(502).json({ error: err.message });
+  }
+});
+
+app.delete("/api/cart", async (req, res) => {
+  const sessionId = req.cookies.sessionId;
+  try {
+    const r = await fetch(`${CART}/cart/${sessionId}`, { method: "DELETE" });
+    res.status(r.status).json(await r.json());
+  } catch (err) {
+    res.status(502).json({ error: err.message });
+  }
+});
+
 app.delete("/api/cart/items/:itemId", async (req, res) => {
   const sessionId = req.cookies.sessionId;
   try {

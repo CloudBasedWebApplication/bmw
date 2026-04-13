@@ -94,6 +94,19 @@
       }
       .remove-btn:hover { background: var(--danger); color: white; }
 
+      .qty-controls {
+        display: flex; align-items: center; gap: 8px; margin-top: 4px;
+      }
+      .qty-btn {
+        width: 28px; height: 28px; border: 1px solid #e2e8f0; background: #f8fafc;
+        border-radius: 6px; cursor: pointer; font-size: 1rem; font-weight: 700;
+        color: var(--text); display: flex; align-items: center; justify-content: center;
+        transition: 0.2s; padding: 0;
+      }
+      .qty-btn:hover { background: var(--accent); color: white; border-color: var(--accent); }
+      .qty-btn:disabled { opacity: 0.4; cursor: default; }
+      .qty-value { font-size: 0.95rem; font-weight: 700; min-width: 20px; text-align: center; }
+
       .summary {
         margin-top: 32px; padding: 32px; background: var(--text);
         border-radius: var(--radius); color: white;
@@ -102,6 +115,13 @@
       }
       .total-label { font-size: 1.1rem; opacity: 0.7; }
       .total-value { font-size: 2rem; font-weight: 800; }
+
+      .btn-ghost {
+        display: inline-block; padding: 10px 20px; background: transparent;
+        color: var(--muted); border: 1px solid #e2e8f0; border-radius: 12px;
+        font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: 0.2s;
+      }
+      .btn-ghost:hover { border-color: var(--danger); color: var(--danger); background: #fff5f5; }
 
       .loading { text-align: center; padding: 40px; color: var(--muted); font-weight: 500; }
     </style>
@@ -122,7 +142,10 @@
     </header>
 
     <div class="layout">
-      <h1>Ihr Warenkorb</h1>
+      <div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom:32px;">
+        <h1 style="margin:0;">Ihr Warenkorb</h1>
+        <button class="btn-ghost" id="clearCartBtn">Warenkorb leeren</button>
+      </div>
       <div id="cartContent">
         <div class="loading">Inhalt wird sicher geladen...</div>
       </div>
@@ -171,10 +194,14 @@
               <div class="item-info">
                 <div class="item-meta">${item.type === "car" ? "Fahrzeug" : "Lifestyle & Merch"}</div>
                 <div class="item-name">${normalizeText(item.name)}</div>
-                <div class="item-quantity">Anzahl: ${item.quantity}</div>
+                <div class="qty-controls">
+                  <button class="qty-btn" data-id="${item.id}" data-delta="-1">−</button>
+                  <span class="qty-value">${item.quantity}</span>
+                  <button class="qty-btn" data-id="${item.id}" data-delta="1">+</button>
+                </div>
               </div>
               <div class="item-right">
-                <div class="item-price">${item.price.toLocaleString("de-DE", { style: "currency", currency: "EUR" })}</div>
+                <div class="item-price">${(item.price * item.quantity).toLocaleString("de-DE", { style: "currency", currency: "EUR" })}</div>
                 <button class="remove-btn" data-id="${item.id}">Entfernen</button>
               </div>
             </div>
@@ -200,12 +227,32 @@
               loadCart();
             });
           });
+
+          container.querySelectorAll(".qty-btn").forEach(btn => {
+            btn.addEventListener("click", async () => {
+              btn.disabled = true;
+              const qtyEl = btn.parentElement.querySelector(".qty-value");
+              const newQty = parseInt(qtyEl.textContent) + parseInt(btn.dataset.delta);
+              await fetch(`/api/cart/items/${btn.dataset.id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ quantity: newQty }),
+              });
+              loadCart();
+            });
+          });
         } catch (err) {
           container.innerHTML = '<div class="empty-state"><p>Fehler beim Laden des Warenkorbs.</p></div>';
         }
       }
 
       loadCart();
+
+      document.getElementById("clearCartBtn").addEventListener("click", async () => {
+        if (!confirm("Warenkorb wirklich leeren?")) return;
+        await fetch("/api/cart", { method: "DELETE" });
+        loadCart();
+      });
     </script>
   </body>
 </html>
