@@ -4,10 +4,11 @@
   "private": true,
   "main": "src/server.js",
   "scripts": {
-    "start": "node src/server.js"
+    "start": "node src/server.js",
+    "test": "node test/recommendation.smoke.js"
   },
   "dependencies": {
     "express": "^4.21.2",
-    "@google/generative-ai": "^0.21.0"
+    "@google/genai": "^1.10.0"
   }
 }

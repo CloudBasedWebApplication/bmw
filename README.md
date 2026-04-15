@@ -82,6 +82,7 @@ Copy-Item .env.example .env # Windows
 ```
 
 After copying the file, fill in at least `GEMINI_API_KEY` and `GOOGLE_MAPS_API_KEY` in `.env`.
+If you want to override the Gemini model selection locally, `GEMINI_MODEL` defaults to `gemini-2.5-flash` and `GEMINI_FALLBACK_MODEL` defaults to `gemini-2.5-flash-lite`.
 
 ### 2. Start the full local stack
 

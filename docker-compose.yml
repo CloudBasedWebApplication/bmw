@@ -69,6 +69,8 @@ services:
       PORT: 3004
       CONFIGURATOR_URL: http://car-configurator:3001
       MERCH_URL: http://merch-shop:3002
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash}
+      GEMINI_FALLBACK_MODEL: ${GEMINI_FALLBACK_MODEL:-gemini-2.5-flash-lite}
     depends_on:
       - car-configurator
       - merch-shop
