@@ -88,18 +88,102 @@
       .result-text { font-size: 1.1rem; color: #334155; margin-bottom: 30px; line-height: 1.7; }
       
       .links-label {
-        font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
-        letter-spacing: 0.1em; color: var(--muted); margin-bottom: 12px;
+        font-size: 0.75rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: #9a3412;
+        margin: 28px 0 14px;
       }
 
-      .link-card {
-        display: flex; align-items: center; gap: 15px; padding: 16px 20px;
-        background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px;
-        margin-bottom: 12px; text-decoration: none; color: var(--text);
-        font-weight: 600; transition: 0.2s;
+      .merch-list {
+        display: grid;
+        gap: 12px;
       }
-      .link-card:hover { border-color: var(--accent); background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-      .link-icon { font-size: 1.5rem; }
+
+      .merch-card {
+        display: grid;
+        grid-template-columns: 72px minmax(0, 1fr) minmax(160px, 220px);
+        align-items: center;
+        gap: 16px;
+        padding: 16px 18px;
+        background: linear-gradient(180deg, #fffcf8 0%, #ffffff 100%);
+        border: 1px solid #eadfd0;
+        border-radius: 18px;
+        text-decoration: none;
+        color: var(--text);
+        transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+      }
+
+      .merch-card:hover {
+        transform: translateY(-2px);
+        border-color: #f3b37a;
+        box-shadow: 0 16px 34px rgba(15, 23, 42, 0.08);
+      }
+
+      .merch-media {
+        width: 72px;
+        height: 72px;
+        border-radius: 16px;
+        background: #f1f5f9;
+        border: 1px solid rgba(15, 23, 42, 0.08);
+        overflow: hidden;
+        display: grid;
+        place-items: center;
+        flex-shrink: 0;
+      }
+
+      .merch-media img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        padding: 8px;
+        display: block;
+      }
+
+      .merch-media-fallback {
+        display: grid;
+        place-items: center;
+        width: 100%;
+        height: 100%;
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: #c2410c;
+        background: linear-gradient(135deg, #ffedd5, #fff7ed);
+      }
+
+      .merch-copy {
+        min-width: 0;
+      }
+
+      .merch-title {
+        margin: 0;
+        font-size: 1.02rem;
+        font-weight: 800;
+        line-height: 1.25;
+        color: #0f172a;
+      }
+
+      .merch-subtitle {
+        margin-top: 4px;
+        font-size: 0.88rem;
+        color: var(--muted);
+      }
+
+      .merch-reason {
+        justify-self: end;
+        text-align: right;
+        font-size: 0.94rem;
+        font-weight: 600;
+        color: #475569;
+        line-height: 1.4;
+        max-width: 220px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
 
       /* Loading State */
       .spinner {
@@ -184,12 +268,42 @@
               </a>`;
           }
           if (data.merchLinks?.length) {
-            linksHtml += `<div class="links-label" style="margin-top:24px">Passender Lifestyle & Merch</div>`;
-            data.merchLinks.forEach(l => {
-              linksHtml += `<a class="link-card" href="${l.url}">
-                <span class="link-icon">🛍️</span> Produkt entdecken
+            const escapeHtml = (value) => String(value ?? "")
+              .replaceAll("&", "&amp;")
+              .replaceAll("<", "&lt;")
+              .replaceAll(">", "&gt;")
+              .replaceAll('"', "&quot;")
+              .replaceAll("'", "&#39;");
+
+            linksHtml += `<div class="links-label">Passender Lifestyle & Merch</div>
+              <div class="merch-list">`;
+
+            data.merchLinks.forEach((l) => {
+              const rawTitle = l.title || "Produkt";
+              const title = escapeHtml(rawTitle);
+              const subtitle = escapeHtml(l.subtitle || "");
+              const reason = escapeHtml(l.reason || "Empfohlen auf Basis Ihrer Anfrage");
+              const imageUrl = l.imageUrl ? escapeHtml(l.imageUrl) : "";
+              const fallback = escapeHtml((rawTitle || "BMW").slice(0, 2).toUpperCase());
+
+              linksHtml += `<a class="merch-card" href="${escapeHtml(l.url)}" aria-label="${title}">
+                <span class="merch-media">
+                  ${
+                    imageUrl
+                      ? `<img src="${imageUrl}" alt="${title}" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.hidden=false;" />
+                         <span class="merch-media-fallback" hidden>${fallback}</span>`
+                      : `<span class="merch-media-fallback">${fallback}</span>`
+                  }
+                </span>
+                <span class="merch-copy">
+                  <span class="merch-title">${title}</span>
+                  ${subtitle ? `<span class="merch-subtitle">${subtitle}</span>` : ""}
+                </span>
+                <span class="merch-reason">${reason}</span>
               </a>`;
             });
+
+            linksHtml += `</div>`;
           }
           document.getElementById("linksSection").innerHTML = linksHtml;
           

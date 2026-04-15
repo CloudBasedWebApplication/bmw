@@ -51,12 +51,14 @@ Antworte im folgenden JSON-Format (kein Markdown, nur reines JSON):
 {
   "text": "Deine Empfehlung als kurzer Text",
   "carRecommendation": { "model": "3 oder X5", "color": "Black, Blue oder White" } oder null,
-  "merchIds": [Liste von Produkt-IDs als Zahlen] oder []
+  "merchItems": [
+    { "id": 7, "reason": "Kurz und konkret, warum dieses Produkt passt" }
+  ] oder []
 }`;
 
     const ai = new GoogleGenAI({ apiKey });
     const recommendation = await generateRecommendation(ai, systemPrompt, prompt, [GEMINI_MODEL, GEMINI_FALLBACK_MODEL]);
-    res.json(buildRecommendationResponse(recommendation));
+    res.json(buildRecommendationResponse(recommendation, products));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
