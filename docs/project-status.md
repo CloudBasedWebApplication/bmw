@@ -2,7 +2,7 @@
 
 ## 1. Document Metadata
 
-**Last updated:** 2026-04-13
+**Last updated:** 2026-04-15
 
 **Scope:** This document describes implementation reality — what is built, why choices were made, and what remains open. For target behavior see [PRD.md](./PRD.md). For responsibility design see [architecture.md](./architecture.md). For task ownership see [team-collaboration-breakdown.md](./team-collaboration-breakdown.md).
 
@@ -21,7 +21,7 @@ Update this document in the same PR that changes the code it describes.
 
 This is a course project for a cloud web application, built around an automotive platform. The core purpose is to demonstrate service decomposition, containerized local development, and integration with external infrastructure — database, object storage, cache, an AI API, and a map API. The product has five backend microservices, a unified web gateway, and three infrastructure services, all orchestrated locally with Docker Compose.
 
-The current implementation has a complete working skeleton. All five service pages are reachable through the unified gateway, the main user journeys work end to end, and the infrastructure layer (MySQL, Redis, MinIO) is integrated. Several design choices were deliberately simplified: the shared MySQL database, the AI service returning frontend links directly, and the reduced configurator parameter depth are all phase-scoped decisions that keep the implementation tractable without blocking the principal architecture demonstration.
+The current implementation has a complete working skeleton. All five service pages are reachable through the unified gateway, the main user journeys work end to end, and the infrastructure layer (MySQL, Redis, MinIO) is integrated. Several design choices were deliberately simplified: the shared MySQL database and the reduced configurator parameter depth are phase-scoped decisions that keep the implementation tractable without blocking the principal architecture demonstration. The AI service now returns structured recommendation links instead of a free-form string.
 
 
 ---
@@ -114,15 +114,15 @@ Car items are stored as snapshots so cart display does not depend on a live conf
 
 #### What Is Working
 
-The AI assistant integrates with Gemini. It fetches the current configuration options from `car-configurator` and the full product catalog from `merch-shop` to build domain context, then calls Gemini with the user's input and that context. The response is returned to the frontend as one or more recommendation links: a configurator URL pre-filled with recommended model and options, and/or a merch shop URL.
+The AI assistant integrates with Gemini. It fetches the current configuration options from `car-configurator` and the full product catalog from `merch-shop` to build domain context, then calls Gemini with the user's input and that context. The response is returned to the frontend as structured recommendation links: a configurator URL pre-filled with recommended model and options, and merch shop recommendation items that include the product title, thumbnail URL, and a concise recommendation reason.
 
 #### Accepted Simplifications
 
-**AI returns frontend links, not structured resolution data.** The current implementation returns URLs directly. It does not yet expose a structured payload separating free-text rationale from machine-readable recommendation fields. This matches the PRD description of output format (§6.4) at the coarsest level, but the PRD also requires a stable prompt template and a machine-readable output schema for downstream rendering. This simplification is revisable as the main next step for this module.
+**AI merch recommendations are still compact list items.** The merch recommendation panel now has a structured layout with thumbnails, titles, and reasons, but it remains a compact list rather than a full product-detail experience. That is acceptable until Issue 1 is resolved with a dedicated merch detail route.
 
 #### Confirmed Gaps
 
-**No structured prompt/template and output schema (Issue 2).** The AI prompt is not defined as a stable template. Model output is free-form and cannot be reliably parsed by frontend code expecting specific fields (car link, merch links, rationale). PRD §6.4 requires a schema that separates structured recommendation payloads from free-text explanation. Until this schema is designed and implemented, the AI output is consumed as an unstructured string, which limits frontend rendering quality and prevents reliable merch deep-linking.
+**Merch recommendation landing contract (Issue 1).** The AI now emits structured merch items with titles, image URLs, and reasons, but it still links to the generic merch listing page. A stable product-detail route is still missing, so deep-linking is not yet precise.
 
 ---
 
@@ -208,11 +208,11 @@ The full stack runs locally via Docker Compose with `docker compose up --build`.
 
 ---
 
-### AI prompt/template + output schema — Unresolved
+### AI prompt/template + output schema — Implemented
 
 **Parties:** `ai-feature` (producer) → browser frontend (consumer)
 
-**Current state:** Free-form string returned. No stable schema.
+**Current state:** Structured recommendation payload returned. Merch items include product title, image URL, and reason metadata.
 
 **PRD requirement (§6.4):** Structured payload separating recommendation links from free-text rationale. Must support car and merch recommendations in a single response. Car payload must be rich enough for configurator resolution; merch payload must identify the specific product target.
 
@@ -327,7 +327,7 @@ Append-only. When an issue is resolved, change Status to `Resolved` — do not d
 | # | Title | Affected Services | PRD | Severity | Impact | Status |
 |---|---|---|---|---|---|---|
 | 1 | No merch product-detail page | merch-shop, ai-feature, api-gateway | §6.2, §6.4 | High | AI recommendations land on the generic product list; no stable product URL exists for deep-linking | Open |
-| 2 | No structured AI prompt/output schema | ai-feature | §6.4 | High | Frontend consumes free-form model output; rendering is fragile and merch deep-links cannot be constructed reliably | Open |
+| 2 | No structured AI prompt/output schema | ai-feature | §6.4 | High | The AI service now returns structured recommendation items and the free-form contract has been replaced | Resolved |
 | 3 | Cart quantity update | shopping-cart, api-gateway | §6.5 | Medium | Users had no way to change item quantities without removing and re-adding | Resolved |
 | 4 | Destinations hardcoded in frontend | road-to-supercar, api-gateway | §6.3 | Medium | Destination data was embedded in the EJS template rather than served from the gateway | Resolved |
 | 5 | No checkout / order submission | shopping-cart | §3 (out of scope) | Out of Scope | Cart has no payment or order flow; confirmed not in v1 scope | Out of Scope |

@@ -1,5 +1,10 @@
 const express = require("express");
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+const { GoogleGenAI } = require("@google/genai");
+const {
+  buildRecommendationResponse,
+  coerceRecommendationPayload,
+  recommendationSchema,
+} = require("./recommendation");
 
 const app = express();
 const port = process.env.PORT || 3004;
@@ -8,6 +13,8 @@ app.use(express.json());
 
 const CONFIGURATOR_URL = process.env.CONFIGURATOR_URL || "http://car-configurator:3001";
 const MERCH_URL        = process.env.MERCH_URL        || "http://merch-shop:3002";
+const GEMINI_MODEL     = process.env.GEMINI_MODEL     || "gemini-2.5-flash";
+const GEMINI_FALLBACK_MODEL = process.env.GEMINI_FALLBACK_MODEL || "gemini-2.5-flash-lite";
 
 app.get("/health", (_req, res) => res.json({ ok: true }));
 
@@ -44,30 +51,44 @@ Antworte im folgenden JSON-Format (kein Markdown, nur reines JSON):
 {
   "text": "Deine Empfehlung als kurzer Text",
   "carRecommendation": { "model": "3 oder X5", "color": "Black, Blue oder White" } oder null,
-  "merchIds": [Liste von Produkt-IDs als Zahlen] oder []
+  "merchItems": [
+    { "id": 7, "reason": "Kurz und konkret, warum dieses Produkt passt" }
+  ] oder []
 }`;
 
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-    const result = await model.generateContent(`${systemPrompt}\n\nNutzeranfrage: ${prompt}`);
-    const raw = result.response.text().trim().replace(/^```json\s*/i, "").replace(/```$/,"");
-    const parsed = JSON.parse(raw);
-
-    const response = { text: parsed.text, carLink: null, merchLinks: [] };
-
-    if (parsed.carRecommendation?.model && parsed.carRecommendation?.color) {
-      const { model: carModel, color } = parsed.carRecommendation;
-      response.carLink = `/car-configurator?model=${encodeURIComponent(carModel)}&color=${encodeURIComponent(color)}`;
-    }
-
-    if (Array.isArray(parsed.merchIds)) {
-      response.merchLinks = parsed.merchIds.map((id) => ({ id, url: `/merch-shop?product=${id}` }));
-    }
-
-    res.json(response);
+    const ai = new GoogleGenAI({ apiKey });
+    const recommendation = await generateRecommendation(ai, systemPrompt, prompt, [GEMINI_MODEL, GEMINI_FALLBACK_MODEL]);
+    res.json(buildRecommendationResponse(recommendation, products));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
 app.listen(port, () => console.log(`ai-feature listening on port ${port}`));
+
+async function generateRecommendation(ai, systemPrompt, userPrompt, models) {
+  let lastError;
+
+  for (const modelName of models) {
+    try {
+      const response = await ai.models.generateContent({
+        model: modelName,
+        contents: userPrompt,
+        config: {
+          systemInstruction: systemPrompt,
+          responseMimeType: "application/json",
+          responseSchema: recommendationSchema,
+        },
+      });
+
+      const text = response.text;
+      const parsed = JSON.parse(text);
+      return coerceRecommendationPayload(parsed);
+    } catch (err) {
+      lastError = err;
+      console.warn(`Gemini request failed for model ${modelName}: ${err.message}`);
+    }
+  }
+
+  throw lastError;
+}

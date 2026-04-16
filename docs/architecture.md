@@ -137,9 +137,9 @@ Its responsibilities are:
 - accept user natural-language prompts
 - fetch relevant context: configuration options (both models) and merchandise catalog
 - send structured context and a stable prompt/template to Gemini
-- receive recommended parameters and rationale from Gemini
+- receive structured recommendation output and rationale from Gemini
 - call `configurator` to resolve the official car configuration result
-- return recommendations as links: a link to the configurator page pre-filled with recommended options, and/or links to merchandise product pages
+- return recommendations as links: a link to the configurator page pre-filled with recommended options, and structured merch recommendation items with title, thumbnail URL, and reason data
 
 This service does not own official pricing or image truth. Those remain in the configurator service.
 
@@ -206,6 +206,7 @@ Its role is to:
 - interpret natural-language user intent
 - recommend structured configuration parameters
 - generate recommendation rationale and trade-off explanations
+- emit structured merch recommendation items for the frontend recommendation panel
 
 ### 6.2 Google Maps JavaScript API
 
@@ -236,7 +237,7 @@ Its role is to:
 5. Gemini returns structured recommendation output and rationale
 6. the AI feature service calls the configurator service
 7. the configurator service returns the official configuration result
-8. the frontend shows the recommended configuration and explanation
+8. the frontend shows the recommended configuration and merch recommendation panel
 
 ### 7.3 Cart Flow
 
