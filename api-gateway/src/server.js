@@ -144,10 +144,41 @@ app.get("/api/configurator/models", async (_req, res) => {
   }
 });
 
+app.get("/api/configurator/configurations", async (_req, res) => {
+  try {
+    const r = await fetch(`${CONFIGURATOR}/configurations`);
+    res.status(r.status).json(await r.json());
+  } catch (err) {
+    res.status(502).json({ error: err.message });
+  }
+});
+
+app.get("/api/configurator/configurations/:id", async (req, res) => {
+  try {
+    const r = await fetch(`${CONFIGURATOR}/configurations/${encodeURIComponent(req.params.id)}`);
+    res.status(r.status).json(await r.json());
+  } catch (err) {
+    res.status(502).json({ error: err.message });
+  }
+});
+
 app.get("/api/configurator/configure", async (req, res) => {
   const { model, color } = req.query;
   try {
     const r = await fetch(`${CONFIGURATOR}/configure?model=${encodeURIComponent(model)}&color=${encodeURIComponent(color)}`);
+    res.status(r.status).json(await r.json());
+  } catch (err) {
+    res.status(502).json({ error: err.message });
+  }
+});
+
+app.post("/api/configurator/configuration/calculate", async (req, res) => {
+  try {
+    const r = await fetch(`${CONFIGURATOR}/configuration/calculate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(req.body),
+    });
     res.status(r.status).json(await r.json());
   } catch (err) {
     res.status(502).json({ error: err.message });
