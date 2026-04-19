@@ -5,6 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Road to Supercar | BMW Journey</title>
     <style>
+      /* BMW Type Next — Official CI Font from bmwusa.com CDN (CORS: *) */
+      @font-face {
+        font-family: 'BMWTypeNext';
+        font-style: normal;
+        font-weight: 200;
+        font-display: swap;
+        src: url('/road-to-supercar/static/fonts/BMWTypeNextLatin-Thin.woff2') format('woff2'),
+             url('/road-to-supercar/static/fonts/BMWTypeNextLatin-Thin.woff') format('woff');
+      }
+      @font-face {
+        font-family: 'BMWTypeNext';
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url('/road-to-supercar/static/fonts/BMWTypeNextLatin-Light.woff2') format('woff2'),
+             url('/road-to-supercar/static/fonts/BMWTypeNextLatin-Light.woff') format('woff');
+      }
+      @font-face {
+        font-family: 'BMWTypeNext';
+        font-style: normal;
+        font-weight: 700;
+        font-display: swap;
+        src: url('/road-to-supercar/static/fonts/BMWTypeNextLatin-Bold.woff2') format('woff2'),
+             url('/road-to-supercar/static/fonts/BMWTypeNextLatin-Bold.woff') format('woff');
+      }
+
       :root {
         --accent: #0066b1;
         --accent-dark: #004a80;
@@ -22,7 +48,7 @@
 
       body {
         margin: 0;
-        font-family: 'Inter', -apple-system, system-ui, sans-serif;
+        font-family: 'BMWTypeNext', -apple-system, system-ui, sans-serif;
         background-color: var(--bg);
         color: var(--text);
         line-height: 1.5;
@@ -263,7 +289,7 @@
               <text id="bavariaText" x="800" y="470"
                     text-anchor="middle" dominant-baseline="middle"
                     fill="black"
-                    font-family="Inter, -apple-system, Arial, sans-serif"
+                    font-family="BMWTypeNext, -apple-system, Arial, sans-serif"
                     font-weight="900"
                     font-size="160"
                     letter-spacing="-6">Made in Bavaria</text>

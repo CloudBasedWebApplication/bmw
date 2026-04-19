@@ -11,6 +11,12 @@ app.disable("view cache");
 app.use(express.json());
 app.use(cookieParser());
 
+// Static assets for road-to-supercar (e.g. BMW CI fonts)
+app.use(
+  "/road-to-supercar/static",
+  express.static(path.join(__dirname, "..", "services", "road-to-supercar", "public"))
+);
+
 // Service base URLs (container-internal)
 const CONFIGURATOR = process.env.CONFIGURATOR_URL || "http://car-configurator:3001";
 const MERCH        = process.env.MERCH_URL        || "http://merch-shop:3002";
