@@ -144,6 +144,57 @@ app.get("/api/configurator/models", async (_req, res) => {
   }
 });
 
+app.get("/api/configurator/options/colors", async (req, res) => {
+  const modelId = req.query.modelId;
+  const search = new URLSearchParams();
+
+  if (modelId != null) {
+    search.set("modelId", String(modelId));
+  }
+
+  try {
+    const query = search.toString();
+    const r = await fetch(`${CONFIGURATOR}/options/colors${query ? `?${query}` : ""}`);
+    res.status(r.status).json(await r.json());
+  } catch (err) {
+    res.status(502).json({ error: err.message });
+  }
+});
+
+app.get("/api/configurator/options/wheels", async (req, res) => {
+  const modelId = req.query.modelId;
+  const search = new URLSearchParams();
+
+  if (modelId != null) {
+    search.set("modelId", String(modelId));
+  }
+
+  try {
+    const query = search.toString();
+    const r = await fetch(`${CONFIGURATOR}/options/wheels${query ? `?${query}` : ""}`);
+    res.status(r.status).json(await r.json());
+  } catch (err) {
+    res.status(502).json({ error: err.message });
+  }
+});
+
+app.get("/api/configurator/options/interiors", async (req, res) => {
+  const modelId = req.query.modelId;
+  const search = new URLSearchParams();
+
+  if (modelId != null) {
+    search.set("modelId", String(modelId));
+  }
+
+  try {
+    const query = search.toString();
+    const r = await fetch(`${CONFIGURATOR}/options/interiors${query ? `?${query}` : ""}`);
+    res.status(r.status).json(await r.json());
+  } catch (err) {
+    res.status(502).json({ error: err.message });
+  }
+});
+
 app.get("/api/configurator/configurations", async (_req, res) => {
   try {
     const r = await fetch(`${CONFIGURATOR}/configurations`);
