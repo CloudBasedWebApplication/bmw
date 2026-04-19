@@ -18,6 +18,8 @@
 
       * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
 
+      html { scroll-behavior: smooth; }
+
       body {
         margin: 0;
         font-family: 'Inter', -apple-system, system-ui, sans-serif;
@@ -27,7 +29,11 @@
       }
 
       /* Navbar */
-      .topbar { padding: 20px; }
+      .topbar {
+        padding: 20px;
+        position: fixed; top: 0; left: 0; right: 0;
+        z-index: 100;
+      }
       .topbar-inner {
         max-width: 1100px; margin: 0 auto; padding: 12px 24px;
         background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(15px);
@@ -43,27 +49,121 @@
       }
       .nav-links a.active, .nav-links a:hover { background: var(--text); color: white; }
 
-      .layout { max-width: 1100px; margin: 0 auto; padding: 20px 20px 40px; }
+      /* =========================
+         Hero Section (full bleed)
+         ========================= */
+      .hero {
+        position: relative;
+        height: 100vh;
+        width: 100%;
+        overflow: hidden;
+        color: #fff;
+      }
+      .hero-video {
+        position: absolute; inset: 0;
+        width: 100%; height: 100%;
+        object-fit: cover;
+        z-index: 0;
+      }
+      .hero::after {
+        content: "";
+        position: absolute; inset: 0;
+        background: linear-gradient(180deg, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.55) 100%);
+        z-index: 1;
+      }
+      .hero-overlay {
+        position: relative; z-index: 2;
+        height: 100%;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        text-align: center; padding: 0 24px;
+      }
+      .hero-title {
+        font-size: clamp(2.5rem, 7vw, 6rem);
+        font-weight: 900;
+        letter-spacing: -0.04em;
+        margin: 0;
+        text-shadow: 0 4px 24px rgba(0,0,0,0.4);
+        line-height: 1.05;
+      }
+      .hero-subtitle {
+        margin-top: 16px;
+        font-size: clamp(1rem, 1.6vw, 1.3rem);
+        font-weight: 500;
+        opacity: 0.9;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+      }
+      .scroll-hint {
+        position: absolute; bottom: 40px; left: 50%;
+        transform: translateX(-50%);
+        font-size: 0.8rem; letter-spacing: 0.3em;
+        text-transform: uppercase; opacity: 0.85;
+        animation: bounce 2s ease-in-out infinite;
+      }
+      @keyframes bounce {
+        0%, 100% { transform: translate(-50%, 0); }
+        50% { transform: translate(-50%, 10px); }
+      }
 
-      header.page-header { margin-bottom: 32px; }
-      h1 { font-size: 2.5rem; font-weight: 800; letter-spacing: -0.03em; margin: 0 0 8px; }
-      .subtitle { color: var(--muted); font-size: 1.1rem; }
+      /* =========================
+         Bavaria (text-mask reveal)
+         ========================= */
+      .bavaria {
+        position: relative;
+        height: 500vh;
+        background: #000;
+      }
+      .bavaria-sticky {
+        position: sticky; top: 0;
+        height: 100vh; width: 100%;
+        overflow: hidden;
+        background: #000;
+      }
+      .bavaria-video {
+        position: absolute; inset: 0;
+        width: 100%; height: 100%;
+        object-fit: contain;    /* Originalauflösung / Seitenverhältnis */
+        background: #000;
+      }
+      .bavaria-mask {
+        position: absolute; inset: 0;
+        width: 100%; height: 100%;
+        pointer-events: none;
+        display: block;
+      }
 
-      /* Control Dashboard */
+      /* =========================
+         Route Section
+         ========================= */
+      .route-section {
+        background: var(--bg);
+        padding: 80px 20px 80px;
+      }
+      .layout { max-width: 1100px; margin: 0 auto; }
+
+      .route-header { text-align: center; margin-bottom: 40px; }
+      .route-header h2 {
+        font-size: clamp(2rem, 4vw, 3rem);
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        margin: 0 0 12px;
+      }
+      .route-header p { color: var(--muted); font-size: 1.1rem; margin: 0; }
+
       .controls {
         display: flex; gap: 12px; margin-bottom: 24px;
         background: var(--panel); padding: 12px;
         border-radius: 16px; box-shadow: var(--shadow);
         border: 1px solid rgba(0,0,0,0.05);
-        align-items: center;
+        align-items: center; justify-content: center;
       }
-
-      select {
-        flex: 1; padding: 12px 16px; border: 1px solid #e2e8f0;
-        border-radius: 12px; font-size: 1rem; font-family: inherit;
-        background: #f8fafc; color: var(--text); cursor: pointer; outline: none;
+      .destination-label {
+        flex: 1; padding: 12px 16px;
+        font-size: 1rem; font-weight: 600;
+        color: var(--text);
+        display: flex; align-items: center; gap: 10px;
       }
-      select:focus { border-color: var(--accent); background: #fff; }
+      .destination-label .pin { font-size: 1.2rem; }
 
       .route-btn {
         padding: 14px 28px; border: none; border-radius: 12px;
@@ -71,15 +171,35 @@
         font-weight: 700; cursor: pointer; transition: 0.3s;
       }
       .route-btn:hover { background: var(--accent-dark); transform: translateY(-1px); }
+      .route-btn:disabled { background: var(--muted); cursor: not-allowed; transform: none; }
 
-      /* Map Container */
       #map {
         width: 100%; height: 600px; border-radius: 24px;
-        box-shadow: var(--shadow); background: #e8ecef;
+        box-shadow: var(--shadow); background: #1a2333;
         border: 4px solid #fff;
       }
 
-      /* Route Info Badge */
+      /* Advanced Markers */
+      .bmw-marker {
+        width: 56px; height: 56px;
+        border-radius: 50%;
+        background: #0f172a;
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.55);
+        transform: translateY(50%);
+        border: 2px solid rgba(255,255,255,0.08);
+      }
+      .bmw-marker img { width: 40px; height: 40px; }
+
+      .car-marker {
+        width: 34px; height: 52px;
+        transform: translateY(50%) rotate(var(--bearing, 0deg));
+        transition: transform 0.08s linear;
+        will-change: transform;
+        filter: drop-shadow(0 3px 6px rgba(0,0,0,0.6));
+      }
+      .car-marker.hidden { display: none; }
+
       .info-badge {
         display: inline-flex; align-items: center; gap: 8px;
         margin-top: 16px; padding: 10px 20px;
@@ -89,7 +209,6 @@
       }
       .info-badge.visible { opacity: 1; transform: translateY(0); }
 
-      /* No Key State */
       .no-key {
         text-align: center; padding: 100px 40px; color: var(--muted);
         background: var(--panel); border-radius: 32px; box-shadow: var(--shadow);
@@ -99,6 +218,7 @@
       @media (max-width: 640px) {
         .controls { flex-direction: column; align-items: stretch; }
         #map { height: 400px; }
+        .bavaria-frame { width: 85%; }
       }
     </style>
   </head>
@@ -117,96 +237,291 @@
       </div>
     </header>
 
-    <div class="layout">
-      <header class="page-header">
-        <h1>Road to Supercar</h1>
-        <p class="subtitle">Planen Sie Ihre Route zu den exklusivsten BMW Standorten.</p>
-      </header>
+    <!-- 1. HERO -->
+    <section class="hero">
+      <video class="hero-video" autoplay muted loop playsinline preload="auto"
+             poster="">
+        <source src="https://www.bmw-m.com/content/dam/bmw/marketBMW_M/www_bmw-m_com/fastlane/area-m/home/Stage_Loop_Querformat.mp4" type="video/mp4">
+      </video>
+      <div class="hero-overlay">
+        <h1 class="hero-title">Road zu deinem<br>Supercar</h1>
+        <p class="hero-subtitle">Die Reise beginnt jetzt</p>
+        <div class="scroll-hint">↓ Scroll ↓</div>
+      </div>
+    </section>
 
-      <% if (mapsApiKey) { %>
-        <div class="controls">
-          <select id="destination">
-            <option value="" disabled selected>Zielort wählen...</option>
-          </select>
-          <button class="route-btn" id="routeBtn">Route berechnen</button>
+    <!-- 2. MADE IN BAVARIA (Text-Mask, Scroll-Reveal) -->
+    <section class="bavaria" id="bavaria">
+      <div class="bavaria-sticky">
+        <video class="bavaria-video" autoplay muted loop playsinline preload="auto">
+          <source src="https://www.bmwgroup.com/content/dam/grpw/websites/bmwgroup_com/company/produktion/videos/240419_Group_Produktion_Header_2560x896.mp4" type="video/mp4">
+        </video>
+        <svg class="bavaria-mask" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+          <defs>
+            <mask id="bavaria-cutout">
+              <rect width="1600" height="900" fill="white"/>
+              <text id="bavariaText" x="800" y="470"
+                    text-anchor="middle" dominant-baseline="middle"
+                    fill="black"
+                    font-family="Inter, -apple-system, Arial, sans-serif"
+                    font-weight="900"
+                    font-size="160"
+                    letter-spacing="-6">Made in Bavaria</text>
+            </mask>
+          </defs>
+          <rect width="1600" height="900" fill="#000" mask="url(#bavaria-cutout)"/>
+        </svg>
+      </div>
+    </section>
+
+    <!-- 3. ROUTE ZUR BMW WELT -->
+    <section class="route-section">
+      <div class="layout">
+        <div class="route-header">
+          <h2>Dein Ziel: BMW Welt München</h2>
+          <p>Berechne die Route und die voraussichtliche Fahrtdauer zu deinem Supercar.</p>
         </div>
 
-        <div id="map"></div>
-        
-        <div class="info-badge" id="routeInfo"></div>
+        <% if (mapsApiKey) { %>
+          <div class="controls">
+            <div class="destination-label">
+              <span class="pin">📍</span>
+              <span>BMW Welt — Am Olympiapark 1, 80809 München</span>
+            </div>
+            <button class="route-btn" id="routeBtn">Route berechnen</button>
+          </div>
 
-        <script>
-          fetch("/api/destinations")
-            .then(r => r.json())
-            .then(destinations => {
-              const sel = document.getElementById("destination");
-              destinations.forEach(d => {
-                const opt = document.createElement("option");
-                opt.value = d.value;
-                opt.textContent = d.label;
-                sel.appendChild(opt);
+          <div id="map"></div>
+          <div class="info-badge" id="routeInfo"></div>
+
+          <script>
+            const BMW_WELT = { lat: 48.17692, lng: 11.55863 };
+            const BMW_LOGO_URL =
+              "https://www.bmw-welt.com/content/dam/bmw/common/images/logo-icons/BMW/BMW_White_Logo.svg.asset.1670245093434.svg";
+
+            const CAR_SVG =
+              '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 90" width="34" height="52">' +
+                '<rect x="10" y="8" width="40" height="74" rx="12" fill="#0066B1" stroke="#fff" stroke-width="2"/>' +
+                '<rect x="16" y="16" width="28" height="20" rx="4" fill="#cfe8ff" opacity="0.85"/>' +
+                '<rect x="16" y="54" width="28" height="20" rx="4" fill="#1a5196"/>' +
+                '<circle cx="16" cy="12" r="2.2" fill="#fff59d"/>' +
+                '<circle cx="44" cy="12" r="2.2" fill="#fff59d"/>' +
+                '<circle cx="16" cy="78" r="2" fill="#ef5350"/>' +
+                '<circle cx="44" cy="78" r="2" fill="#ef5350"/>' +
+              '</svg>';
+
+            let map, directionsService, directionsRenderer;
+            let carMarker, carContent;
+            let animationFrame = null;
+
+            async function initMap() {
+              const { Map } = await google.maps.importLibrary("maps");
+              const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
+
+              map = new Map(document.getElementById("map"), {
+                zoom: 6,
+                center: { lat: 51.1657, lng: 10.4515 },
+                mapId: "DEMO_MAP_ID",
+                colorScheme: "DARK",
+                disableDefaultUI: false,
               });
-            });
 
-          let map, directionsService, directionsRenderer;
+              directionsService  = new google.maps.DirectionsService();
+              directionsRenderer = new google.maps.DirectionsRenderer({
+                suppressMarkers: true,
+                polylineOptions: {
+                  strokeColor: "#4fc3f7",
+                  strokeOpacity: 0.95,
+                  strokeWeight: 5,
+                },
+              });
+              directionsRenderer.setMap(map);
 
-          function initMap() {
-            // Stylishe Map-Optionen (Silver-Look)
-            map = new google.maps.Map(document.getElementById("map"), {
-              zoom: 6,
-              center: { lat: 51.1657, lng: 10.4515 },
-              disableDefaultUI: false,
-              styles: [
-                { "featureType": "water", "elementType": "geometry", "stylers": [{ "color": "#e9e9e9" }, { "lightness": 17 }] },
-                { "featureType": "landscape", "elementType": "geometry", "stylers": [{ "color": "#f5f5f5" }, { "lightness": 20 }] }
-              ]
-            });
-            directionsService  = new google.maps.DirectionsService();
-            directionsRenderer = new google.maps.DirectionsRenderer();
-            directionsRenderer.setMap(map);
-          }
+              // BMW Welt Marker (Advanced Marker mit CSS-styled HTML)
+              const bmwContent = document.createElement("div");
+              bmwContent.className = "bmw-marker";
+              bmwContent.style.cursor = "pointer";
+              bmwContent.title = "Street View öffnen";
+              bmwContent.innerHTML = '<img src="' + BMW_LOGO_URL + '" alt="BMW Welt">';
 
-          document.getElementById("routeBtn").addEventListener("click", () => {
-            const dest = document.getElementById("destination").value;
-            const info = document.getElementById("routeInfo");
-            if (!dest) return;
+              const bmwMarker = new AdvancedMarkerElement({
+                position: BMW_WELT,
+                map: map,
+                title: "BMW Welt München",
+                content: bmwContent,
+              });
 
-            info.textContent = "Standort wird ermittelt...";
-            info.classList.add("visible");
+              const streetView = map.getStreetView();
+              bmwMarker.addListener("click", () => {
+                streetView.setPosition(BMW_WELT);
+                streetView.setPov({ heading: 265, pitch: 0 });
+                streetView.setVisible(true);
+              });
 
-            if (!navigator.geolocation) {
-              info.textContent = "Geolocation nicht unterstützt.";
-              return;
+              // Auto-Marker (startet versteckt)
+              carContent = document.createElement("div");
+              carContent.className = "car-marker hidden";
+              carContent.innerHTML = CAR_SVG;
+
+              carMarker = new AdvancedMarkerElement({
+                position: BMW_WELT,
+                map: map,
+                content: carContent,
+              });
             }
 
-            navigator.geolocation.getCurrentPosition(pos => {
-              const origin = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-              directionsService.route({
-                origin,
-                destination: dest,
-                travelMode: google.maps.TravelMode.DRIVING,
-              }, (result, status) => {
-                if (status === "OK") {
-                  directionsRenderer.setDirections(result);
-                  const leg = result.routes[0].legs[0];
-                  info.innerHTML = `<span>📍 ${leg.distance.text}</span> <span style="margin-left:12px">⏱️ ${leg.duration.text}</span>`;
+            function animateCar(path) {
+              if (!path || path.length < 2) return;
+              if (animationFrame) cancelAnimationFrame(animationFrame);
+
+              carContent.classList.remove("hidden");
+
+              const DRIVE_DURATION = 8000;
+              const ZOOM_DURATION  = 1500;
+              const FINAL_ZOOM     = 16;
+
+              const startZoom = map.getZoom();
+              const start = performance.now();
+
+              function easeInOutCubic(x) {
+                return x < 0.5 ? 4*x*x*x : 1 - Math.pow(-2*x + 2, 3) / 2;
+              }
+
+              function positionAt(progress) {
+                const idx = progress * (path.length - 1);
+                const i = Math.floor(idx);
+                const frac = idx - i;
+                const p1 = path[i];
+                const p2 = path[Math.min(i + 1, path.length - 1)];
+                return {
+                  lat:  p1.lat() + (p2.lat() - p1.lat()) * frac,
+                  lng:  p1.lng() + (p2.lng() - p1.lng()) * frac,
+                  bearing: Math.atan2(p2.lng() - p1.lng(), p2.lat() - p1.lat()) * 180 / Math.PI,
+                };
+              }
+
+              function step(now) {
+                const elapsed = now - start;
+
+                if (elapsed < DRIVE_DURATION) {
+                  const progress = easeInOutCubic(elapsed / DRIVE_DURATION);
+                  const pos = positionAt(progress);
+                  carMarker.position = { lat: pos.lat, lng: pos.lng };
+                  carContent.style.setProperty("--bearing", pos.bearing + "deg");
+                  animationFrame = requestAnimationFrame(step);
                 } else {
-                  info.textContent = "Fehler: " + status;
+                  // Auto ist angekommen – auf BMW Welt setzen
+                  carMarker.position = BMW_WELT;
+                  animationFrame = null;
+                  zoomIn(performance.now());
                 }
+              }
+
+              function zoomIn(zoomStart) {
+                function zoomStep(now) {
+                  const t = Math.min(1, (now - zoomStart) / ZOOM_DURATION);
+                  const eased = easeInOutCubic(t);
+                  map.setZoom(startZoom + eased * (FINAL_ZOOM - startZoom));
+                  map.setCenter(BMW_WELT);
+                  if (t < 1) animationFrame = requestAnimationFrame(zoomStep);
+                  else animationFrame = null;
+                }
+                animationFrame = requestAnimationFrame(zoomStep);
+              }
+
+              animationFrame = requestAnimationFrame(step);
+            }
+
+            document.getElementById("routeBtn").addEventListener("click", () => {
+              const info = document.getElementById("routeInfo");
+              info.textContent = "Standort wird ermittelt...";
+              info.classList.add("visible");
+
+              if (!navigator.geolocation) {
+                info.textContent = "Geolocation nicht unterstützt.";
+                return;
+              }
+
+              navigator.geolocation.getCurrentPosition(pos => {
+                const origin = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                directionsService.route({
+                  origin,
+                  destination: BMW_WELT,
+                  travelMode: google.maps.TravelMode.DRIVING,
+                }, (result, status) => {
+                  if (status === "OK") {
+                    directionsRenderer.setDirections(result);
+                    const leg = result.routes[0].legs[0];
+                    info.innerHTML = `<span>📍 ${leg.distance.text}</span> <span style="margin-left:12px">⏱️ ${leg.duration.text}</span>`;
+                    animateCar(result.routes[0].overview_path);
+                  } else {
+                    info.textContent = "Fehler: " + status;
+                  }
+                });
+              }, () => {
+                info.textContent = "Standortzugriff verweigert.";
               });
-            }, () => {
-              info.textContent = "Standortzugriff verweigert.";
             });
-          });
-        </script>
-        <script src="https://maps.googleapis.com/maps/api/js?key=<%= mapsApiKey %>&callback=initMap" async defer></script>
-      <% } else { %>
-        <div class="no-key">
-          <div style="font-size: 3rem; margin-bottom: 20px;">🗺️</div>
-          <h2 style="margin: 0 0 10px;">API-Key erforderlich</h2>
-          <p>Bitte konfigurieren Sie den <code>GOOGLE_MAPS_API_KEY</code> in Ihrer Umgebung.</p>
-        </div>
-      <% } %>
-    </div>
+          </script>
+          <script src="https://maps.googleapis.com/maps/api/js?key=<%= mapsApiKey %>&libraries=marker&v=weekly&callback=initMap" async defer></script>
+        <% } else { %>
+          <div class="no-key">
+            <div style="font-size: 3rem; margin-bottom: 20px;">🗺️</div>
+            <h3 style="margin: 0 0 10px;">API-Key erforderlich</h3>
+            <p>Bitte konfigurieren Sie den <code>GOOGLE_MAPS_API_KEY</code> in Ihrer Umgebung.</p>
+          </div>
+        <% } %>
+      </div>
+    </section>
+
+    <!-- Scroll-Reveal: Buchstaben wachsen bis das Video komplett sichtbar ist -->
+    <script>
+      (function () {
+        const section = document.getElementById("bavaria");
+        const text    = document.getElementById("bavariaText");
+        if (!section || !text) return;
+
+        const mask = document.querySelector(".bavaria-mask");
+        const MIN = 160;
+        const MAX = 2800;
+        // Phase 1: 0–0.45  → Text wächst
+        // Phase 2: 0.45–0.75 → Maske blendet aus
+        // Phase 3: 0.75–1.0 → Video voll sichtbar, dann weiter zur Map
+        const P1_END = 0.45;
+        const P2_END = 0.75;
+        let ticking = false;
+
+        function clamp01(v) { return Math.min(1, Math.max(0, v)); }
+
+        function update() {
+          const rect = section.getBoundingClientRect();
+          const vh   = window.innerHeight;
+          const total = section.offsetHeight - vh;
+          const scrolled = Math.min(Math.max(-rect.top, 0), total);
+          const progress = total > 0 ? scrolled / total : 0;
+
+          // Phase 1: Text wächst
+          const growT = clamp01(progress / P1_END);
+          const size = MIN + growT * (MAX - MIN);
+          text.setAttribute("font-size", size);
+
+          // Phase 2: Maske blendet aus
+          const fadeT = clamp01((progress - P1_END) / (P2_END - P1_END));
+          if (mask) mask.style.opacity = 1 - fadeT;
+
+          ticking = false;
+        }
+
+        window.addEventListener("scroll", () => {
+          if (!ticking) {
+            window.requestAnimationFrame(update);
+            ticking = true;
+          }
+        }, { passive: true });
+        window.addEventListener("resize", update);
+
+        update();
+      })();
+    </script>
   </body>
 </html>
