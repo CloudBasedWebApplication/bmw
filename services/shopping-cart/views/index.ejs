@@ -83,6 +83,7 @@
         letter-spacing: 0.05em; color: var(--accent);
       }
       .item-quantity { font-size: 0.85rem; color: var(--muted); margin-top: 4px; }
+      .item-variant { font-size: 0.85rem; color: var(--muted); margin-top: 6px; }
 
       .item-right { text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
       .item-price { font-weight: 800; color: var(--text); font-size: 1.1rem; }
@@ -194,6 +195,7 @@
               <div class="item-info">
                 <div class="item-meta">${item.type === "car" ? "Fahrzeug" : "Lifestyle & Merch"}</div>
                 <div class="item-name">${normalizeText(item.name)}</div>
+                ${item.details?.color ? `<div class="item-variant">Farbe: ${normalizeText(item.details.color)}</div>` : ""}
                 <div class="qty-controls">
                   <button class="qty-btn" data-id="${item.id}" data-delta="-1">−</button>
                   <span class="qty-value">${item.quantity}</span>
