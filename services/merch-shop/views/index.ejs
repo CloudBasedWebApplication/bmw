@@ -118,6 +118,29 @@
         margin-bottom: 16px;
       }
 
+      .variant-row {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        margin-bottom: 18px;
+      }
+
+      .variant-label {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--muted);
+      }
+
+      .variant-select {
+        flex: 1;
+        border: 1px solid rgba(15, 23, 42, 0.10);
+        border-radius: 12px;
+        background: #fff;
+        padding: 12px 14px;
+        font-size: 0.95rem;
+        color: var(--text);
+      }
+
       .detail {
         font-size: 0.9rem;
         color: var(--muted);
@@ -192,24 +215,70 @@
     </header>
 
     <div class="layout">
+      <%
+        const groupedProducts = [];
+        const groupMap = new Map();
+
+        products.forEach((product) => {
+          const groupKey = product.name;
+          const existingGroup = groupMap.get(groupKey);
+
+          if (existingGroup) {
+            existingGroup.variants.push(product);
+            return;
+          }
+
+          const group = {
+            ...product,
+            displayName: product.name,
+            variants: [product],
+          };
+
+          groupedProducts.push(group);
+          groupMap.set(groupKey, group);
+        });
+      %>
       <header class="shop-header">
         <h1>Lifestyle & Merch</h1>
         <p>Bringen Sie die Freude am Fahren in Ihren Alltag.</p>
       </header>
 
       <div class="grid">
-        <% products.forEach(function(p) { %>
-          <article class="card" id="product-<%= p.id %>">
+        <% groupedProducts.forEach(function(group) { const primaryProduct = group.variants[0]; const hasVariants = group.variants.length > 1; %>
+          <article class="card" id="product-<%= primaryProduct.id %>">
             <div class="image-container">
-              <img src="<%= p.imageUrl %>" alt="<%= p.name %>" loading="lazy" />
+              <img
+                src="<%= primaryProduct.imageUrl %>"
+                alt="<%= group.displayName %>"
+                loading="lazy"
+                class="product-image"
+              />
             </div>
             <div class="card-body">
-              <div class="category-tag"><%= p.category %></div>
-              <h2><%= p.name %></h2>
-              <div class="price"><%= parseFloat(p.price).toLocaleString("de-DE", { style: "currency", currency: "EUR" }) %></div>
+              <div class="category-tag"><%= primaryProduct.category %></div>
+              <h2><%= group.displayName %></h2>
+              <div class="price"><%= parseFloat(primaryProduct.price).toLocaleString("de-DE", { style: "currency", currency: "EUR" }) %></div>
               
-              <% if (p.description) { %>
-                <p class="detail"><%= p.description %></p>
+              <% if (primaryProduct.description) { %>
+                <p class="detail"><%= primaryProduct.description %></p>
+              <% } %>
+
+              <% if (hasVariants) { %>
+                <div class="variant-row">
+                  <label class="variant-label" for="variant-<%= primaryProduct.id %>">Farbe</label>
+                  <select class="variant-select" id="variant-<%= primaryProduct.id %>">
+                    <% group.variants.forEach(function(variant) { %>
+                      <option
+                        value="<%= variant.id %>"
+                        data-name="<%= variant.name %>"
+                        data-price="<%= variant.price %>"
+                        data-image="<%= variant.imageUrl %>"
+                        data-color="<%= variant.color %>">
+                        <%= variant.color %>
+                      </option>
+                    <% }) %>
+                  </select>
+                </div>
               <% } %>
 
               <div class="purchase-row">
@@ -218,13 +287,14 @@
                   type="number"
                   min="1"
                   value="1"
-                  aria-label="Menge für <%= p.name %>"
+                  aria-label="Menge für <%= group.displayName %>"
                 />
                 <button class="add-btn"
-                  data-id="<%= p.id %>"
-                  data-name="<%= p.name %>"
-                  data-price="<%= p.price %>"
-                  data-image="<%= p.imageUrl %>">
+                  data-id="<%= primaryProduct.id %>"
+                  data-name="<%= group.displayName %>"
+                  data-price="<%= primaryProduct.price %>"
+                  data-image="<%= primaryProduct.imageUrl %>"
+                  data-color="<%= primaryProduct.color %>">
                   In den Warenkorb
                 </button>
               </div>
@@ -238,12 +308,24 @@
       document.querySelectorAll(".add-btn").forEach(btn => {
         btn.addEventListener("click", async () => {
           const originalText = btn.textContent;
-          const quantityInput = btn.parentElement.querySelector(".quantity-field");
+          const card = btn.closest(".card");
+          const quantityInput = card.querySelector(".quantity-field");
+          const variantSelect = card.querySelector(".variant-select");
           const quantity = Math.max(1, parseInt(quantityInput.value, 10) || 1);
+
+          if (variantSelect) {
+            const selectedOption = variantSelect.options[variantSelect.selectedIndex];
+            btn.dataset.id = selectedOption.value;
+            btn.dataset.name = selectedOption.dataset.name.trim();
+            btn.dataset.price = selectedOption.dataset.price;
+            btn.dataset.image = selectedOption.dataset.image;
+            btn.dataset.color = selectedOption.dataset.color;
+          }
 
           quantityInput.value = quantity;
           btn.disabled = true;
           quantityInput.disabled = true;
+          if (variantSelect) variantSelect.disabled = true;
           
           try {
             const response = await fetch("/api/cart/items", {
@@ -255,7 +337,10 @@
                 price: parseFloat(btn.dataset.price),
                 imageUrl: btn.dataset.image,
                 quantity,
-                details: { productId: parseInt(btn.dataset.id) },
+                details: {
+                  productId: parseInt(btn.dataset.id, 10),
+                  color: btn.dataset.color,
+                },
               }),
             });
 
@@ -267,17 +352,39 @@
                 btn.classList.remove("success");
                 btn.disabled = false;
                 quantityInput.disabled = false;
+                if (variantSelect) variantSelect.disabled = false;
               }, 2000);
             } else {
               btn.textContent = "Fehler";
               btn.disabled = false;
               quantityInput.disabled = false;
+              if (variantSelect) variantSelect.disabled = false;
             }
           } catch (error) {
             btn.textContent = "Fehler";
             btn.disabled = false;
             quantityInput.disabled = false;
+            if (variantSelect) variantSelect.disabled = false;
           }
+        });
+      });
+
+      document.querySelectorAll(".card").forEach(card => {
+        const variantSelect = card.querySelector(".variant-select");
+        if (!variantSelect) return;
+
+        const productImage = card.querySelector(".product-image");
+        const addButton = card.querySelector(".add-btn");
+
+        variantSelect.addEventListener("change", () => {
+          const selectedOption = variantSelect.options[variantSelect.selectedIndex];
+          productImage.src = selectedOption.dataset.image;
+          productImage.alt = `${selectedOption.dataset.name} in ${selectedOption.dataset.color}`;
+          addButton.dataset.id = selectedOption.value;
+          addButton.dataset.name = selectedOption.dataset.name.trim();
+          addButton.dataset.price = selectedOption.dataset.price;
+          addButton.dataset.image = selectedOption.dataset.image;
+          addButton.dataset.color = selectedOption.dataset.color;
         });
       });
     </script>

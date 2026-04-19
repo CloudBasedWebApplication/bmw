@@ -13,6 +13,14 @@ async function saveCart(sessionId, items) {
   await redis.set(`cart:${sessionId}`, JSON.stringify(items), { EX: CART_TTL });
 }
 
+function mergeKey(item) {
+  return JSON.stringify({
+    type: item.type,
+    name: item.name,
+    details: item.details || {},
+  });
+}
+
 // GET /cart/:sessionId
 router.get("/:sessionId", async (req, res) => {
   try {
@@ -33,8 +41,9 @@ router.post("/:sessionId/items", async (req, res) => {
     }
     const items = await getCart(req.params.sessionId);
 
-    // Merge into existing item if same type+name already in cart
-    const existing = items.find(i => i.type === type && i.name === name);
+    // Merge only identical variants so color-specific products stay separate.
+    const candidate = { type, name, details };
+    const existing = items.find((i) => mergeKey(i) === mergeKey(candidate));
     if (existing) {
       existing.quantity += parseInt(quantity);
       await saveCart(req.params.sessionId, items);
