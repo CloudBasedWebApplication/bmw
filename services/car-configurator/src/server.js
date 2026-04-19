@@ -64,6 +64,12 @@ function imageUrl(imageKey) {
   return imageKey ? `${minioBase}/${imageKey}` : null;
 }
 
+function mapImageUrls(images) {
+  return Object.fromEntries(
+    Object.entries(images).map(([type, key]) => [type, imageUrl(key)])
+  );
+}
+
 function mapModel(row) {
   return {
     id: row.model_id,
@@ -82,6 +88,18 @@ function mapOption(id, name, price) {
     id,
     name,
     price: parseMoney(price),
+  };
+}
+
+function mapOptionalEntity(row) {
+  if (!row) return null;
+
+  return {
+    id: row.id,
+    name: row.name,
+    price: parseMoney(row.price),
+    imageKey: row.image_key || null,
+    imageUrl: imageUrl(row.image_key),
   };
 }
 
@@ -159,6 +177,35 @@ async function getConfigurationRowByModelAndColor(modelCode, colorName) {
   return rows[0] || null;
 }
 
+async function getConfigurationRowByModelAndColorIds(modelId, colorId) {
+  if (!modelId || !colorId) return null;
+
+  const [rows] = await pool.query(
+    `${configurationSelect}
+     WHERE cfg.model_id = ? AND cfg.color_id = ?
+     ORDER BY cfg.id
+     LIMIT 1`,
+    [modelId, colorId]
+  );
+
+  return rows[0] || null;
+}
+
+async function getConfigurationRowBySelection(modelId, colorId, wheelsId, interiorId) {
+  const [rows] = await pool.query(
+    `${configurationSelect}
+     WHERE cfg.model_id = ?
+       AND cfg.color_id <=> ?
+       AND cfg.wheels_id <=> ?
+       AND cfg.interior_id <=> ?
+     ORDER BY cfg.id
+     LIMIT 1`,
+    [modelId, colorId, wheelsId, interiorId]
+  );
+
+  return rows[0] || null;
+}
+
 async function getModelById(modelId) {
   const [rows] = await pool.query(
     `SELECT id, code, name, package_name, base_price, max_power, drive_type
@@ -179,11 +226,45 @@ async function getOptionalEntity(table, id) {
   }
 
   const [rows] = await pool.query(
-    `SELECT id, name, price FROM ${table} WHERE id = ?`,
+    `SELECT id, name, price, image_key FROM ${table} WHERE id = ?`,
     [id]
   );
 
   return rows[0] || null;
+}
+
+async function getAllOptionalEntities(table, modelId = null) {
+  const allowedTables = new Set(["colors", "wheels", "interiors"]);
+  if (!allowedTables.has(table)) {
+    throw new Error(`Unsupported table lookup: ${table}`);
+  }
+
+  const joinColumn = {
+    colors: "color_id",
+    wheels: "wheels_id",
+    interiors: "interior_id",
+  }[table];
+
+  const query = modelId == null
+    ? `SELECT id, name, price, image_key
+       FROM ${table}
+       ORDER BY id`
+    : `SELECT DISTINCT entity.id, entity.name, entity.price, entity.image_key
+       FROM ${table} entity
+       JOIN configurations cfg ON cfg.${joinColumn} = entity.id
+       WHERE cfg.model_id = ?
+       ORDER BY entity.id`;
+
+  const params = modelId == null ? [] : [modelId];
+  const [rows] = await pool.query(query, params);
+
+  return rows.map((row) => ({
+    id: row.id,
+    name: row.name,
+    price: parseMoney(row.price),
+    imageKey: row.image_key || null,
+    imageUrl: imageUrl(row.image_key),
+  }));
 }
 
 function sendJsonError(res, status, message, details) {
@@ -219,6 +300,54 @@ app.get("/models", async (_req, res) => {
   }
 });
 
+app.get("/options/colors", async (req, res) => {
+  const modelId = req.query.modelId == null
+    ? null
+    : Number.parseInt(req.query.modelId, 10);
+
+  if (req.query.modelId != null && (!Number.isInteger(modelId) || modelId <= 0)) {
+    return sendJsonError(res, 400, "modelId must be a positive integer");
+  }
+
+  try {
+    res.json(await getAllOptionalEntities("colors", modelId));
+  } catch (err) {
+    sendJsonError(res, 500, "Failed to load colors", err.message);
+  }
+});
+
+app.get("/options/wheels", async (req, res) => {
+  const modelId = req.query.modelId == null
+    ? null
+    : Number.parseInt(req.query.modelId, 10);
+
+  if (req.query.modelId != null && (!Number.isInteger(modelId) || modelId <= 0)) {
+    return sendJsonError(res, 400, "modelId must be a positive integer");
+  }
+
+  try {
+    res.json(await getAllOptionalEntities("wheels", modelId));
+  } catch (err) {
+    sendJsonError(res, 500, "Failed to load wheels", err.message);
+  }
+});
+
+app.get("/options/interiors", async (req, res) => {
+  const modelId = req.query.modelId == null
+    ? null
+    : Number.parseInt(req.query.modelId, 10);
+
+  if (req.query.modelId != null && (!Number.isInteger(modelId) || modelId <= 0)) {
+    return sendJsonError(res, 400, "modelId must be a positive integer");
+  }
+
+  try {
+    res.json(await getAllOptionalEntities("interiors", modelId));
+  } catch (err) {
+    sendJsonError(res, 500, "Failed to load interiors", err.message);
+  }
+});
+
 app.get("/configurations", async (_req, res) => {
   try {
     const [rows] = await pool.query(`${configurationSelect} ORDER BY cfg.id`);
@@ -243,6 +372,7 @@ app.get("/configurations/:id", async (req, res) => {
     }
 
     const images = await getImagesByConfigurationId(configurationId);
+    const imageUrls = mapImageUrls(images);
 
     res.json({
       id: row.configuration_id,
@@ -253,6 +383,7 @@ app.get("/configurations/:id", async (req, res) => {
       advantages: row.advantages,
       disadvantages: row.disadvantages,
       images,
+      imageUrls,
       price: buildPriceDetails(row),
     });
   } catch (err) {
@@ -311,12 +442,43 @@ app.post("/configuration/calculate", async (req, res) => {
     const wheelsPrice = parseMoney(wheels?.price);
     const interiorPrice = parseMoney(interior?.price);
 
+    const [exactConfig, exteriorConfig] = await Promise.all([
+      getConfigurationRowBySelection(modelId, colorId, wheelsId, interiorId),
+      colorId != null ? getConfigurationRowByModelAndColorIds(modelId, colorId) : Promise.resolve(null),
+    ]);
+
+    let exteriorImages = {};
+    if (exteriorConfig) {
+      const exteriorImageKeys = await getImagesByConfigurationId(exteriorConfig.configuration_id);
+      exteriorImages = mapImageUrls(exteriorImageKeys);
+    }
+
     res.json({
+      model: {
+        id: model.id,
+        code: model.code,
+        name: model.name,
+        packageName: model.package_name,
+        basePrice: basePrice,
+        maxPower: model.max_power,
+        driveType: model.drive_type,
+      },
+      color: mapOptionalEntity(color),
+      wheels: mapOptionalEntity(wheels),
+      interior: mapOptionalEntity(interior),
       basePrice,
       colorPrice,
       wheelsPrice,
       interiorPrice,
       totalPrice: basePrice + colorPrice + wheelsPrice + interiorPrice,
+      previewImages: {
+        front: exteriorImages.front || null,
+        back: exteriorImages.back || null,
+        wheels: wheels ? imageUrl(wheels.image_key) : exteriorImages.wheels || null,
+        interior: interior ? imageUrl(interior.image_key) : exteriorImages.interior || null,
+      },
+      advantages: exactConfig ? parseCsvList(exactConfig.advantages) : [],
+      disadvantages: exactConfig ? parseCsvList(exactConfig.disadvantages) : [],
     });
   } catch (err) {
     sendJsonError(res, 500, "Failed to calculate configuration price", err.message);
@@ -340,6 +502,7 @@ app.get("/configure", async (req, res) => {
 
     const images = await getImagesByConfigurationId(row.configuration_id);
     const price = buildPriceDetails(row);
+    const imageUrls = mapImageUrls(images);
 
     res.json({
       configurationId: row.configuration_id,
@@ -351,11 +514,14 @@ app.get("/configure", async (req, res) => {
       colorId: row.color_id,
       price: price.totalPrice,
       priceBreakdown: price,
-      imageUrl: imageUrl(images.front),
-      imageUrlBack: imageUrl(images.back),
-      imageUrlWheels: imageUrl(images.wheels),
-      imageUrlInterior: imageUrl(images.interior),
+      imageUrl: imageUrls.front || null,
+      imageUrlBack: imageUrls.back || null,
+      imageUrlWheels: imageUrls.wheels || null,
+      imageUrlInterior:
+        imageUrls.interior ||
+        (row.interior_id ? imageUrl(`configurator/${row.interior_id}_interior.jpg`) : null),
       images,
+      imageUrls,
       advantages: parseCsvList(row.advantages),
       disadvantages: parseCsvList(row.disadvantages),
     });

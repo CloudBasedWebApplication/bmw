@@ -144,7 +144,7 @@ The sync writes object keys with stable prefixes:
 
 Example object keys:
 
-- `configurator/3BMWBlackFamily.webp`
+- `configurator/1_front.jpg`
 - `webshop/BMW_Merchandise_Sweatshirt.avif`
 
 For new merch assets, prefer ASCII-only filenames in `assets/merch-shop/` so object keys stay stable across encodings. For example, use `weiss` instead of `weiß` in filenames.

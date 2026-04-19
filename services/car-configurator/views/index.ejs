@@ -20,108 +20,306 @@
 
         * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
 
-        body { 
-            margin: 0; 
-            font-family: 'Inter', -apple-system, system-ui, sans-serif; 
-            background: var(--bg); 
+        body {
+            margin: 0;
+            font-family: "Inter", -apple-system, system-ui, sans-serif;
+            background: var(--bg);
             color: var(--text);
             line-height: 1.5;
         }
 
-        /* Navigation Upgrade */
         .topbar { padding: 20px; }
-        .topbar-inner { 
-            max-width: 1200px; margin: 0 auto; padding: 12px 24px; 
-            background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px);
-            border-radius: 999px; border: 1px solid rgba(255,255,255,0.3);
-            box-shadow: var(--shadow); display: flex; align-items: center; justify-content: space-between;
+        .topbar-inner {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 12px 24px;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
         }
+
         .brand { text-decoration: none; color: var(--text); font-weight: 800; font-size: 1.1rem; }
-        .nav-links { display: flex; gap: 8px; }
-        .nav-links a { 
-            text-decoration: none; color: var(--muted); padding: 8px 16px; 
-            border-radius: 999px; font-size: 0.9rem; transition: 0.2s; 
+        .nav-links { display: flex; gap: 8px; flex-wrap: wrap; }
+        .nav-links a {
+            text-decoration: none;
+            color: var(--muted);
+            padding: 8px 16px;
+            border-radius: 999px;
+            font-size: 0.9rem;
+            transition: 0.2s;
         }
         .nav-links a.active, .nav-links a:hover { background: var(--text); color: white; }
 
-        /* Main Configurator Layout */
-        .layout { 
-            max-width: 1200px; margin: 0 auto; padding: 20px;
-            display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 32px;
+        .layout {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 32px;
+            align-items: start;
         }
 
-        @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
-
-        h1 { font-size: 2.5rem; font-weight: 800; letter-spacing: -0.02em; margin: 0 0 8px; }
-        .subtitle { color: var(--muted); margin-bottom: 32px; }
-
-        .section-label { 
-            font-size: 0.75rem; font-weight: 700; text-transform: uppercase; 
-            letter-spacing: 0.1em; color: var(--muted); margin: 24px 0 12px; 
+        @media (max-width: 980px) {
+            .layout { grid-template-columns: 1fr; }
+            .preview-column { position: static; }
         }
 
-        /* Interaction Elements */
-        .btn-group { display: flex; flex-wrap: wrap; gap: 8px; }
-        .btn { 
-            padding: 12px 20px; border: 1px solid var(--border); border-radius: var(--radius-md);
-            background: white; font-weight: 500; cursor: pointer; transition: 0.2s;
-        }
-        .btn:hover { border-color: var(--accent); }
-        .btn.active { background: var(--text); color: white; border-color: var(--text); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-
-        .color-group { display: flex; gap: 16px; align-items: center; }
-        .swatch-wrapper { position: relative; padding: 4px; border-radius: 50%; border: 2px solid transparent; transition: 0.2s; cursor: pointer; }
-        .swatch-wrapper.active { border-color: var(--accent); }
-        .swatch { width: 32px; height: 32px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.1); display: block; }
-        .swatch.black { background: #1a1a1a; }
-        .swatch.blue  { background: #1c69d4; }
-        .swatch.white { background: #fdfdfd; }
-
-        /* Stage */
-        .car-stage { 
-            position: sticky; top: 100px; background: white; 
-            border-radius: var(--radius-lg); overflow: hidden; 
-            box-shadow: var(--shadow); height: fit-content;
-        }
-        .car-stage img { width: 100%; height: auto; transition: opacity 0.3s ease; display: block; }
-        
-        .view-tabs { 
-            display: flex; justify-content: center; gap: 4px; 
-            padding: 12px; background: #f1f5f9; 
-        }
-        .view-tab { 
-            padding: 6px 16px; border-radius: 999px; border: none; 
-            background: transparent; font-size: 0.8rem; font-weight: 600; cursor: pointer; 
-        }
-        .view-tab.active { background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-
-        /* Summary Panel */
-        .info-panel { 
-            background: white; border-radius: var(--radius-lg); 
-            padding: 32px; box-shadow: var(--shadow); border: 1px solid var(--border);
-        }
-        .price-tag { font-size: 2.2rem; font-weight: 800; color: var(--text); margin-bottom: 24px; display: flex; flex-direction: column; }
-        .price-tag span { font-size: 0.9rem; color: var(--muted); font-weight: 400; }
-
-        .list-box { margin-bottom: 24px; }
-        .list-box h3 { font-size: 0.8rem; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
-        .list-box ul { padding: 0; list-style: none; margin: 0; }
-        .list-box li { 
-            position: relative; padding-left: 20px; margin-bottom: 8px; font-size: 0.95rem; 
-        }
-        .list-box li::before { 
-            content: "→"; position: absolute; left: 0; color: var(--accent); font-weight: bold;
+        .preview-column {
+            position: sticky;
+            top: 100px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
         }
 
-        .add-btn { 
-            width: 100%; padding: 18px; border-radius: var(--radius-md); border: none; 
-            background: var(--accent); color: white; font-size: 1.1rem; font-weight: 700; 
-            cursor: pointer; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+        .car-stage {
+            background: white;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
         }
-        .add-btn:hover:not(:disabled) { background: var(--accent-hover); transform: scale(1.02); }
-        .add-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        #status { margin-top: 15px; height: 20px; text-align: center; font-weight: 600; font-size: 0.9rem; color: #10b981; }
+        .stage-image-wrap {
+            width: 100%;
+            min-height: 520px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+            padding: 20px;
+        }
+
+        .car-stage img {
+            width: 100%;
+            max-width: 900px;
+            height: auto;
+            display: block;
+            transition: opacity 0.25s ease;
+        }
+
+        .placeholder {
+            color: var(--muted);
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .view-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            padding: 14px;
+            background: #f1f5f9;
+            flex-wrap: wrap;
+        }
+
+        .view-tab {
+            padding: 8px 16px;
+            border-radius: 999px;
+            border: none;
+            background: transparent;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .view-tab.active {
+            background: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .config-column {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .panel {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        .price-panel {
+            padding: 24px 28px;
+        }
+
+        h1 {
+            font-size: 2.3rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin: 0 0 8px;
+        }
+
+        .subtitle {
+            color: var(--muted);
+            margin-bottom: 24px;
+        }
+
+        .section-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--muted);
+            margin: 22px 0 12px;
+        }
+
+        .btn-group,
+        .option-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .btn,
+        .option-btn {
+            padding: 12px 18px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            background: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn:hover,
+        .option-btn:hover {
+            border-color: var(--accent);
+        }
+
+        .btn.active,
+        .option-btn.active {
+            background: var(--text);
+            color: white;
+            border-color: var(--text);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .color-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .swatch-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px 8px 8px;
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            cursor: pointer;
+            transition: 0.2s;
+            background: white;
+        }
+
+        .swatch-wrapper.active {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(0, 102, 177, 0.1);
+        }
+
+        .swatch {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 1px solid rgba(0, 0, 0, 0.12);
+            display: inline-block;
+            flex-shrink: 0;
+        }
+
+        .swatch-label {
+            font-size: 0.92rem;
+            font-weight: 600;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 14px;
+        }
+
+        .summary-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .summary-row:last-child {
+            border-bottom: none;
+        }
+
+        .summary-key {
+            color: var(--muted);
+            font-weight: 600;
+        }
+
+        .summary-value {
+            font-weight: 700;
+            text-align: right;
+        }
+
+        .price-tag {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 12px;
+        }
+
+        .price-tag span {
+            font-size: 0.9rem;
+            color: var(--muted);
+            font-weight: 500;
+        }
+
+        .price-main {
+            font-size: 2.2rem;
+            font-weight: 800;
+        }
+
+        .add-btn {
+            width: 100%;
+            padding: 18px;
+            border-radius: var(--radius-md);
+            border: none;
+            background: var(--accent);
+            color: white;
+            font-size: 1.05rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-top: 18px;
+        }
+
+        .add-btn:hover:not(:disabled) {
+            background: var(--accent-hover);
+            transform: translateY(-1px);
+        }
+
+        .add-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        #status {
+            margin-top: 14px;
+            min-height: 20px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #10b981;
+        }
     </style>
 </head>
 <body>
@@ -139,183 +337,404 @@
     </header>
 
     <div class="layout">
-        <div class="config-options">
-            <h1>Konfigurieren</h1>
-            <p class="subtitle">Gestalten Sie Ihr individuelles Fahrerlebnis.</p>
-
-            <div class="section-label">Modell wählen</div>
-            <div class="btn-group" id="modelBtns"></div>
-
-            <div class="section-label">Exterieur Farbe</div>
-            <div class="color-group" id="colorBtns">
-                <div class="swatch-wrapper active" data-color="Black"><span class="swatch black"></span></div>
-                <div class="swatch-wrapper" data-color="Blue"><span class="swatch blue"></span></div>
-                <div class="swatch-wrapper" data-color="White"><span class="swatch white"></span></div>
-            </div>
-
-            <div class="section-label">Vorschau</div>
+        <div class="preview-column">
             <div class="car-stage">
-                <div class="view-tabs" id="viewTabs" style="display:none">
+                <div class="stage-image-wrap">
+                    <img id="carImg" src="" alt="Auto Vorschau" style="display:none" />
+                    <div class="placeholder" id="placeholder">Lade Vorschau ...</div>
+                </div>
+
+                <div class="view-tabs" id="viewTabs">
                     <button class="view-tab active" data-view="front">Exterieur</button>
                     <button class="view-tab" data-view="back">Heck</button>
-                    <button class="view-tab" data-view="wheels" id="wheelsTab">Räder</button>
+                    <button class="view-tab" data-view="wheels">Felgen</button>
+                    <button class="view-tab" data-view="interior">Interieur</button>
                 </div>
-                <img id="carImg" src="" alt="Auto Vorschau" />
+            </div>
+
+            <div class="panel price-panel">
+                <div class="price-tag">
+                    <span id="modelNameDisplay">Modell laden...</span>
+                    <div class="price-main" id="price">0,00 EUR</div>
+                </div>
             </div>
         </div>
 
-        <div class="summary-section">
-            <div class="info-panel" id="infoPanel" style="position: sticky; top: 100px;">
-                <div class="price-tag">
-                    <span id="modelNameDisplay">Modell laden...</span>
-                    <div id="price">0,00 €</div>
+        <div class="config-column">
+            <div class="panel">
+                <h1>BMW konfigurieren</h1>
+                <p class="subtitle">Waehlen Sie Modell, Exterieur-Farbe, Interieur und Felgen.</p>
+
+                <div class="section-label">Modell</div>
+                <div class="btn-group" id="modelBtns"></div>
+
+                <div class="section-label">Exterieur-Farbe</div>
+                <div class="color-group" id="colorBtns"></div>
+
+                <div class="section-label">Interieur</div>
+                <div class="option-group" id="interiorBtns"></div>
+
+                <div class="section-label">Felgen</div>
+                <div class="option-group" id="wheelsBtns"></div>
+            </div>
+
+            <div class="panel">
+                <div class="summary-grid">
+                    <div class="summary-row">
+                        <div class="summary-key">Exterieur</div>
+                        <div class="summary-value" id="selectedColor">-</div>
+                    </div>
+                    <div class="summary-row">
+                        <div class="summary-key">Interieur</div>
+                        <div class="summary-value" id="selectedInterior">-</div>
+                    </div>
+                    <div class="summary-row">
+                        <div class="summary-key">Felgen</div>
+                        <div class="summary-value" id="selectedWheels">-</div>
+                    </div>
                 </div>
 
-                <div class="list-box">
-                    <h3>Highlights</h3>
-                    <ul id="advantages"></ul>
-                </div>
-                
-                <div class="list-box">
-                    <h3>Hinweise</h3>
-                    <ul id="disadvantages"></ul>
-                </div>
-
-                <button class="add-btn" id="addBtn" disabled>Konfiguration abschließen</button>
+                <button class="add-btn" id="addBtn" disabled>Konfiguration abschliessen</button>
                 <div id="status"></div>
             </div>
         </div>
     </div>
 
     <script>
-        // Logik bleibt weitgehend identisch, nur UI-Updates wurden integriert
-        let models = [];
-        let current = { model: null, color: "Black", view: "front", config: null };
+        const state = {
+            models: [],
+            colors: [],
+            interiors: [],
+            wheels: [],
+            selection: {
+                modelId: null,
+                colorId: null,
+                interiorId: null,
+                wheelsId: null,
+                view: "front"
+            },
+            config: null
+        };
 
-        // URL-Parameter lesen (z.B. wenn Nutzer vom AI-Feature hierher kommt)
         const urlParams = new URLSearchParams(window.location.search);
-        const preferredModel = urlParams.get("model");   // "3", "X5" oder null
-        const preferredColor = urlParams.get("color");   // "Black", "Blue", "White" oder null
+        const preferredModel = urlParams.get("model");
+        const preferredColor = urlParams.get("color");
 
-        // Wenn eine Farbe vorausgewählt ist: UI-State anpassen, BEVOR Modelle laden
-        if (preferredColor && ["Black", "Blue", "White"].includes(preferredColor)) {
-            current.color = preferredColor;
-            document.querySelectorAll(".swatch-wrapper").forEach(sw => {
-                sw.classList.toggle("active", sw.dataset.color === preferredColor);
+        function formatPrice(value) {
+            return Number(value || 0).toLocaleString("de-DE", {
+                style: "currency",
+                currency: "EUR"
             });
         }
 
-        async function loadModels() {
-            try {
-                const res = await fetch("/api/configurator/models");
-                models = await res.json();
-                const container = document.getElementById("modelBtns");
+        function colorFromName(name) {
+            const key = String(name || "").toLowerCase();
 
-                // Falls ein Modell aus URL vorausgewählt: Index finden, sonst 0
-                let activeIdx = 0;
-                if (preferredModel) {
-                    const idx = models.findIndex(m => m.code === preferredModel);
-                    if (idx >= 0) activeIdx = idx;
+            if (key.includes("black") || key.includes("schwarz")) return "#111111";
+            if (key.includes("blue") || key.includes("blau")) return "#1c69d4";
+            if (key.includes("white") || key.includes("weiss") || key.includes("weiß")) return "#f8fafc";
+            if (key.includes("grey") || key.includes("gray") || key.includes("grau")) return "#6b7280";
+            if (key.includes("red") || key.includes("rot")) return "#b91c1c";
+            if (key.includes("silver") || key.includes("silber")) return "#cbd5e1";
+
+            return "#d1d5db";
+        }
+
+        function colorSortRank(name) {
+            const key = String(name || "").toLowerCase();
+
+            if (key.includes("black") || key.includes("schwarz")) return 1;
+            if (key.includes("blue") || key.includes("blau")) return 2;
+            if (key.includes("white") || key.includes("weiss") || key.includes("weiß")) return 3;
+            if (key.includes("grey") || key.includes("gray") || key.includes("grau")) return 4;
+            if (key.includes("red") || key.includes("rot")) return 5;
+            if (key.includes("silver") || key.includes("silber")) return 6;
+
+            return 99;
+        }
+
+        async function fetchJson(url, options) {
+            const res = await fetch(url, options);
+            if (!res.ok) throw new Error(`Request failed: ${url}`);
+            return res.json();
+        }
+
+        function pickPreferredOrFirst(options, matcher) {
+            if (!options.length) return null;
+            return options.find(matcher) || options[0];
+        }
+
+        async function loadInitialData() {
+            try {
+                state.models = await fetchJson("/api/configurator/models");
+
+                const initialModel = pickPreferredOrFirst(
+                    state.models,
+                    (model) => model.code === preferredModel || model.name === preferredModel
+                );
+
+                if (initialModel) {
+                    state.selection.modelId = initialModel.id;
                 }
 
-                models.forEach((m, i) => {
-                    const btn = document.createElement("button");
-                    btn.className = "btn" + (i === activeIdx ? " active" : "");
-                    btn.textContent = m.name;
-                    btn.addEventListener("click", () => selectModel(m.code, btn));
-                    container.appendChild(btn);
-                });
-                if (models.length) selectModel(models[activeIdx].code, container.children[activeIdx]);
-            } catch (e) { console.error("Models failed", e); }
+                renderModelButtons();
+                await loadOptionsForModel();
+                await recalculate();
+            } catch (err) {
+                console.error(err);
+                document.getElementById("placeholder").textContent = "Fehler beim Laden";
+                document.getElementById("modelNameDisplay").textContent = "Nicht verfuegbar";
+                document.getElementById("price").textContent = "Nicht verfuegbar";
+            }
         }
 
-        function selectModel(code, btn) {
-            current.model = code;
-            document.querySelectorAll("#modelBtns .btn").forEach(b => b.classList.remove("active"));
-            btn.classList.add("active");
-            loadConfig();
-        }
+        async function loadOptionsForModel() {
+            if (!state.selection.modelId) return;
 
-        document.querySelectorAll(".swatch-wrapper").forEach(sw => {
-            sw.addEventListener("click", () => {
-                current.color = sw.dataset.color;
-                document.querySelectorAll(".swatch-wrapper").forEach(x => x.classList.remove("active"));
-                sw.classList.add("active");
-                loadConfig();
+            const modelId = encodeURIComponent(state.selection.modelId);
+            const [colors, interiors, wheels] = await Promise.all([
+                fetchJson(`/api/configurator/options/colors?modelId=${modelId}`),
+                fetchJson(`/api/configurator/options/interiors?modelId=${modelId}`),
+                fetchJson(`/api/configurator/options/wheels?modelId=${modelId}`)
+            ]);
+
+            state.colors = [...colors].sort((left, right) => {
+                const rankDifference = colorSortRank(left.name) - colorSortRank(right.name);
+                if (rankDifference !== 0) return rankDifference;
+                return String(left.name).localeCompare(String(right.name), "de");
             });
-        });
+            state.interiors = interiors;
+            state.wheels = wheels;
 
-        document.querySelectorAll(".view-tab").forEach(t => {
-            t.addEventListener("click", () => {
-                current.view = t.dataset.view;
-                document.querySelectorAll(".view-tab").forEach(x => x.classList.remove("active"));
-                t.classList.add("active");
+            const selectedColor = pickPreferredOrFirst(
+                state.colors,
+                (color) => color.name === preferredColor || String(color.name).toLowerCase() === String(preferredColor || "").toLowerCase()
+            );
+
+            if (!state.colors.some((color) => color.id === state.selection.colorId)) {
+                state.selection.colorId = selectedColor ? selectedColor.id : null;
+            }
+
+            if (!interiors.some((interior) => interior.id === state.selection.interiorId)) {
+                state.selection.interiorId = interiors.length ? interiors[0].id : null;
+            }
+
+            if (!wheels.some((wheel) => wheel.id === state.selection.wheelsId)) {
+                state.selection.wheelsId = wheels.length ? wheels[0].id : null;
+            }
+
+            renderColorButtons();
+            renderInteriorButtons();
+            renderWheelsButtons();
+        }
+
+        function renderModelButtons() {
+            const container = document.getElementById("modelBtns");
+            container.innerHTML = "";
+
+            state.models.forEach((model) => {
+                const btn = document.createElement("button");
+                btn.className = "btn" + (state.selection.modelId === model.id ? " active" : "");
+                btn.textContent = model.name;
+                btn.addEventListener("click", async () => {
+                    if (state.selection.modelId === model.id) return;
+                    state.selection.modelId = model.id;
+                    renderModelButtons();
+                    await loadOptionsForModel();
+                    await recalculate();
+                });
+                container.appendChild(btn);
+            });
+        }
+
+        function renderColorButtons() {
+            const container = document.getElementById("colorBtns");
+            container.innerHTML = "";
+
+            state.colors.forEach((color) => {
+                const wrapper = document.createElement("div");
+                wrapper.className = "swatch-wrapper" + (state.selection.colorId === color.id ? " active" : "");
+                wrapper.innerHTML = `
+                    <span class="swatch" style="background:${colorFromName(color.name)}"></span>
+                    <span class="swatch-label">${color.name}</span>
+                `;
+                wrapper.addEventListener("click", async () => {
+                    state.selection.colorId = color.id;
+                    renderColorButtons();
+                    await recalculate();
+                });
+                container.appendChild(wrapper);
+            });
+        }
+
+        function renderInteriorButtons() {
+            const container = document.getElementById("interiorBtns");
+            container.innerHTML = "";
+
+            state.interiors.forEach((interior) => {
+                const btn = document.createElement("button");
+                btn.className = "option-btn" + (state.selection.interiorId === interior.id ? " active" : "");
+                btn.textContent = `${interior.name} (+${formatPrice(interior.price)})`;
+                btn.addEventListener("click", async () => {
+                    state.selection.interiorId = interior.id;
+                    renderInteriorButtons();
+                    await recalculate();
+                });
+                container.appendChild(btn);
+            });
+        }
+
+        function renderWheelsButtons() {
+            const container = document.getElementById("wheelsBtns");
+            container.innerHTML = "";
+
+            state.wheels.forEach((wheel) => {
+                const btn = document.createElement("button");
+                btn.className = "option-btn" + (state.selection.wheelsId === wheel.id ? " active" : "");
+                btn.textContent = `${wheel.name} (+${formatPrice(wheel.price)})`;
+                btn.addEventListener("click", async () => {
+                    state.selection.wheelsId = wheel.id;
+                    renderWheelsButtons();
+                    await recalculate();
+                });
+                container.appendChild(btn);
+            });
+        }
+
+        document.querySelectorAll(".view-tab").forEach((tab) => {
+            tab.addEventListener("click", () => {
+                state.selection.view = tab.dataset.view;
+                document.querySelectorAll(".view-tab").forEach((item) => item.classList.remove("active"));
+                tab.classList.add("active");
                 updateImage();
             });
         });
 
-        async function loadConfig() {
-            if (!current.model) return;
-            const res = await fetch(`/api/configurator/configure?model=${current.model}&color=${current.color}`);
-            if (!res.ok) { current.config = null; updateUI(); return; }
-            current.config = await res.json();
-            updateUI();
+        async function recalculate() {
+            if (!state.selection.modelId) return;
+
+            try {
+                state.config = await fetchJson("/api/configurator/configuration/calculate", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        modelId: state.selection.modelId,
+                        colorId: state.selection.colorId,
+                        interiorId: state.selection.interiorId,
+                        wheelsId: state.selection.wheelsId
+                    })
+                });
+
+                updateUI();
+            } catch (err) {
+                console.error(err);
+                state.config = null;
+                updateUI();
+            }
         }
 
         function updateUI() {
-            const cfg = current.config;
-            const tabs = document.getElementById("viewTabs");
+            const cfg = state.config;
+            const img = document.getElementById("carImg");
+            const placeholder = document.getElementById("placeholder");
+            const addBtn = document.getElementById("addBtn");
+
             if (!cfg) {
-                document.getElementById("price").textContent = "Nicht verfügbar";
-                document.getElementById("addBtn").disabled = true;
+                document.getElementById("modelNameDisplay").textContent = "Nicht verfuegbar";
+                document.getElementById("price").textContent = "Nicht verfuegbar";
+                document.getElementById("selectedColor").textContent = "-";
+                document.getElementById("selectedInterior").textContent = "-";
+                document.getElementById("selectedWheels").textContent = "-";
+                addBtn.disabled = true;
+                img.style.display = "none";
+                placeholder.style.display = "block";
+                placeholder.textContent = "Keine Vorschau verfuegbar";
                 return;
             }
-            tabs.style.display = "flex";
-            document.getElementById("modelNameDisplay").textContent = `${cfg.modelName} ${cfg.packageName}`;
-            document.getElementById("price").textContent = cfg.price.toLocaleString("de-DE", { style: "currency", currency: "EUR" });
-            
-            document.getElementById("advantages").innerHTML = cfg.advantages.map(a => `<li>${a}</li>`).join("") || "<li>Standard-Features</li>";
-            document.getElementById("disadvantages").innerHTML = cfg.disadvantages.map(d => `<li>${d}</li>`).join("");
-            
-            document.getElementById("addBtn").disabled = false;
+
+            document.getElementById("modelNameDisplay").textContent =
+                `${cfg.model.name} ${cfg.model.packageName || ""}`.trim();
+            document.getElementById("price").textContent = formatPrice(cfg.totalPrice);
+            document.getElementById("selectedColor").textContent = cfg.color ? cfg.color.name : "-";
+            document.getElementById("selectedInterior").textContent = cfg.interior ? cfg.interior.name : "-";
+            document.getElementById("selectedWheels").textContent = cfg.wheels ? cfg.wheels.name : "-";
+
+            addBtn.disabled = false;
             updateImage();
         }
 
         function updateImage() {
-            const cfg = current.config;
-            if (!cfg) return;
+            const cfg = state.config;
             const img = document.getElementById("carImg");
-            img.style.opacity = "0.5";
-            const urls = { front: cfg.imageUrl, back: cfg.imageUrlBack, wheels: cfg.imageUrlWheels };
-            img.src = urls[current.view] || cfg.imageUrl;
-            img.onload = () => img.style.opacity = "1";
+            const placeholder = document.getElementById("placeholder");
+
+            if (!cfg || !cfg.previewImages) {
+                img.style.display = "none";
+                placeholder.style.display = "block";
+                placeholder.textContent = "Keine Vorschau verfuegbar";
+                return;
+            }
+
+            const activeUrl = cfg.previewImages[state.selection.view] || cfg.previewImages.front;
+
+            if (!activeUrl) {
+                img.style.display = "none";
+                placeholder.style.display = "block";
+                placeholder.textContent = "Kein Bild fuer diese Ansicht vorhanden";
+                return;
+            }
+
+            placeholder.style.display = "none";
+            img.style.display = "block";
+            img.style.opacity = "0.4";
+            img.src = activeUrl;
+            img.onload = () => {
+                img.style.opacity = "1";
+            };
         }
 
         document.getElementById("addBtn").addEventListener("click", async () => {
-            const cfg = current.config;
+            const cfg = state.config;
             const btn = document.getElementById("addBtn");
             const status = document.getElementById("status");
+
+            if (!cfg) return;
+
             btn.disabled = true;
             status.textContent = "Speichere...";
-            
-            const res = await fetch("/api/cart/items", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    type: "car",
-                    name: `${cfg.modelName} ${cfg.packageName}`,
-                    price: cfg.price,
-                    imageUrl: cfg.imageUrl,
-                    quantity: 1,
-                    details: { color: cfg.color }
-                }),
-            });
-            btn.disabled = false;
-            status.textContent = res.ok ? "✓ Erfolgreich hinzugefügt" : "Fehler";
-            setTimeout(() => (status.textContent = ""), 3000);
+
+            try {
+                const res = await fetch("/api/cart/items", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        type: "car",
+                        name: `${cfg.model.name} ${cfg.model.packageName || ""}`.trim(),
+                        price: cfg.totalPrice,
+                        imageUrl: cfg.previewImages.front,
+                        quantity: 1,
+                        details: {
+                            modelId: cfg.model.id,
+                            color: cfg.color ? cfg.color.name : null,
+                            interior: cfg.interior ? cfg.interior.name : null,
+                            wheels: cfg.wheels ? cfg.wheels.name : null
+                        }
+                    })
+                });
+
+                status.textContent = res.ok ? "Erfolgreich hinzugefuegt" : "Fehler beim Hinzufuegen";
+            } catch (err) {
+                console.error(err);
+                status.textContent = "Fehler beim Hinzufuegen";
+            } finally {
+                btn.disabled = false;
+                setTimeout(() => {
+                    status.textContent = "";
+                }, 3000);
+            }
         });
 
-        loadModels();
+        loadInitialData();
     </script>
 </body>
 </html>
