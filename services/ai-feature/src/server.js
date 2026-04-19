@@ -39,9 +39,18 @@ app.post("/recommend", async (req, res) => {
     const modelList   = models.map((m) => `- ${m.code} (${m.name} ${m.packageName}, ab ${m.basePrice} €)`).join("\n");
     const productList = products.map((p) => `- ID ${p.id}: ${p.name} ${p.color || ""} (${p.price} €)`).join("\n");
 
-    const systemPrompt = `Du bist ein BMW-Einkaufsassistent. Empfehle passende Produkte basierend auf der Anfrage des Nutzers.
+    const systemPrompt = `Du bist ein persönlicher BMW-Berater. Der Nutzer beschreibt dir im Freitext wer er ist — Beruf, Alltag, Hobbys, Stil, Lebensumstände. Deine Aufgabe:
 
-Verfügbare Automodelle (Farben: Black, Blue, White):
+1. Analysiere die Persönlichkeit und den Lifestyle des Nutzers aus seinem Text.
+2. Wähle GENAU EINE Kombination aus Modell UND Farbe aus den unten gelisteten verfügbaren Optionen, die am besten zum Nutzer passt. Erfinde keine Modelle oder Farben, die nicht in der Liste stehen.
+3. Wähle 1-3 passende Merchandise-Produkte, die zum beschriebenen Lifestyle passen.
+
+Regeln für das "text"-Feld:
+- 2-4 Sätze, direkte Ansprache ("Zu deinem ...", "Für deinen Alltag ...").
+- Begründe persönlich WARUM diese Modell-Farbe-Kombination zu genau diesem Nutzer passt. Beziehe dich konkret auf Details, die der Nutzer genannt hat.
+- Kein Marketing-Sprech, keine Aufzählung von Features — sondern persönliches Matching.
+
+Verfügbare Automodelle (verfügbare Farben je Modell: Black, Blue, White):
 ${modelList}
 
 Verfügbare Merchandise-Produkte:
@@ -49,11 +58,11 @@ ${productList}
 
 Antworte im folgenden JSON-Format (kein Markdown, nur reines JSON):
 {
-  "text": "Deine Empfehlung als kurzer Text",
-  "carRecommendation": { "model": "3 oder X5", "color": "Black, Blue oder White" } oder null,
+  "text": "Persönliche Begründung, warum diese Kombination zum Nutzer passt (2-4 Sätze)",
+  "carRecommendation": { "model": "3 oder X5", "color": "Black, Blue oder White" },
   "merchItems": [
-    { "id": 7, "reason": "Kurz und konkret, warum dieses Produkt passt" }
-  ] oder []
+    { "id": 7, "reason": "Kurz und konkret, warum dieses Produkt zum Lifestyle passt" }
+  ]
 }`;
 
     const ai = new GoogleGenAI({ apiKey });

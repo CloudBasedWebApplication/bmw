@@ -76,7 +76,7 @@ services:
       - merch-shop
 
   mysql:
-    image: mysql:8.4.8
+    image: mysql:8.0
     env_file: .env
     environment:
       MYSQL_DATABASE: ${MYSQL_DATABASE}
@@ -94,7 +94,7 @@ services:
       - ./infrastructure/mysql/init:/docker-entrypoint-initdb.d
 
   mysql-seed:
-    image: mysql:8.4.8
+    image: mysql:8.0
     env_file: .env
     depends_on:
       mysql:
