@@ -64,6 +64,12 @@ function imageUrl(imageKey) {
   return imageKey ? `${minioBase}/${imageKey}` : null;
 }
 
+function mapImageUrls(images) {
+  return Object.fromEntries(
+    Object.entries(images).map(([type, key]) => [type, imageUrl(key)])
+  );
+}
+
 function mapModel(row) {
   return {
     id: row.model_id,
@@ -82,6 +88,18 @@ function mapOption(id, name, price) {
     id,
     name,
     price: parseMoney(price),
+  };
+}
+
+function mapOptionalEntity(row) {
+  if (!row) return null;
+
+  return {
+    id: row.id,
+    name: row.name,
+    price: parseMoney(row.price),
+    imageKey: row.image_key || null,
+    imageUrl: imageUrl(row.image_key),
   };
 }
 
@@ -179,7 +197,7 @@ async function getOptionalEntity(table, id) {
   }
 
   const [rows] = await pool.query(
-    `SELECT id, name, price FROM ${table} WHERE id = ?`,
+    `SELECT id, name, price, image_key FROM ${table} WHERE id = ?`,
     [id]
   );
 
@@ -243,6 +261,7 @@ app.get("/configurations/:id", async (req, res) => {
     }
 
     const images = await getImagesByConfigurationId(configurationId);
+    const imageUrls = mapImageUrls(images);
 
     res.json({
       id: row.configuration_id,
@@ -253,6 +272,7 @@ app.get("/configurations/:id", async (req, res) => {
       advantages: row.advantages,
       disadvantages: row.disadvantages,
       images,
+      imageUrls,
       price: buildPriceDetails(row),
     });
   } catch (err) {
@@ -312,6 +332,18 @@ app.post("/configuration/calculate", async (req, res) => {
     const interiorPrice = parseMoney(interior?.price);
 
     res.json({
+      model: {
+        id: model.id,
+        code: model.code,
+        name: model.name,
+        packageName: model.package_name,
+        basePrice: basePrice,
+        maxPower: model.max_power,
+        driveType: model.drive_type,
+      },
+      color: mapOptionalEntity(color),
+      wheels: mapOptionalEntity(wheels),
+      interior: mapOptionalEntity(interior),
       basePrice,
       colorPrice,
       wheelsPrice,
@@ -340,6 +372,7 @@ app.get("/configure", async (req, res) => {
 
     const images = await getImagesByConfigurationId(row.configuration_id);
     const price = buildPriceDetails(row);
+    const imageUrls = mapImageUrls(images);
 
     res.json({
       configurationId: row.configuration_id,
@@ -351,11 +384,14 @@ app.get("/configure", async (req, res) => {
       colorId: row.color_id,
       price: price.totalPrice,
       priceBreakdown: price,
-      imageUrl: imageUrl(images.front),
-      imageUrlBack: imageUrl(images.back),
-      imageUrlWheels: imageUrl(images.wheels),
-      imageUrlInterior: imageUrl(images.interior),
+      imageUrl: imageUrls.front || null,
+      imageUrlBack: imageUrls.back || null,
+      imageUrlWheels: imageUrls.wheels || null,
+      imageUrlInterior:
+        imageUrls.interior ||
+        (row.interior_id ? imageUrl(`configurator/${row.interior_id}_interior.jpg`) : null),
       images,
+      imageUrls,
       advantages: parseCsvList(row.advantages),
       disadvantages: parseCsvList(row.disadvantages),
     });
