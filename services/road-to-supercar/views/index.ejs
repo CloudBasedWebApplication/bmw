@@ -54,26 +54,27 @@
         line-height: 1.5;
       }
 
-      /* Navbar */
-      .topbar {
-        padding: 20px;
-        position: fixed; top: 0; left: 0; right: 0;
-        z-index: 100;
+      /* Hero Nav (top-left, white) */
+      .hero-nav {
+        position: absolute;
+        top: 28px; left: 32px;
+        z-index: 3;
+        display: flex; flex-direction: column; gap: 16px;
+        font-family: 'BMWTypeNext', -apple-system, system-ui, sans-serif;
       }
-      .topbar-inner {
-        max-width: 1100px; margin: 0 auto; padding: 12px 24px;
-        background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(15px);
-        border-radius: 999px; border: 1px solid rgba(255,255,255,0.4);
-        box-shadow: 0 4px 20px rgba(0,0,0,0.03);
-        display: flex; align-items: center; justify-content: space-between;
+      .hero-nav a {
+        text-decoration: none;
+        color: #fff;
+        font-size: 1.08rem;
+        font-weight: 400;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        opacity: 0.85;
+        transition: opacity 0.2s, transform 0.2s;
+        text-shadow: 0 2px 8px rgba(0,0,0,0.4);
       }
-      .brand { text-decoration: none; color: var(--text); font-weight: 800; font-size: 1.1rem; }
-      .nav-links { display: flex; gap: 4px; }
-      .nav-links a {
-        text-decoration: none; color: var(--muted); padding: 8px 16px;
-        border-radius: 999px; font-size: 0.85rem; font-weight: 500; transition: 0.2s;
-      }
-      .nav-links a.active, .nav-links a:hover { background: var(--text); color: white; }
+      .hero-nav a:hover { opacity: 1; transform: translateX(4px); }
+      .hero-nav a.active { opacity: 1; font-weight: 700; }
 
       /* =========================
          Hero Section (full bleed)
@@ -119,6 +120,26 @@
         letter-spacing: 0.05em;
         text-transform: uppercase;
       }
+      .hero-cta {
+        display: inline-block;
+        margin-top: 32px;
+        padding: 16px 36px;
+        background: #fff;
+        color: #0f172a;
+        text-decoration: none;
+        font-size: 1rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        border-radius: 999px;
+        transition: transform 0.2s, background 0.2s, color 0.2s;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+      }
+      .hero-cta:hover {
+        background: var(--accent);
+        color: #fff;
+        transform: translateY(-2px);
+      }
       .scroll-hint {
         position: absolute; bottom: 40px; left: 50%;
         transform: translateX(-50%);
@@ -156,6 +177,127 @@
         width: 100%; height: 100%;
         pointer-events: none;
         display: block;
+      }
+
+      /* =========================
+         Models Section
+         ========================= */
+      .models-section {
+        background: #fff;
+        min-height: 100vh;
+        padding: 0 20px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+      .models-header {
+        text-align: center;
+        margin-bottom: 56px;
+      }
+      .models-header h2 {
+        font-size: clamp(2rem, 4vw, 3rem);
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        margin: 0 0 12px;
+      }
+      .models-header p {
+        color: var(--muted);
+        font-size: 1.1rem;
+        margin: 0;
+      }
+      .models-grid {
+        max-width: 1100px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 28px;
+      }
+      .model-card {
+        background: var(--bg);
+        border-radius: var(--radius);
+        padding: 24px 24px 28px;
+        box-shadow: var(--shadow);
+        border: 1px solid rgba(0,0,0,0.05);
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        transition: transform 0.25s, box-shadow 0.25s;
+        overflow: hidden;
+      }
+      .model-card-media {
+        width: calc(100% + 48px);
+        margin: -24px -24px 24px;
+        aspect-ratio: 16 / 10;
+        overflow: hidden;
+        background: linear-gradient(135deg, #d8e8f4 0%, #eff5fa 100%);
+      }
+      .model-card-media img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.35s ease;
+      }
+      .model-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 20px 48px rgba(0,0,0,0.12);
+      }
+      .model-card:hover .model-card-media img {
+        transform: scale(1.04);
+      }
+      .model-card.ai {
+        background: linear-gradient(135deg, #0f172a 0%, #0066b1 100%);
+        color: #fff;
+      }
+      .model-card.ai .model-label,
+      .model-card.ai .model-desc { color: rgba(255,255,255,0.7); }
+      .model-badge {
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--accent);
+        margin-bottom: 12px;
+      }
+      .model-card.ai .model-badge { color: #7dd3fc; }
+      .model-name {
+        font-size: 2rem;
+        font-weight: 900;
+        letter-spacing: -0.03em;
+        margin: 0 0 8px;
+        line-height: 1.1;
+      }
+      .model-label {
+        font-size: 0.9rem;
+        color: var(--muted);
+        margin-bottom: 20px;
+      }
+      .model-desc {
+        font-size: 0.95rem;
+        color: var(--muted);
+        line-height: 1.6;
+        flex: 1;
+      }
+      .model-link {
+        margin-top: 28px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--accent);
+        transition: gap 0.2s;
+      }
+      .model-card.ai .model-link { color: #7dd3fc; }
+      .model-link:hover { gap: 14px; }
+      @media (max-width: 768px) {
+        .models-grid { grid-template-columns: 1fr; }
+        .model-card-media {
+          aspect-ratio: 16 / 9;
+        }
       }
 
       /* =========================
@@ -249,34 +391,73 @@
     </style>
   </head>
   <body>
-    <header class="topbar">
-      <div class="topbar-inner">
-        <a class="brand" href="/">BMW Gateway</a>
-        <nav class="nav-links">
-          <a href="/">Home</a>
-          <a href="/car-configurator">Configurator</a>
-          <a href="/merch-shop">Shop</a>
-          <a href="/ai-feature">AI</a>
-          <a href="/road-to-supercar" class="active">Road To Supercar</a>
-          <a href="/shopping-cart">Warenkorb</a>
-        </nav>
-      </div>
-    </header>
-
     <!-- 1. HERO -->
     <section class="hero">
       <video class="hero-video" autoplay muted loop playsinline preload="auto"
              poster="">
         <source src="https://www.bmw-m.com/content/dam/bmw/marketBMW_M/www_bmw-m_com/fastlane/area-m/home/Stage_Loop_Querformat.mp4" type="video/mp4">
       </video>
+      <nav class="hero-nav">
+        <a href="/">Home</a>
+        <a href="/car-configurator">Konfigurator</a>
+        <a href="/merch-shop">Merchandise</a>
+        <a href="/ai-feature">KI Assistent</a>
+        <a href="/road-to-supercar" class="active">Road To Supercar</a>
+        <a href="/shopping-cart">Warenkorb</a>
+      </nav>
       <div class="hero-overlay">
         <h1 class="hero-title">Road zu deinem<br>Supercar</h1>
         <p class="hero-subtitle">Die Reise beginnt jetzt</p>
+        <a class="hero-cta" href="/car-configurator">Jetzt konfigurieren</a>
         <div class="scroll-hint">↓ Scroll ↓</div>
       </div>
     </section>
 
-    <!-- 2. MADE IN BAVARIA (Text-Mask, Scroll-Reveal) -->
+    <!-- 2. MODELLE -->
+    <section class="models-section">
+      <div class="models-header">
+        <h2>Dein Weg zum Supercar</h2>
+        <p>Wähle deinen Einstieg oder lass die KI entscheiden.</p>
+      </div>
+      <div class="models-grid">
+
+        <!-- X5 -->
+        <div class="model-card">
+          <div class="model-card-media">
+            <img src="/road-to-supercar/static/images/x5-hero.webp" alt="BMW X5 in Blau, dynamische Frontansicht" loading="lazy">
+          </div>
+          <span class="model-badge">SUV · Allrad</span>
+          <h3 class="model-name">BMW X5</h3>
+          <p class="model-label">xDrive50e · Plug-in Hybrid</p>
+          <p class="model-desc">Maximale Vielseitigkeit trifft auf pure Fahrdynamik. Der X5 verbindet luxuriösen Komfort mit elektrifiziertem Antrieb für jede Strecke.</p>
+          <a class="model-link" href="/car-configurator?model=x5">Konfigurieren →</a>
+        </div>
+
+        <!-- 3er -->
+        <div class="model-card">
+          <div class="model-card-media">
+            <img src="/road-to-supercar/static/images/3er-hero.webp" alt="BMW 3er in Blau, sportliche Frontansicht" loading="lazy">
+          </div>
+          <span class="model-badge">Limousine · Klassiker</span>
+          <h3 class="model-name">BMW 3er</h3>
+          <p class="model-label">320d · Diesel</p>
+          <p class="model-desc">Der Inbegriff der Freude am Fahren. Sportliche Agilität, präzises Handling und zeitloses Design in perfekter Balance.</p>
+          <a class="model-link" href="/car-configurator?model=3er">Konfigurieren →</a>
+        </div>
+
+        <!-- KI Empfehlung -->
+        <div class="model-card ai">
+          <span class="model-badge">✦ Personalisiert</span>
+          <h3 class="model-name">KI Empfehlung</h3>
+          <p class="model-label">Powered by Claude AI</p>
+          <p class="model-desc">Beschreibe deinen Lifestyle und unsere KI findet das BMW-Modell, das perfekt zu dir passt — individuell und in Sekunden.</p>
+          <a class="model-link" href="/ai-feature">Empfehlung starten →</a>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 3. MADE IN BAVARIA (Text-Mask, Scroll-Reveal) -->
     <section class="bavaria" id="bavaria">
       <div class="bavaria-sticky">
         <video class="bavaria-video" autoplay muted loop playsinline preload="auto">
@@ -300,7 +481,7 @@
       </div>
     </section>
 
-    <!-- 3. ROUTE ZUR BMW WELT -->
+    <!-- 4. ROUTE ZUR BMW WELT -->
     <section class="route-section">
       <div class="layout">
         <div class="route-header">
@@ -547,6 +728,25 @@
         window.addEventListener("resize", update);
 
         update();
+      })();
+    </script>
+
+    <!-- Snap: Hero → Modelle (danach normales Scrollen) -->
+    <script>
+      (function () {
+        const models = document.querySelector('.models-section');
+        let snapping = false;
+
+        window.addEventListener('wheel', function (e) {
+          if (snapping) return;
+          const modelsTop = models.offsetTop;
+          if (window.scrollY < modelsTop && e.deltaY > 0) {
+            snapping = true;
+            e.preventDefault();
+            window.scrollTo({ top: modelsTop, behavior: 'smooth' });
+            setTimeout(function () { snapping = false; }, 900);
+          }
+        }, { passive: false });
       })();
     </script>
   </body>
