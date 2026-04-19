@@ -8,6 +8,7 @@
       :root {
         --accent: #0066b1;
         --accent-dark: #004a80;
+        --accent-soft: rgba(0, 102, 177, 0.08);
         --bg: #f5f7f9;
         --panel: #ffffff;
         --text: #111111;
@@ -22,14 +23,13 @@
         margin: 0;
         font-family: 'Inter', -apple-system, system-ui, sans-serif;
         background-color: var(--bg);
-        background-image: 
+        background-image:
           radial-gradient(at 0% 0%, rgba(0, 102, 177, 0.05) 0px, transparent 50%),
           radial-gradient(at 100% 100%, rgba(0, 102, 177, 0.03) 0px, transparent 50%);
         color: var(--text);
         line-height: 1.6;
       }
 
-      /* Navbar Refinement */
       .topbar { padding: 20px; }
       .topbar-inner {
         max-width: 800px; margin: 0 auto; padding: 12px 24px;
@@ -48,11 +48,53 @@
 
       .layout { max-width: 740px; margin: 0 auto; padding: 40px 20px; }
 
-      .header-area { text-align: center; margin-bottom: 40px; }
-      h1 { font-size: 2.4rem; font-weight: 800; letter-spacing: -0.03em; margin: 0 0 10px; }
-      .subtitle { color: var(--muted); font-size: 1.1rem; max-width: 500px; margin: 0 auto; }
+      .header-area { text-align: center; margin-bottom: 28px; }
+      h1 { font-size: 2.4rem; font-weight: 800; letter-spacing: -0.03em; margin: 0 0 12px; }
+      .subtitle { color: var(--muted); font-size: 1.08rem; max-width: 540px; margin: 0 auto; }
 
-      /* Chat-like Input */
+      .hint-card {
+        max-width: 540px;
+        margin: 0 auto 24px;
+        padding: 14px 18px;
+        background: var(--accent-soft);
+        border: 1px solid rgba(0, 102, 177, 0.15);
+        border-radius: 14px;
+        font-size: 0.9rem;
+        color: var(--accent-dark);
+        text-align: center;
+      }
+      .hint-card strong { color: var(--accent-dark); }
+
+      .examples { margin-bottom: 16px; }
+      .examples-label {
+        font-size: 0.78rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+        margin-bottom: 10px;
+        text-align: center;
+      }
+      .example-chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+      .chip {
+        background: white;
+        border: 1px solid rgba(0,0,0,0.08);
+        padding: 8px 16px;
+        border-radius: 999px;
+        font-size: 0.88rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        color: #334155;
+        font-family: inherit;
+      }
+      .chip:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+        background: var(--accent-soft);
+        transform: translateY(-1px);
+      }
+
       .chat-box {
         background: var(--panel); border-radius: var(--radius);
         padding: 8px; box-shadow: var(--shadow);
@@ -63,10 +105,12 @@
 
       textarea {
         width: 100%; padding: 20px; border: none; border-radius: var(--radius);
-        font-size: 1.1rem; font-family: inherit; resize: none; min-height: 120px; outline: none;
+        font-size: 1.05rem; font-family: inherit; resize: none; min-height: 130px; outline: none;
+        line-height: 1.6;
       }
 
-      .actions { display: flex; justify-content: flex-end; padding: 10px; }
+      .actions { display: flex; justify-content: space-between; align-items: center; padding: 4px 14px 10px; gap: 12px; }
+      .char-hint { font-size: 0.8rem; color: var(--muted); }
       .send-btn {
         padding: 12px 28px; border: none; border-radius: 999px;
         background: var(--accent); color: #fff; font-size: 1rem; font-weight: 700;
@@ -75,7 +119,6 @@
       .send-btn:hover:not(:disabled) { background: var(--accent-dark); transform: scale(1.05); }
       .send-btn:disabled { background: #cbd5e1; cursor: not-allowed; }
 
-      /* Results */
       .result {
         background: var(--panel); border-radius: var(--radius);
         padding: 40px; margin-top: 30px; box-shadow: var(--shadow);
@@ -85,21 +128,39 @@
       }
       .result.visible { display: block; opacity: 1; transform: translateY(0); }
 
-      .result-text { font-size: 1.1rem; color: #334155; margin-bottom: 30px; line-height: 1.7; }
-      
+      .result-text { font-size: 1.1rem; color: #334155; margin-bottom: 20px; line-height: 1.7; }
+
       .links-label {
         font-size: 0.75rem;
         font-weight: 800;
         text-transform: uppercase;
         letter-spacing: 0.12em;
-        color: #9a3412;
+        color: var(--accent-dark);
         margin: 28px 0 14px;
       }
 
-      .merch-list {
-        display: grid;
-        gap: 12px;
+      .car-cta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 20px 24px;
+        background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+        color: white;
+        border-radius: 16px;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 1rem;
+        box-shadow: 0 10px 25px rgba(0, 102, 177, 0.25);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
       }
+      .car-cta:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 14px 30px rgba(0, 102, 177, 0.35);
+      }
+      .car-cta-arrow { font-size: 1.3rem; }
+
+      .merch-list { display: grid; gap: 12px; }
 
       .merch-card {
         display: grid;
@@ -115,7 +176,6 @@
         transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
         box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
       }
-
       .merch-card:hover {
         transform: translateY(-2px);
         border-color: #f3b37a;
@@ -123,53 +183,29 @@
       }
 
       .merch-media {
-        width: 72px;
-        height: 72px;
+        width: 72px; height: 72px;
         border-radius: 16px;
         background: #f1f5f9;
         border: 1px solid rgba(15, 23, 42, 0.08);
         overflow: hidden;
-        display: grid;
-        place-items: center;
+        display: grid; place-items: center;
         flex-shrink: 0;
       }
-
       .merch-media img {
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-        padding: 8px;
-        display: block;
+        width: 100%; height: 100%;
+        object-fit: contain; padding: 8px; display: block;
       }
-
       .merch-media-fallback {
-        display: grid;
-        place-items: center;
-        width: 100%;
-        height: 100%;
-        font-size: 1.1rem;
-        font-weight: 800;
+        display: grid; place-items: center;
+        width: 100%; height: 100%;
+        font-size: 1.1rem; font-weight: 800;
         color: #c2410c;
         background: linear-gradient(135deg, #ffedd5, #fff7ed);
       }
 
-      .merch-copy {
-        min-width: 0;
-      }
-
-      .merch-title {
-        margin: 0;
-        font-size: 1.02rem;
-        font-weight: 800;
-        line-height: 1.25;
-        color: #0f172a;
-      }
-
-      .merch-subtitle {
-        margin-top: 4px;
-        font-size: 0.88rem;
-        color: var(--muted);
-      }
+      .merch-copy { min-width: 0; }
+      .merch-title { margin: 0; font-size: 1.02rem; font-weight: 800; line-height: 1.25; color: #0f172a; }
+      .merch-subtitle { margin-top: 4px; font-size: 0.88rem; color: var(--muted); }
 
       .merch-reason {
         justify-self: end;
@@ -185,14 +221,18 @@
         overflow: hidden;
       }
 
-      /* Loading State */
-      .spinner {
-        display: none; text-align: center; padding: 30px; font-weight: 600; color: var(--accent);
-      }
+      .spinner { display: none; text-align: center; padding: 30px; font-weight: 600; color: var(--accent); }
       .spinner.visible { display: block; animation: pulse 1.5s infinite; }
-
       @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
       .error { color: #dc2626; font-weight: 600; text-align: center; margin-top: 15px; }
+
+      @media (max-width: 640px) {
+        h1 { font-size: 2rem; }
+        .merch-card { grid-template-columns: 60px 1fr; }
+        .merch-reason { grid-column: 1 / -1; justify-self: start; text-align: left; max-width: 100%; }
+        .actions { flex-direction: column; align-items: stretch; }
+        .send-btn { width: 100%; }
+      }
     </style>
   </head>
   <body>
@@ -211,20 +251,30 @@
 
     <div class="layout">
       <div class="header-area">
-        <h1>Wie kann ich helfen?</h1>
-        <p class="subtitle">Ihr persönlicher BMW-Berater. Finden Sie das Auto oder Zubehör, das perfekt zu Ihnen passt.</p>
+        <h1>Dein BMW, auf dich abgestimmt.</h1>
+        <p class="subtitle">Erzähl uns, wer du bist — und unsere KI findet die Kombination aus Modell und Farbe, die wirklich zu deinem Leben passt.</p>
+      </div>
+
+      <div class="hint-card">
+        💡 Je mehr du teilst, desto besser das Match. <strong>Beruf, Alltag, Hobbys, Stil</strong> — alles hilft.
+      </div>
+
+      <div class="examples">
+        <div class="examples-label">Beispiele zum Starten</div>
+        <div class="example-chips" id="chips"></div>
       </div>
 
       <div class="chat-box">
-        <textarea id="prompt" placeholder="Beschreiben Sie Ihre Wünsche... (z.B. 'Ein sportliches SUV für die Berge')"></textarea>
+        <textarea id="prompt" placeholder="Beschreibe dich selbst — dein Alltag, deine Hobbys, dein Stil..."></textarea>
         <div class="actions">
-          <button class="send-btn" id="sendBtn">Empfehlung erstellen</button>
+          <span class="char-hint" id="charHint">Mindestens 20 Zeichen empfohlen</span>
+          <button class="send-btn" id="sendBtn">Meine Konfiguration finden</button>
         </div>
       </div>
-      
+
       <div class="error" id="errorMsg"></div>
 
-      <div class="spinner" id="spinner">Analysiere Ihre Präferenzen...</div>
+      <div class="spinner" id="spinner">Analysiere deine Antworten...</div>
 
       <div class="result" id="result">
         <div class="result-text" id="resultText"></div>
@@ -233,11 +283,54 @@
     </div>
 
     <script>
-      const btn     = document.getElementById("sendBtn");
-      const promptInput = document.getElementById("prompt");
-      const spinner = document.getElementById("spinner");
-      const result  = document.getElementById("result");
-      const error   = document.getElementById("errorMsg");
+      // Beispiel-Prompts: Label auf dem Chip, full prompt wird in Textarea geladen
+      const EXAMPLES = [
+        {
+          label: "Business-Pendler",
+          prompt: "Ich pendle täglich 60 km zur Arbeit und bin viel auf der Autobahn. Im Beruf habe ich oft Kundentermine, da kommt es auf einen seriösen Auftritt an. In der Freizeit mag ich es ruhig — ein gutes Buch, Restaurantbesuche, ab und zu ein Wochenendtrip."
+        },
+        {
+          label: "Outdoor & Berge",
+          prompt: "Ich liebe es, am Wochenende rauszukommen — Wandern, Mountainbiken, im Winter Skifahren. Viel Gepäck, oft schlechte Straßen. Unter der Woche arbeite ich als Ingenieur und brauche das Auto eher selten in der Stadt."
+        },
+        {
+          label: "Urban Creator",
+          prompt: "Ich lebe mitten in der Stadt, arbeite als Designer, viel Kaffee, viel Kultur. Mein Auto brauche ich nicht täglich, aber wenn, dann soll es Stil zeigen. Am Wochenende mal raus aufs Land, mit Freunden."
+        },
+        {
+          label: "Junge Familie",
+          prompt: "Junge Familie mit zwei Kindern. Wir brauchen Platz für Urlaub und den Kindersitz, aber ich möchte nicht auf Sportlichkeit und modernen Look verzichten. Viele Kurzstrecken, manchmal längere Urlaubsfahrten."
+        }
+      ];
+
+      const chipsContainer = document.getElementById("chips");
+      const promptInput    = document.getElementById("prompt");
+      const btn            = document.getElementById("sendBtn");
+      const spinner        = document.getElementById("spinner");
+      const result         = document.getElementById("result");
+      const error          = document.getElementById("errorMsg");
+      const charHint       = document.getElementById("charHint");
+
+      EXAMPLES.forEach((ex) => {
+        const chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "chip";
+        chip.textContent = ex.label;
+        chip.addEventListener("click", () => {
+          promptInput.value = ex.prompt;
+          promptInput.focus();
+          updateCharHint();
+        });
+        chipsContainer.appendChild(chip);
+      });
+
+      function updateCharHint() {
+        const len = promptInput.value.trim().length;
+        if (len === 0)       charHint.textContent = "Mindestens 20 Zeichen empfohlen";
+        else if (len < 20)   charHint.textContent = `${len} Zeichen — gerne mehr Details`;
+        else                 charHint.textContent = `${len} Zeichen — sieht gut aus`;
+      }
+      promptInput.addEventListener("input", updateCharHint);
 
       btn.addEventListener("click", async () => {
         const text = promptInput.value.trim();
@@ -258,23 +351,24 @@
 
           if (!res.ok) throw new Error(data.error || "Anfrage fehlgeschlagen");
 
+          const escapeHtml = (value) => String(value ?? "")
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#39;");
+
           document.getElementById("resultText").textContent = data.text;
 
           let linksHtml = "";
           if (data.carLink) {
-            linksHtml += `<div class="links-label">Empfohlenes Fahrzeug</div>
-              <a class="link-card" href="${data.carLink}">
-                <span class="link-icon">🚗</span> Konfiguration starten
+            linksHtml += `<div class="links-label">Deine Konfiguration</div>
+              <a class="car-cta" href="${escapeHtml(data.carLink)}">
+                <span>🚗 Jetzt deine BMW-Konfiguration ansehen</span>
+                <span class="car-cta-arrow">→</span>
               </a>`;
           }
           if (data.merchLinks?.length) {
-            const escapeHtml = (value) => String(value ?? "")
-              .replaceAll("&", "&amp;")
-              .replaceAll("<", "&lt;")
-              .replaceAll(">", "&gt;")
-              .replaceAll('"', "&quot;")
-              .replaceAll("'", "&#39;");
-
             linksHtml += `<div class="links-label">Passender Lifestyle & Merch</div>
               <div class="merch-list">`;
 
@@ -282,7 +376,7 @@
               const rawTitle = l.title || "Produkt";
               const title = escapeHtml(rawTitle);
               const subtitle = escapeHtml(l.subtitle || "");
-              const reason = escapeHtml(l.reason || "Empfohlen auf Basis Ihrer Anfrage");
+              const reason = escapeHtml(l.reason || "Empfohlen auf Basis deiner Beschreibung");
               const imageUrl = l.imageUrl ? escapeHtml(l.imageUrl) : "";
               const fallback = escapeHtml((rawTitle || "BMW").slice(0, 2).toUpperCase());
 
@@ -306,8 +400,7 @@
             linksHtml += `</div>`;
           }
           document.getElementById("linksSection").innerHTML = linksHtml;
-          
-          // Small timeout for better visual transition
+
           setTimeout(() => {
             spinner.classList.remove("visible");
             result.classList.add("visible");
@@ -322,11 +415,13 @@
       });
 
       promptInput.addEventListener("keydown", e => {
-        if (e.key === "Enter" && !e.shiftKey) { 
-            e.preventDefault(); 
-            btn.click(); 
+        if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+          e.preventDefault();
+          btn.click();
         }
       });
+
+      updateCharHint();
     </script>
   </body>
 </html>

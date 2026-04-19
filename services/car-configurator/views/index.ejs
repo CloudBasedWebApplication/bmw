@@ -192,19 +192,40 @@
         let models = [];
         let current = { model: null, color: "Black", view: "front", config: null };
 
+        // URL-Parameter lesen (z.B. wenn Nutzer vom AI-Feature hierher kommt)
+        const urlParams = new URLSearchParams(window.location.search);
+        const preferredModel = urlParams.get("model");   // "3", "X5" oder null
+        const preferredColor = urlParams.get("color");   // "Black", "Blue", "White" oder null
+
+        // Wenn eine Farbe vorausgewählt ist: UI-State anpassen, BEVOR Modelle laden
+        if (preferredColor && ["Black", "Blue", "White"].includes(preferredColor)) {
+            current.color = preferredColor;
+            document.querySelectorAll(".swatch-wrapper").forEach(sw => {
+                sw.classList.toggle("active", sw.dataset.color === preferredColor);
+            });
+        }
+
         async function loadModels() {
             try {
                 const res = await fetch("/api/configurator/models");
                 models = await res.json();
                 const container = document.getElementById("modelBtns");
+
+                // Falls ein Modell aus URL vorausgewählt: Index finden, sonst 0
+                let activeIdx = 0;
+                if (preferredModel) {
+                    const idx = models.findIndex(m => m.code === preferredModel);
+                    if (idx >= 0) activeIdx = idx;
+                }
+
                 models.forEach((m, i) => {
                     const btn = document.createElement("button");
-                    btn.className = "btn" + (i === 0 ? " active" : "");
+                    btn.className = "btn" + (i === activeIdx ? " active" : "");
                     btn.textContent = m.name;
                     btn.addEventListener("click", () => selectModel(m.code, btn));
                     container.appendChild(btn);
                 });
-                if (models.length) selectModel(models[0].code, container.firstChild);
+                if (models.length) selectModel(models[activeIdx].code, container.children[activeIdx]);
             } catch (e) { console.error("Models failed", e); }
         }
 
