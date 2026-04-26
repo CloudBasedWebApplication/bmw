@@ -18,6 +18,11 @@ function trimTrailingSlash(value) {
 }
 
 function resolveMinioPublicBaseUrl() {
+  // Auto-detect GitHub Codespace first (takes precedence)
+  if (process.env.CODESPACE_NAME) {
+    return `https://${process.env.CODESPACE_NAME}-9000.app.github.dev`;
+  }
+
   if (process.env.MINIO_PUBLIC_URL) {
     return trimTrailingSlash(process.env.MINIO_PUBLIC_URL);
   }
