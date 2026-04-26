@@ -13,7 +13,23 @@ const dbConfig = {
   charset: "utf8mb4",
 };
 
-const minioBase = `http://${process.env.MINIO_PUBLIC_HOST || "localhost"}:${process.env.MINIO_PORT || 9000}/${process.env.MINIO_BUCKET || "configurator-images"}`;
+function trimTrailingSlash(value) {
+  return String(value || "").replace(/\/+$/, "");
+}
+
+function resolveMinioPublicBaseUrl() {
+  if (process.env.MINIO_PUBLIC_URL) {
+    return trimTrailingSlash(process.env.MINIO_PUBLIC_URL);
+  }
+
+  const protocol = process.env.MINIO_PUBLIC_PROTOCOL || "http";
+  const host = process.env.MINIO_PUBLIC_HOST || "localhost";
+  const port = process.env.MINIO_PUBLIC_PORT || process.env.MINIO_PORT || 9000;
+
+  return `${protocol}://${host}${port ? `:${port}` : ""}`;
+}
+
+const minioBase = `${resolveMinioPublicBaseUrl()}/${process.env.MINIO_BUCKET || "configurator-images"}`;
 
 app.get("/health", (_req, res) => res.json({ ok: true }));
 
