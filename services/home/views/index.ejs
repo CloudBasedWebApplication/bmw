@@ -3,9 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>BMW Home | Road to Supercar</title>
+    <title>Bayerische Motoren Werke AG | Home</title>
     <style>
-      /* BMW Type Next — Official CI Font from bmwusa.com CDN (CORS: *) */
       @font-face {
         font-family: 'BMWTypeNext';
         font-style: normal;
@@ -32,717 +31,1332 @@
       }
 
       :root {
-        --accent: #0066b1;
-        --accent-dark: #004a80;
-        --bg: #f5f7f9;
+        --accent: #1c69d4;
+        --accent-dark: #114a96;
+        --ink: #111827;
+        --ink-soft: #394150;
+        --muted: #697386;
+        --line: rgba(17, 24, 39, 0.12);
+        --paper: #f6f7f9;
         --panel: #ffffff;
-        --text: #0f172a;
-        --muted: #64748b;
-        --radius: 20px;
-        --shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+        --dark: #0b0f14;
+        --dark-2: #151b24;
+        --radius: 8px;
+        --shadow: 0 20px 55px rgba(16, 24, 40, 0.12);
       }
 
-      * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+      * {
+        box-sizing: border-box;
+        -webkit-font-smoothing: antialiased;
+      }
 
-      html { scroll-behavior: smooth; }
+      html {
+        scroll-behavior: smooth;
+      }
 
       body {
         margin: 0;
-        font-family: 'BMWTypeNext', -apple-system, system-ui, sans-serif;
-        background-color: var(--bg);
-        color: var(--text);
+        font-family: 'BMWTypeNext', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: var(--paper);
+        color: var(--ink);
         line-height: 1.5;
       }
 
-      /* Hero Nav (top-left, white) */
-      .hero-nav {
-        position: absolute;
-        top: 28px; left: 32px;
-        z-index: 3;
-        display: flex; flex-direction: column; gap: 16px;
-        font-family: 'BMWTypeNext', -apple-system, system-ui, sans-serif;
+      a {
+        color: inherit;
       }
-      .hero-nav a {
-        text-decoration: none;
+
+      img,
+      video {
+        max-width: 100%;
+      }
+
+      .page-shell {
+        width: min(1180px, calc(100% - 40px));
+        margin: 0 auto;
+      }
+
+      .site-nav {
+        position: absolute;
+        top: 24px;
+        left: 50%;
+        z-index: 5;
+        width: min(1180px, calc(100% - 40px));
+        min-height: 64px;
+        transform: translateX(-50%);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        padding: 12px 14px 12px 20px;
         color: #fff;
-        font-size: 1.08rem;
-        font-weight: 400;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: var(--radius);
+        background: rgba(7, 12, 18, 0.38);
+        backdrop-filter: blur(18px);
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
+      }
+
+      .brand {
+        display: inline-flex;
+        flex-direction: column;
+        gap: 2px;
+        text-decoration: none;
+        min-width: 230px;
+      }
+
+      .brand strong {
+        font-size: clamp(0.9rem, 1.5vw, 1.06rem);
+        line-height: 1.1;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+      }
+
+      .brand span {
+        color: rgba(255, 255, 255, 0.72);
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+      }
+
+      .nav-links {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+
+      .nav-links a {
+        min-height: 40px;
+        display: inline-flex;
+        align-items: center;
+        padding: 0 12px;
+        border-radius: var(--radius);
+        color: rgba(255, 255, 255, 0.78);
+        text-decoration: none;
+        font-size: 0.82rem;
+        font-weight: 700;
         letter-spacing: 0.08em;
         text-transform: uppercase;
-        opacity: 0.85;
-        transition: opacity 0.2s, transform 0.2s;
-        text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+        transition: color 0.2s ease, background 0.2s ease;
       }
-      .hero-nav a:hover { opacity: 1; transform: translateX(4px); }
-      .hero-nav a.active { opacity: 1; font-weight: 700; }
 
-      /* =========================
-         Hero Section (full bleed)
-         ========================= */
+      .nav-links a:hover,
+      .nav-links a.active {
+        color: #fff;
+        background: rgba(255, 255, 255, 0.12);
+      }
+
       .hero {
         position: relative;
-        height: 100vh;
+        min-height: 100vh;
         width: 100%;
         overflow: hidden;
         color: #fff;
+        background: #000;
       }
+
       .hero-video {
-        position: absolute; inset: 0;
-        width: 100%; height: 100%;
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
         object-fit: cover;
-        z-index: 0;
       }
+
       .hero::after {
         content: "";
-        position: absolute; inset: 0;
-        background: linear-gradient(180deg, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.55) 100%);
-        z-index: 1;
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(180deg, rgba(0, 0, 0, 0.22) 0%, rgba(0, 0, 0, 0.18) 45%, rgba(0, 0, 0, 0.62) 100%),
+          linear-gradient(90deg, rgba(0, 0, 0, 0.38), rgba(0, 0, 0, 0.05) 55%, rgba(0, 0, 0, 0.3));
       }
+
       .hero-overlay {
-        position: relative; z-index: 2;
-        height: 100%;
-        display: flex; flex-direction: column; align-items: center; justify-content: center;
-        text-align: center; padding: 0 24px;
+        position: relative;
+        z-index: 2;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 130px 24px 88px;
       }
+
       .hero-title {
-        font-size: clamp(2.5rem, 7vw, 6rem);
-        font-weight: 900;
-        letter-spacing: -0.04em;
         margin: 0;
-        text-shadow: 0 4px 24px rgba(0,0,0,0.4);
-        line-height: 1.05;
-      }
-      .hero-subtitle {
-        margin-top: 16px;
-        font-size: clamp(1rem, 1.6vw, 1.3rem);
-        font-weight: 500;
-        opacity: 0.9;
-        letter-spacing: 0.05em;
-        text-transform: uppercase;
-      }
-      .hero-cta {
-        display: inline-block;
-        margin-top: 32px;
-        padding: 16px 36px;
-        background: #fff;
-        color: #0f172a;
-        text-decoration: none;
-        font-size: 1rem;
+        font-size: clamp(2.7rem, 7vw, 6.4rem);
         font-weight: 700;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        border-radius: 999px;
-        transition: transform 0.2s, background 0.2s, color 0.2s;
-        box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+        letter-spacing: 0;
+        line-height: 1.02;
+        text-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
       }
+
+      .hero-subtitle {
+        margin: 18px 0 0;
+        color: rgba(255, 255, 255, 0.86);
+        font-size: clamp(1rem, 1.5vw, 1.25rem);
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .hero-cta {
+        margin-top: 34px;
+        min-height: 52px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 30px;
+        border-radius: var(--radius);
+        background: #fff;
+        color: var(--ink);
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        box-shadow: 0 14px 35px rgba(0, 0, 0, 0.28);
+        transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
+      }
+
       .hero-cta:hover {
         background: var(--accent);
         color: #fff;
         transform: translateY(-2px);
       }
+
       .scroll-hint {
-        position: absolute; bottom: 40px; left: 50%;
+        position: absolute;
+        bottom: 34px;
+        left: 50%;
         transform: translateX(-50%);
-        font-size: 0.8rem; letter-spacing: 0.3em;
-        text-transform: uppercase; opacity: 0.85;
-        animation: bounce 2s ease-in-out infinite;
-      }
-      @keyframes bounce {
-        0%, 100% { transform: translate(-50%, 0); }
-        50% { transform: translate(-50%, 10px); }
+        color: rgba(255, 255, 255, 0.76);
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
       }
 
-      /* =========================
-         Bavaria (text-mask reveal)
-         ========================= */
-      .bavaria {
-        position: relative;
-        height: 500vh;
-        background: #000;
-      }
-      .bavaria-sticky {
-        position: sticky; top: 0;
-        height: 100vh; width: 100%;
-        overflow: hidden;
-        background: #000;
-      }
-      .bavaria-video {
-        position: absolute; inset: 0;
-        width: 100%; height: 100%;
-        object-fit: contain;    /* Originalauflösung / Seitenverhältnis */
-        background: #000;
-      }
-      .bavaria-mask {
-        position: absolute; inset: 0;
-        width: 100%; height: 100%;
-        pointer-events: none;
-        display: block;
+      .experience-section {
+        background: var(--paper);
+        padding: clamp(72px, 9vw, 120px) 0;
       }
 
-      /* =========================
-         Models Section
-         ========================= */
-      .models-section {
-        background: #fff;
-        min-height: 100vh;
-        padding: 0 20px;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-      }
-      .models-header {
-        text-align: center;
-        margin-bottom: 56px;
-      }
-      .models-header h2 {
-        font-size: clamp(2rem, 4vw, 3rem);
-        font-weight: 800;
-        letter-spacing: -0.03em;
+      .section-kicker {
         margin: 0 0 12px;
+        color: var(--accent);
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
       }
-      .models-header p {
-        color: var(--muted);
-        font-size: 1.1rem;
+
+      .section-title {
         margin: 0;
+        max-width: 820px;
+        color: var(--ink);
+        font-size: clamp(2.15rem, 4.4vw, 4.4rem);
+        font-weight: 700;
+        letter-spacing: 0;
+        line-height: 1.02;
       }
-      .models-grid {
-        max-width: 1100px;
-        margin: 0 auto;
+
+      .section-copy {
+        margin: 18px 0 0;
+        max-width: 620px;
+        color: var(--muted);
+        font-size: clamp(1rem, 1.6vw, 1.16rem);
+      }
+
+      .experience-grid {
+        margin-top: 46px;
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 28px;
+        grid-template-columns: minmax(0, 1.38fr) minmax(330px, 0.62fr);
+        gap: 18px;
+        align-items: stretch;
       }
-      .model-card {
-        background: var(--bg);
+
+      .configurator-panel {
+        position: relative;
+        min-height: 620px;
+        overflow: hidden;
         border-radius: var(--radius);
-        padding: 24px 24px 28px;
+        background: var(--dark);
+        color: #fff;
         box-shadow: var(--shadow);
-        border: 1px solid rgba(0,0,0,0.05);
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        transition: transform 0.25s, box-shadow 0.25s;
-        overflow: hidden;
       }
-      .model-card-media {
-        width: calc(100% + 48px);
-        margin: -24px -24px 24px;
-        aspect-ratio: 16 / 10;
-        overflow: hidden;
-        background: linear-gradient(135deg, #d8e8f4 0%, #eff5fa 100%);
+
+      .configurator-panel::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(180deg, rgba(11, 15, 20, 0.05) 0%, rgba(11, 15, 20, 0.26) 45%, rgba(11, 15, 20, 0.92) 100%),
+          linear-gradient(90deg, rgba(11, 15, 20, 0.72), rgba(11, 15, 20, 0.1));
       }
-      .model-card-media img {
-        display: block;
+
+      .configurator-panel img {
+        position: absolute;
+        inset: 0;
         width: 100%;
         height: 100%;
         object-fit: cover;
-        transition: transform 0.35s ease;
+        transform: scale(1.02);
       }
-      .model-card:hover {
-        transform: translateY(-6px);
-        box-shadow: 0 20px 48px rgba(0,0,0,0.12);
+
+      .configurator-copy {
+        position: absolute;
+        left: clamp(24px, 4vw, 48px);
+        right: clamp(24px, 4vw, 48px);
+        bottom: clamp(24px, 4vw, 48px);
+        z-index: 1;
       }
-      .model-card:hover .model-card-media img {
-        transform: scale(1.04);
+
+      .configurator-copy span {
+        display: inline-flex;
+        margin-bottom: 14px;
+        color: rgba(255, 255, 255, 0.76);
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
       }
-      .model-card.ai {
-        background: linear-gradient(135deg, #0f172a 0%, #0066b1 100%);
+
+      .configurator-copy h3 {
+        margin: 0;
+        max-width: 640px;
+        font-size: clamp(2rem, 4vw, 4.25rem);
+        font-weight: 700;
+        letter-spacing: 0;
+        line-height: 1.02;
+      }
+
+      .configurator-copy p {
+        max-width: 520px;
+        margin: 18px 0 0;
+        color: rgba(255, 255, 255, 0.78);
+        font-size: 1.02rem;
+      }
+
+      .action-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 28px;
+      }
+
+      .button {
+        min-height: 48px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 20px;
+        border: 1px solid transparent;
+        border-radius: var(--radius);
+        text-decoration: none;
+        font-size: 0.84rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+      }
+
+      .button:hover {
+        transform: translateY(-2px);
+      }
+
+      .button.primary {
+        background: var(--accent);
         color: #fff;
       }
-      .model-card.ai .model-label,
-      .model-card.ai .model-desc { color: rgba(255,255,255,0.7); }
-      .model-badge {
-        font-size: 0.75rem;
+
+      .button.primary:hover {
+        background: var(--accent-dark);
+      }
+
+      .button.ghost {
+        border-color: rgba(255, 255, 255, 0.34);
+        color: #fff;
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      .entry-list {
+        display: grid;
+        gap: 18px;
+      }
+
+      .entry-card {
+        min-height: 194px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 22px;
+        padding: 24px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--panel);
+        color: var(--ink);
+        text-decoration: none;
+        box-shadow: 0 14px 34px rgba(16, 24, 40, 0.08);
+        transition: transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
+      }
+
+      .entry-card:hover {
+        transform: translateY(-3px);
+        border-color: rgba(28, 105, 212, 0.28);
+        box-shadow: 0 18px 42px rgba(16, 24, 40, 0.13);
+      }
+
+      .entry-card.dark {
+        background: var(--dark-2);
+        color: #fff;
+        border-color: rgba(255, 255, 255, 0.08);
+      }
+
+      .entry-card header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 18px;
+      }
+
+      .entry-card small {
+        color: var(--accent);
+        font-size: 0.74rem;
         font-weight: 700;
         letter-spacing: 0.15em;
         text-transform: uppercase;
-        color: var(--accent);
-        margin-bottom: 12px;
       }
-      .model-card.ai .model-badge { color: #7dd3fc; }
-      .model-name {
-        font-size: 2rem;
-        font-weight: 900;
-        letter-spacing: -0.03em;
-        margin: 0 0 8px;
-        line-height: 1.1;
+
+      .entry-card.dark small {
+        color: #8fc0ff;
       }
-      .model-label {
-        font-size: 0.9rem;
+
+      .entry-card h3 {
+        margin: 10px 0 0;
+        font-size: 1.45rem;
+        font-weight: 700;
+        letter-spacing: 0;
+        line-height: 1.12;
+      }
+
+      .entry-card p {
+        margin: 0;
         color: var(--muted);
-        margin-bottom: 20px;
+        font-size: 0.96rem;
       }
-      .model-desc {
-        font-size: 0.95rem;
-        color: var(--muted);
-        line-height: 1.6;
-        flex: 1;
+
+      .entry-card.dark p {
+        color: rgba(255, 255, 255, 0.68);
       }
-      .model-link {
-        margin-top: 28px;
+
+      .entry-arrow {
+        flex: 0 0 auto;
+        width: 38px;
+        height: 38px;
         display: inline-flex;
         align-items: center;
-        gap: 8px;
-        text-decoration: none;
-        font-size: 0.9rem;
+        justify-content: center;
+        border-radius: 50%;
+        border: 1px solid currentColor;
+        font-size: 1.15rem;
+        line-height: 1;
+      }
+
+      .heritage-section {
+        position: relative;
+        overflow: hidden;
+        min-height: 520px;
+        display: flex;
+        align-items: center;
+        background: var(--dark);
+        color: #fff;
+      }
+
+      .heritage-video {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        opacity: 0.42;
+      }
+
+      .heritage-section::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(90deg, rgba(7, 10, 14, 0.9) 0%, rgba(7, 10, 14, 0.56) 52%, rgba(7, 10, 14, 0.76) 100%),
+          linear-gradient(180deg, rgba(7, 10, 14, 0.2), rgba(7, 10, 14, 0.78));
+      }
+
+      .heritage-content {
+        position: relative;
+        z-index: 1;
+        padding: 92px 0;
+      }
+
+      .heritage-content .section-kicker {
+        color: #8fc0ff;
+      }
+
+      .heritage-title {
+        margin: 0;
+        max-width: 780px;
+        font-size: clamp(2.25rem, 5.6vw, 5.8rem);
         font-weight: 700;
-        letter-spacing: 0.06em;
-        text-transform: uppercase;
-        color: var(--accent);
-        transition: gap 0.2s;
-      }
-      .model-card.ai .model-link { color: #7dd3fc; }
-      .model-link:hover { gap: 14px; }
-      @media (max-width: 768px) {
-        .models-grid { grid-template-columns: 1fr; }
-        .model-card-media {
-          aspect-ratio: 16 / 9;
-        }
+        letter-spacing: 0;
+        line-height: 0.98;
       }
 
-      /* =========================
-         Route Section
-         ========================= */
+      .heritage-values {
+        margin-top: 44px;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 1px;
+        max-width: 900px;
+        background: rgba(255, 255, 255, 0.18);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: var(--radius);
+        overflow: hidden;
+      }
+
+      .heritage-value {
+        padding: 24px;
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(12px);
+      }
+
+      .heritage-value strong {
+        display: block;
+        font-size: 1.12rem;
+        font-weight: 700;
+        line-height: 1.2;
+      }
+
+      .heritage-value span {
+        display: block;
+        margin-top: 8px;
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.92rem;
+      }
+
       .route-section {
-        background: var(--bg);
-        padding: 80px 20px 80px;
+        background: #fff;
+        padding: clamp(78px, 9vw, 126px) 0;
       }
-      .layout { max-width: 1100px; margin: 0 auto; }
 
-      .route-header { text-align: center; margin-bottom: 40px; }
-      .route-header h2 {
-        font-size: clamp(2rem, 4vw, 3rem);
-        font-weight: 800;
-        letter-spacing: -0.03em;
-        margin: 0 0 12px;
+      .route-layout {
+        margin-top: 42px;
+        display: grid;
+        grid-template-columns: minmax(290px, 0.42fr) minmax(0, 0.58fr);
+        gap: 22px;
+        align-items: start;
       }
-      .route-header p { color: var(--muted); font-size: 1.1rem; margin: 0; }
+
+      .route-panel {
+        padding: 24px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--paper);
+      }
+
+      .route-panel h3 {
+        margin: 0 0 10px;
+        font-size: 1.35rem;
+        font-weight: 700;
+        line-height: 1.15;
+      }
+
+      .route-panel p {
+        margin: 0 0 22px;
+        color: var(--muted);
+      }
 
       .controls {
-        display: flex; gap: 12px; margin-bottom: 24px;
-        background: var(--panel); padding: 12px;
-        border-radius: 16px; box-shadow: var(--shadow);
-        border: 1px solid rgba(0,0,0,0.05);
-        align-items: center; justify-content: center;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 12px;
       }
-      .destination-label {
-        flex: 1; padding: 12px 16px;
-        font-size: 1rem; font-weight: 600;
-        color: var(--text);
-        display: flex; align-items: center; gap: 10px;
+
+      .route-field {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+        min-width: 0;
       }
-      .destination-label .pin { font-size: 1.2rem; }
+
+      .route-field label {
+        font-size: 0.74rem;
+        font-weight: 700;
+        color: var(--muted);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .route-input {
+        width: 100%;
+        min-height: 48px;
+        border: 1px solid rgba(17, 24, 39, 0.14);
+        border-radius: var(--radius);
+        background: #fff;
+        color: var(--ink);
+        font: inherit;
+        font-size: 0.96rem;
+        font-weight: 700;
+        padding: 0 14px;
+        outline: none;
+      }
+
+      .route-input:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(28, 105, 212, 0.12);
+      }
 
       .route-btn {
-        padding: 14px 28px; border: none; border-radius: 12px;
-        background: var(--accent); color: #fff; font-size: 1rem;
-        font-weight: 700; cursor: pointer; transition: 0.3s;
+        min-height: 48px;
+        padding: 0 18px;
+        border: none;
+        border-radius: var(--radius);
+        background: var(--accent);
+        color: #fff;
+        font: inherit;
+        font-size: 0.9rem;
+        font-weight: 700;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: transform 0.2s ease, background 0.2s ease;
       }
-      .route-btn:hover { background: var(--accent-dark); transform: translateY(-1px); }
-      .route-btn:disabled { background: var(--muted); cursor: not-allowed; transform: none; }
+
+      .route-btn:hover {
+        background: var(--accent-dark);
+        transform: translateY(-1px);
+      }
+
+      .route-btn:disabled {
+        background: #8792a2;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .route-btn.secondary {
+        background: #e7ebf0;
+        color: var(--ink);
+      }
+
+      .route-btn.secondary:hover {
+        background: #dce2ea;
+      }
+
+      .route-status {
+        margin: 16px 0 0;
+        min-height: 22px;
+        color: var(--muted);
+        font-size: 0.94rem;
+        font-weight: 700;
+      }
+
+      .route-status.error {
+        color: #b42318;
+      }
+
+      .route-status.success {
+        color: #087443;
+      }
+
+      .route-result {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+        margin: 18px 0 0;
+        opacity: 0;
+        transform: translateY(8px);
+        transition: opacity 0.35s ease, transform 0.35s ease;
+        pointer-events: none;
+      }
+
+      .route-result.visible {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: auto;
+      }
+
+      .result-card {
+        border-left: 3px solid var(--accent);
+        background: #fff;
+        padding: 13px 14px;
+      }
+
+      .result-card span {
+        display: block;
+        color: var(--muted);
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.11em;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+      }
+
+      .result-card strong {
+        display: block;
+        color: var(--ink);
+        font-size: 1rem;
+        line-height: 1.3;
+      }
+
+      .map-frame {
+        min-height: 640px;
+        border-radius: var(--radius);
+        overflow: hidden;
+        background: #101722;
+        box-shadow: var(--shadow);
+      }
 
       #map {
-        width: 100%; height: 600px; border-radius: 24px;
-        box-shadow: var(--shadow); background: #1a2333;
-        border: 4px solid #fff;
+        width: 100%;
+        height: 640px;
+        background: #101722;
       }
 
-      /* Advanced Markers */
       .bmw-marker {
-        width: 56px; height: 56px;
+        width: 56px;
+        height: 56px;
         border-radius: 50%;
         background: #0f172a;
-        display: flex; align-items: center; justify-content: center;
-        box-shadow: 0 6px 18px rgba(0,0,0,0.55);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.55);
         transform: translateY(50%);
-        border: 2px solid rgba(255,255,255,0.08);
+        border: 2px solid rgba(255, 255, 255, 0.08);
       }
-      .bmw-marker img { width: 40px; height: 40px; }
+
+      .bmw-marker img {
+        width: 40px;
+        height: 40px;
+      }
 
       .car-marker {
-        width: 34px; height: 52px;
+        width: 34px;
+        height: 52px;
         transform: translateY(50%) rotate(var(--bearing, 0deg));
         transition: transform 0.08s linear;
         will-change: transform;
-        filter: drop-shadow(0 3px 6px rgba(0,0,0,0.6));
+        filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.6));
       }
-      .car-marker.hidden { display: none; }
 
-      .info-badge {
-        display: inline-flex; align-items: center; gap: 8px;
-        margin-top: 16px; padding: 10px 20px;
-        background: var(--text); color: white;
-        border-radius: 999px; font-size: 0.9rem; font-weight: 600;
-        opacity: 0; transform: translateY(10px); transition: 0.4s;
+      .car-marker.hidden {
+        display: none;
       }
-      .info-badge.visible { opacity: 1; transform: translateY(0); }
 
       .no-key {
-        text-align: center; padding: 100px 40px; color: var(--muted);
-        background: var(--panel); border-radius: 32px; box-shadow: var(--shadow);
+        margin-top: 40px;
+        padding: 56px 32px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--paper);
+        color: var(--muted);
+        text-align: center;
       }
-      .no-key code { background: #f1f5f9; padding: 4px 8px; border-radius: 6px; color: var(--accent); }
 
-      @media (max-width: 640px) {
-        .controls { flex-direction: column; align-items: stretch; }
-        #map { height: 400px; }
-        .bavaria-frame { width: 85%; }
+      .no-key h3 {
+        margin: 0 0 10px;
+        color: var(--ink);
+      }
+
+      .no-key code {
+        background: #e7ebf0;
+        padding: 4px 8px;
+        border-radius: 5px;
+        color: var(--accent-dark);
+      }
+
+      @media (max-width: 980px) {
+        .site-nav {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+
+        .brand {
+          min-width: 0;
+        }
+
+        .nav-links {
+          justify-content: flex-start;
+        }
+
+        .experience-grid,
+        .route-layout {
+          grid-template-columns: 1fr;
+        }
+
+        .configurator-panel {
+          min-height: 520px;
+        }
+
+        .entry-list {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .entry-card {
+          min-height: 220px;
+        }
+      }
+
+      @media (max-width: 720px) {
+        .page-shell,
+        .site-nav {
+          width: min(100% - 28px, 1180px);
+        }
+
+        .site-nav {
+          top: 14px;
+          padding: 12px;
+        }
+
+        .nav-links a {
+          min-height: 34px;
+          padding: 0 9px;
+          font-size: 0.72rem;
+        }
+
+        .hero-overlay {
+          padding-top: 180px;
+        }
+
+        .scroll-hint {
+          display: none;
+        }
+
+        .experience-section,
+        .route-section {
+          padding: 64px 0;
+        }
+
+        .experience-grid {
+          margin-top: 34px;
+        }
+
+        .configurator-panel {
+          min-height: 500px;
+        }
+
+        .entry-list,
+        .heritage-values {
+          grid-template-columns: 1fr;
+        }
+
+        .entry-card {
+          min-height: 170px;
+        }
+
+        .heritage-section {
+          min-height: 620px;
+        }
+
+        .heritage-content {
+          padding: 76px 0;
+        }
+
+        .route-panel {
+          padding: 18px;
+        }
+
+        .map-frame {
+          min-height: 430px;
+        }
+
+        #map {
+          height: 430px;
+        }
       }
     </style>
   </head>
   <body>
-    <!-- 1. HERO -->
     <section class="hero">
-      <video class="hero-video" autoplay muted loop playsinline preload="auto"
-             poster="">
+      <video class="hero-video" autoplay muted loop playsinline preload="auto">
         <source src="https://www.bmw-m.com/content/dam/bmw/marketBMW_M/www_bmw-m_com/fastlane/area-m/home/Stage_Loop_Querformat.mp4" type="video/mp4">
       </video>
-      <nav class="hero-nav">
-        <a href="/" class="active">Home</a>
-        <a href="/car-configurator">Konfigurator</a>
-        <a href="/merch-shop">Merchandise</a>
-        <a href="/ai-feature">KI Assistent</a>
-        <a href="/shopping-cart">Warenkorb</a>
+
+      <nav class="site-nav" aria-label="Hauptnavigation">
+        <a class="brand" href="/">
+          <strong>Bayerische Motoren Werke AG</strong>
+          <span>Seit 1916</span>
+        </a>
+        <div class="nav-links">
+          <a href="/" class="active">Home</a>
+          <a href="/car-configurator">Konfigurator</a>
+          <a href="/merch-shop">Merchandise</a>
+          <a href="/ai-feature">KI</a>
+          <a href="/shopping-cart">Warenkorb</a>
+        </div>
       </nav>
+
       <div class="hero-overlay">
         <h1 class="hero-title">Road zu deinem<br>Supercar</h1>
         <p class="hero-subtitle">Die Reise beginnt jetzt</p>
         <a class="hero-cta" href="/car-configurator">Jetzt konfigurieren</a>
-        <div class="scroll-hint">↓ Scroll ↓</div>
+        <div class="scroll-hint">Scroll</div>
       </div>
     </section>
 
-    <!-- 2. MODELLE -->
-    <section class="models-section">
-      <div class="models-header">
-        <h2>Dein Weg zum Supercar</h2>
-        <p>Wähle deinen Einstieg oder lass die KI entscheiden.</p>
-      </div>
-      <div class="models-grid">
+    <main>
+      <section class="experience-section" id="experience">
+        <div class="page-shell">
+          <p class="section-kicker">Experience</p>
+          <h2 class="section-title">Der direkte Einstieg in deine Fahrkultur.</h2>
+          <p class="section-copy">Konfiguriere dein Fahrzeug als Hauptpfad. Shop, KI und Route begleiten die Reise mit klaren, schnellen Einstiegen.</p>
 
-        <!-- X5 -->
-        <div class="model-card">
-          <div class="model-card-media">
-            <img src="/home/static/images/x5-hero.webp" alt="BMW X5 in Blau, dynamische Frontansicht" loading="lazy">
+          <div class="experience-grid">
+            <article class="configurator-panel">
+              <img src="/home/static/images/x5-hero.webp" alt="BMW X5 in Bewegung" loading="lazy">
+              <div class="configurator-copy">
+                <span>Priorisierter Einstieg</span>
+                <h3>Baue dein Fahrzeug mit Haltung.</h3>
+                <p>Wähle Modell, Farbe und Ausstattung im Konfigurator und bringe deine Auswahl direkt in die Plattform.</p>
+                <div class="action-row">
+                  <a class="button primary" href="/car-configurator">Konfigurator starten</a>
+                  <a class="button ghost" href="/car-configurator?model=3er">3er ansehen</a>
+                  <a class="button ghost" href="/car-configurator?model=x5">X5 ansehen</a>
+                </div>
+              </div>
+            </article>
+
+            <div class="entry-list" aria-label="Weitere Einstiege">
+              <a class="entry-card dark" href="/ai-feature">
+                <header>
+                  <div>
+                    <small>KI Assistent</small>
+                    <h3>Empfehlungen passend zu deinem Alltag.</h3>
+                  </div>
+                  <span class="entry-arrow" aria-hidden="true">→</span>
+                </header>
+                <p>Beschreibe deinen Stil und erhalte einen konkreten Fahrzeug- und Merchandise-Vorschlag.</p>
+              </a>
+
+              <a class="entry-card" href="/merch-shop">
+                <header>
+                  <div>
+                    <small>Merchandise</small>
+                    <h3>Design für Straße, Reise und Alltag.</h3>
+                  </div>
+                  <span class="entry-arrow" aria-hidden="true">→</span>
+                </header>
+                <p>Entdecke ausgewählte Artikel, die deine Konfiguration ergänzen.</p>
+              </a>
+
+              <a class="entry-card" href="#route-planner">
+                <header>
+                  <div>
+                    <small>Route</small>
+                    <h3>Plane den Weg zur BMW Welt München.</h3>
+                  </div>
+                  <span class="entry-arrow" aria-hidden="true">↓</span>
+                </header>
+                <p>Starte direkt von deinem Standort oder mit einer Adresse.</p>
+              </a>
+            </div>
           </div>
-          <span class="model-badge">SUV · Allrad</span>
-          <h3 class="model-name">BMW X5</h3>
-          <p class="model-label">xDrive50e · Plug-in Hybrid</p>
-          <p class="model-desc">Maximale Vielseitigkeit trifft auf pure Fahrdynamik. Der X5 verbindet luxuriösen Komfort mit elektrifiziertem Antrieb für jede Strecke.</p>
-          <a class="model-link" href="/car-configurator?model=x5">Konfigurieren →</a>
         </div>
+      </section>
 
-        <!-- 3er -->
-        <div class="model-card">
-          <div class="model-card-media">
-            <img src="/home/static/images/3er-hero.webp" alt="BMW 3er in Blau, sportliche Frontansicht" loading="lazy">
-          </div>
-          <span class="model-badge">Limousine · Klassiker</span>
-          <h3 class="model-name">BMW 3er</h3>
-          <p class="model-label">320d · Diesel</p>
-          <p class="model-desc">Der Inbegriff der Freude am Fahren. Sportliche Agilität, präzises Handling und zeitloses Design in perfekter Balance.</p>
-          <a class="model-link" href="/car-configurator?model=3er">Konfigurieren →</a>
-        </div>
-
-        <!-- KI Empfehlung -->
-        <div class="model-card ai">
-          <span class="model-badge">✦ Personalisiert</span>
-          <h3 class="model-name">KI Empfehlung</h3>
-          <p class="model-label">Powered by Claude AI</p>
-          <p class="model-desc">Beschreibe deinen Lifestyle und unsere KI findet das BMW-Modell, das perfekt zu dir passt — individuell und in Sekunden.</p>
-          <a class="model-link" href="/ai-feature">Empfehlung starten →</a>
-        </div>
-
-      </div>
-    </section>
-
-    <!-- 3. MADE IN BAVARIA (Text-Mask, Scroll-Reveal) -->
-    <section class="bavaria" id="bavaria">
-      <div class="bavaria-sticky">
-        <video class="bavaria-video" autoplay muted loop playsinline preload="auto">
+      <section class="heritage-section" aria-label="Heritage">
+        <video class="heritage-video" autoplay muted loop playsinline preload="metadata">
           <source src="https://www.bmwgroup.com/content/dam/grpw/websites/bmwgroup_com/company/produktion/videos/240419_Group_Produktion_Header_2560x896.mp4" type="video/mp4">
         </video>
-        <svg class="bavaria-mask" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-          <defs>
-            <mask id="bavaria-cutout">
-              <rect width="1600" height="900" fill="white"/>
-              <text id="bavariaText" x="800" y="470"
-                    text-anchor="middle" dominant-baseline="middle"
-                    fill="black"
-                    font-family="BMWTypeNext, -apple-system, Arial, sans-serif"
-                    font-weight="900"
-                    font-size="160"
-                    letter-spacing="-6">Made in Bavaria</text>
-            </mask>
-          </defs>
-          <rect width="1600" height="900" fill="#000" mask="url(#bavaria-cutout)"/>
-        </svg>
-      </div>
-    </section>
+        <div class="page-shell heritage-content">
+          <p class="section-kicker">Tradition und Moderne</p>
+          <h2 class="heritage-title">Seit 1916. Aus Bayern. Für morgen gebaut.</h2>
 
-    <!-- 4. ROUTE ZUR BMW WELT -->
-    <section class="route-section">
-      <div class="layout">
-        <div class="route-header">
-          <h2>Dein Ziel: BMW Welt München</h2>
-          <p>Berechne die Route und die voraussichtliche Fahrtdauer zu deinem Supercar.</p>
-        </div>
-
-        <% if (mapsApiKey) { %>
-          <div class="controls">
-            <div class="destination-label">
-              <span class="pin">📍</span>
-              <span>BMW Welt — Am Olympiapark 1, 80809 München</span>
+          <div class="heritage-values">
+            <div class="heritage-value">
+              <strong>Handwerk</strong>
+              <span>Reduktion, Materialgefühl und Präzision im Detail.</span>
             </div>
-            <button class="route-btn" id="routeBtn">Route berechnen</button>
+            <div class="heritage-value">
+              <strong>Ingenieurskunst</strong>
+              <span>Performance als Ergebnis klarer technischer Entscheidungen.</span>
+            </div>
+            <div class="heritage-value">
+              <strong>Elektrisierte Zukunft</strong>
+              <span>Moderne Mobilität mit dem Anspruch einer gewachsenen Marke.</span>
+            </div>
           </div>
+        </div>
+      </section>
 
-          <div id="map"></div>
-          <div class="info-badge" id="routeInfo"></div>
+      <section class="route-section" id="route-planner">
+        <div class="page-shell">
+          <p class="section-kicker">Route</p>
+          <h2 class="section-title" id="routeTitle">Dein Ziel: BMW Welt München</h2>
+          <p class="section-copy">Ein ruhiger Planungsbereich für deine Fahrt nach München. Standort nutzen, Adresse eingeben, Route starten.</p>
 
-          <script>
-            const BMW_WELT = { lat: 48.17692, lng: 11.55863 };
-            const BMW_LOGO_URL =
-              "https://www.bmw-welt.com/content/dam/bmw/common/images/logo-icons/BMW/BMW_White_Logo.svg.asset.1670245093434.svg";
+          <% if (mapsApiKey) { %>
+            <div class="route-layout">
+              <aside class="route-panel">
+                <h3>Route planen</h3>
+                <p>Die Fahrstrecke wird mit Google Maps berechnet und direkt auf der Karte visualisiert.</p>
 
-            const CAR_SVG =
-              '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 90" width="34" height="52">' +
-                '<rect x="10" y="8" width="40" height="74" rx="12" fill="#0066B1" stroke="#fff" stroke-width="2"/>' +
-                '<rect x="16" y="16" width="28" height="20" rx="4" fill="#cfe8ff" opacity="0.85"/>' +
-                '<rect x="16" y="54" width="28" height="20" rx="4" fill="#1a5196"/>' +
-                '<circle cx="16" cy="12" r="2.2" fill="#fff59d"/>' +
-                '<circle cx="44" cy="12" r="2.2" fill="#fff59d"/>' +
-                '<circle cx="16" cy="78" r="2" fill="#ef5350"/>' +
-                '<circle cx="44" cy="78" r="2" fill="#ef5350"/>' +
-              '</svg>';
+                <form class="controls" id="routeForm">
+                  <div class="route-field">
+                    <label for="startAddress">Startadresse</label>
+                    <input class="route-input" id="startAddress" name="startAddress" type="text" autocomplete="street-address" placeholder="Adresse eingeben oder Standort nutzen">
+                  </div>
+                  <button class="route-btn secondary" id="locationBtn" type="button">Standort nutzen</button>
+                  <button class="route-btn" id="routeBtn" type="submit" disabled>Route starten</button>
+                </form>
 
-            let map, directionsService, directionsRenderer;
-            let carMarker, carContent;
-            let animationFrame = null;
+                <p class="route-status" id="routeStatus" aria-live="polite"></p>
 
-            async function initMap() {
-              const { Map } = await google.maps.importLibrary("maps");
-              const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
+                <div class="route-result" id="routeResult" aria-live="polite">
+                  <div class="result-card">
+                    <span>Ziel</span>
+                    <strong id="resultDestination">-</strong>
+                  </div>
+                  <div class="result-card">
+                    <span>Distanz</span>
+                    <strong id="resultDistance">-</strong>
+                  </div>
+                  <div class="result-card">
+                    <span>Fahrtdauer</span>
+                    <strong id="resultDuration">-</strong>
+                  </div>
+                </div>
+              </aside>
 
-              map = new Map(document.getElementById("map"), {
-                zoom: 6,
-                center: { lat: 51.1657, lng: 10.4515 },
-                mapId: "DEMO_MAP_ID",
-                colorScheme: "DARK",
-                disableDefaultUI: false,
-              });
+              <div class="map-frame">
+                <div id="map"></div>
+              </div>
+            </div>
 
-              directionsService  = new google.maps.DirectionsService();
-              directionsRenderer = new google.maps.DirectionsRenderer({
-                suppressMarkers: true,
-                polylineOptions: {
-                  strokeColor: "#4fc3f7",
-                  strokeOpacity: 0.95,
-                  strokeWeight: 5,
-                },
-              });
-              directionsRenderer.setMap(map);
+            <script>
+              const DEFAULT_CENTER = { lat: 51.1657, lng: 10.4515 };
+              const BMW_LOGO_URL =
+                "https://www.bmw-welt.com/content/dam/bmw/common/images/logo-icons/BMW/BMW_White_Logo.svg.asset.1670245093434.svg";
 
-              // BMW Welt Marker (Advanced Marker mit CSS-styled HTML)
-              const bmwContent = document.createElement("div");
-              bmwContent.className = "bmw-marker";
-              bmwContent.style.cursor = "pointer";
-              bmwContent.title = "Street View öffnen";
-              bmwContent.innerHTML = '<img src="' + BMW_LOGO_URL + '" alt="BMW Welt">';
+              const CAR_SVG =
+                '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 90" width="34" height="52">' +
+                  '<rect x="10" y="8" width="40" height="74" rx="12" fill="#1C69D4" stroke="#fff" stroke-width="2"/>' +
+                  '<rect x="16" y="16" width="28" height="20" rx="4" fill="#cfe8ff" opacity="0.85"/>' +
+                  '<rect x="16" y="54" width="28" height="20" rx="4" fill="#1a5196"/>' +
+                  '<circle cx="16" cy="12" r="2.2" fill="#fff59d"/>' +
+                  '<circle cx="44" cy="12" r="2.2" fill="#fff59d"/>' +
+                  '<circle cx="16" cy="78" r="2" fill="#ef5350"/>' +
+                  '<circle cx="44" cy="78" r="2" fill="#ef5350"/>' +
+                '</svg>';
 
-              const bmwMarker = new AdvancedMarkerElement({
-                position: BMW_WELT,
-                map: map,
-                title: "BMW Welt München",
-                content: bmwContent,
-              });
+              let map, directionsService, directionsRenderer;
+              let AdvancedMarkerElementCtor;
+              let carMarker, carContent, destinationMarker;
+              let animationFrame = null;
+              let destinations = [];
+              let currentLocationOrigin = null;
 
-              const streetView = map.getStreetView();
-              bmwMarker.addListener("click", () => {
-                streetView.setPosition(BMW_WELT);
-                streetView.setPov({ heading: 265, pitch: 0 });
-                streetView.setVisible(true);
-              });
+              async function initMap() {
+                const { Map } = await google.maps.importLibrary("maps");
+                const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
+                AdvancedMarkerElementCtor = AdvancedMarkerElement;
 
-              // Auto-Marker (startet versteckt)
-              carContent = document.createElement("div");
-              carContent.className = "car-marker hidden";
-              carContent.innerHTML = CAR_SVG;
-
-              carMarker = new AdvancedMarkerElement({
-                position: BMW_WELT,
-                map: map,
-                content: carContent,
-              });
-            }
-
-            function animateCar(path) {
-              if (!path || path.length < 2) return;
-              if (animationFrame) cancelAnimationFrame(animationFrame);
-
-              carContent.classList.remove("hidden");
-
-              const DRIVE_DURATION = 8000;
-              const ZOOM_DURATION  = 1500;
-              const FINAL_ZOOM     = 16;
-
-              const startZoom = map.getZoom();
-              const start = performance.now();
-
-              function easeInOutCubic(x) {
-                return x < 0.5 ? 4*x*x*x : 1 - Math.pow(-2*x + 2, 3) / 2;
-              }
-
-              function positionAt(progress) {
-                const idx = progress * (path.length - 1);
-                const i = Math.floor(idx);
-                const frac = idx - i;
-                const p1 = path[i];
-                const p2 = path[Math.min(i + 1, path.length - 1)];
-                return {
-                  lat:  p1.lat() + (p2.lat() - p1.lat()) * frac,
-                  lng:  p1.lng() + (p2.lng() - p1.lng()) * frac,
-                  bearing: Math.atan2(p2.lng() - p1.lng(), p2.lat() - p1.lat()) * 180 / Math.PI,
-                };
-              }
-
-              function step(now) {
-                const elapsed = now - start;
-
-                if (elapsed < DRIVE_DURATION) {
-                  const progress = easeInOutCubic(elapsed / DRIVE_DURATION);
-                  const pos = positionAt(progress);
-                  carMarker.position = { lat: pos.lat, lng: pos.lng };
-                  carContent.style.setProperty("--bearing", pos.bearing + "deg");
-                  animationFrame = requestAnimationFrame(step);
-                } else {
-                  // Auto ist angekommen – auf BMW Welt setzen
-                  carMarker.position = BMW_WELT;
-                  animationFrame = null;
-                  zoomIn(performance.now());
-                }
-              }
-
-              function zoomIn(zoomStart) {
-                function zoomStep(now) {
-                  const t = Math.min(1, (now - zoomStart) / ZOOM_DURATION);
-                  const eased = easeInOutCubic(t);
-                  map.setZoom(startZoom + eased * (FINAL_ZOOM - startZoom));
-                  map.setCenter(BMW_WELT);
-                  if (t < 1) animationFrame = requestAnimationFrame(zoomStep);
-                  else animationFrame = null;
-                }
-                animationFrame = requestAnimationFrame(zoomStep);
-              }
-
-              animationFrame = requestAnimationFrame(step);
-            }
-
-            document.getElementById("routeBtn").addEventListener("click", () => {
-              const info = document.getElementById("routeInfo");
-              info.textContent = "Standort wird ermittelt...";
-              info.classList.add("visible");
-
-              if (!navigator.geolocation) {
-                info.textContent = "Geolocation nicht unterstützt.";
-                return;
-              }
-
-              navigator.geolocation.getCurrentPosition(pos => {
-                const origin = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-                directionsService.route({
-                  origin,
-                  destination: BMW_WELT,
-                  travelMode: google.maps.TravelMode.DRIVING,
-                }, (result, status) => {
-                  if (status === "OK") {
-                    directionsRenderer.setDirections(result);
-                    const leg = result.routes[0].legs[0];
-                    info.innerHTML = `<span>📍 ${leg.distance.text}</span> <span style="margin-left:12px">⏱️ ${leg.duration.text}</span>`;
-                    animateCar(result.routes[0].overview_path);
-                  } else {
-                    info.textContent = "Fehler: " + status;
-                  }
+                map = new Map(document.getElementById("map"), {
+                  zoom: 6,
+                  center: DEFAULT_CENTER,
+                  mapId: "DEMO_MAP_ID",
+                  colorScheme: "DARK",
+                  disableDefaultUI: false,
                 });
-              }, () => {
-                info.textContent = "Standortzugriff verweigert.";
+
+                directionsService = new google.maps.DirectionsService();
+                directionsRenderer = new google.maps.DirectionsRenderer({
+                  suppressMarkers: true,
+                  polylineOptions: {
+                    strokeColor: "#8FC0FF",
+                    strokeOpacity: 0.95,
+                    strokeWeight: 5,
+                  },
+                });
+                directionsRenderer.setMap(map);
+
+                carContent = document.createElement("div");
+                carContent.className = "car-marker hidden";
+                carContent.innerHTML = CAR_SVG;
+
+                carMarker = new AdvancedMarkerElement({
+                  position: DEFAULT_CENTER,
+                  map: map,
+                  content: carContent,
+                });
+
+                await loadDestinations();
+              }
+
+              function setStatus(message, type) {
+                const status = document.getElementById("routeStatus");
+                status.textContent = message || "";
+                status.className = "route-status" + (type ? " " + type : "");
+              }
+
+              function selectedDestination() {
+                return destinations[0] || null;
+              }
+
+              async function loadDestinations() {
+                const routeBtn = document.getElementById("routeBtn");
+
+                try {
+                  const response = await fetch("/api/destinations");
+                  if (!response.ok) throw new Error("Destinations request failed");
+                  destinations = await response.json();
+
+                  routeBtn.disabled = destinations.length === 0;
+                  updateRouteTitle();
+                  setStatus(destinations.length ? "Route zur BMW Welt starten." : "BMW Welt Ziel nicht verfügbar.", destinations.length ? "" : "error");
+                } catch (err) {
+                  console.error(err);
+                  routeBtn.disabled = true;
+                  setStatus("BMW Welt konnte nicht geladen werden.", "error");
+                }
+              }
+
+              function updateRouteTitle() {
+                const destination = selectedDestination();
+                document.getElementById("routeTitle").textContent = destination
+                  ? `Dein Ziel: ${destination.name || destination.label}`
+                  : "Dein Ziel: BMW Welt München";
+              }
+
+              function updateDestinationMarker(position, title) {
+                if (!AdvancedMarkerElementCtor || !position) return;
+
+                const markerContent = document.createElement("div");
+                markerContent.className = "bmw-marker";
+                markerContent.innerHTML = '<img src="' + BMW_LOGO_URL + '" alt="">';
+
+                if (destinationMarker) {
+                  destinationMarker.map = null;
+                }
+
+                destinationMarker = new AdvancedMarkerElementCtor({
+                  position,
+                  map,
+                  title,
+                  content: markerContent,
+                });
+
+                destinationMarker.addListener("click", () => {
+                  const streetView = map.getStreetView();
+                  streetView.setPosition(position);
+                  streetView.setPov({ heading: 265, pitch: 0 });
+                  streetView.setVisible(true);
+                });
+              }
+
+              function animateCar(path) {
+                if (!path || path.length < 2) return;
+                if (animationFrame) cancelAnimationFrame(animationFrame);
+
+                carContent.classList.remove("hidden");
+
+                const DRIVE_DURATION = 8000;
+                const ZOOM_DURATION = 1500;
+                const FINAL_ZOOM = 16;
+
+                const startZoom = map.getZoom();
+                const start = performance.now();
+
+                function easeInOutCubic(x) {
+                  return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+                }
+
+                function positionAt(progress) {
+                  const idx = progress * (path.length - 1);
+                  const i = Math.floor(idx);
+                  const frac = idx - i;
+                  const p1 = path[i];
+                  const p2 = path[Math.min(i + 1, path.length - 1)];
+                  return {
+                    lat: p1.lat() + (p2.lat() - p1.lat()) * frac,
+                    lng: p1.lng() + (p2.lng() - p1.lng()) * frac,
+                    bearing: Math.atan2(p2.lng() - p1.lng(), p2.lat() - p1.lat()) * 180 / Math.PI,
+                  };
+                }
+
+                function step(now) {
+                  const elapsed = now - start;
+
+                  if (elapsed < DRIVE_DURATION) {
+                    const progress = easeInOutCubic(elapsed / DRIVE_DURATION);
+                    const pos = positionAt(progress);
+                    carMarker.position = { lat: pos.lat, lng: pos.lng };
+                    carContent.style.setProperty("--bearing", pos.bearing + "deg");
+                    animationFrame = requestAnimationFrame(step);
+                  } else {
+                    const destination = selectedDestination();
+                    carMarker.position = path[path.length - 1];
+                    animationFrame = null;
+                    zoomIn(performance.now(), path[path.length - 1], destination ? destination.name : "BMW Ziel");
+                  }
+                }
+
+                function zoomIn(zoomStart, destinationPosition, destinationTitle) {
+                  function zoomStep(now) {
+                    const t = Math.min(1, (now - zoomStart) / ZOOM_DURATION);
+                    const eased = easeInOutCubic(t);
+                    map.setZoom(startZoom + eased * (FINAL_ZOOM - startZoom));
+                    map.setCenter(destinationPosition);
+                    if (t < 1) animationFrame = requestAnimationFrame(zoomStep);
+                    else {
+                      updateDestinationMarker(destinationPosition, destinationTitle);
+                      animationFrame = null;
+                    }
+                  }
+                  animationFrame = requestAnimationFrame(zoomStep);
+                }
+
+                animationFrame = requestAnimationFrame(step);
+              }
+
+              function requestCurrentLocation() {
+                return new Promise((resolve, reject) => {
+                  if (!navigator.geolocation) {
+                    reject(new Error("Geolocation wird von diesem Browser nicht unterstützt."));
+                    return;
+                  }
+
+                  navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                      resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+                    },
+                    () => reject(new Error("Standortzugriff wurde verweigert.")),
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+                  );
+                });
+              }
+
+              async function resolveOrigin() {
+                const input = document.getElementById("startAddress");
+                const manualOrigin = input.value.trim();
+
+                if (manualOrigin) {
+                  currentLocationOrigin = null;
+                  return manualOrigin;
+                }
+
+                if (currentLocationOrigin) {
+                  return currentLocationOrigin;
+                }
+
+                setStatus("Standort wird ermittelt...", "");
+                currentLocationOrigin = await requestCurrentLocation();
+                input.placeholder = "Aktueller Standort wird verwendet";
+                return currentLocationOrigin;
+              }
+
+              async function calculateRoute() {
+                const destination = selectedDestination();
+                const routeBtn = document.getElementById("routeBtn");
+                const resultBox = document.getElementById("routeResult");
+
+                if (!destination) {
+                  setStatus("BMW Welt ist gerade nicht verfügbar.", "error");
+                  return;
+                }
+
+                routeBtn.disabled = true;
+                resultBox.classList.remove("visible");
+                setStatus("Route wird berechnet...", "");
+
+                try {
+                  const origin = await resolveOrigin();
+
+                  directionsService.route({
+                    origin,
+                    destination: destination.destination || destination.value,
+                    travelMode: google.maps.TravelMode.DRIVING,
+                  }, (result, status) => {
+                    routeBtn.disabled = false;
+
+                    if (status === "OK") {
+                      directionsRenderer.setDirections(result);
+                      const route = result.routes[0];
+                      const leg = route.legs[0];
+
+                      document.getElementById("resultDestination").textContent = destination.name || destination.label || "BMW Ziel";
+                      document.getElementById("resultDistance").textContent = leg.distance ? leg.distance.text : "-";
+                      document.getElementById("resultDuration").textContent = leg.duration ? leg.duration.text : "-";
+                      resultBox.classList.add("visible");
+                      setStatus(`Route zu ${destination.name || destination.label} ist bereit.`, "success");
+
+                      updateDestinationMarker(leg.end_location, destination.name || destination.label);
+                      animateCar(route.overview_path);
+                    } else {
+                      setStatus("Route konnte nicht berechnet werden: " + status, "error");
+                    }
+                  });
+                } catch (err) {
+                  routeBtn.disabled = false;
+                  setStatus(err.message + " Bitte Startadresse eingeben.", "error");
+                  document.getElementById("startAddress").focus();
+                }
+              }
+
+              document.getElementById("startAddress").addEventListener("input", () => {
+                currentLocationOrigin = null;
               });
-            });
-          </script>
-          <script src="https://maps.googleapis.com/maps/api/js?key=<%= mapsApiKey %>&libraries=marker&v=weekly&callback=initMap" async defer></script>
-        <% } else { %>
-          <div class="no-key">
-            <div style="font-size: 3rem; margin-bottom: 20px;">🗺️</div>
-            <h3 style="margin: 0 0 10px;">API-Key erforderlich</h3>
-            <p>Bitte konfigurieren Sie den <code>GOOGLE_MAPS_API_KEY</code> in Ihrer Umgebung.</p>
-          </div>
-        <% } %>
-      </div>
-    </section>
 
-    <!-- Scroll-Reveal: Buchstaben wachsen bis das Video komplett sichtbar ist -->
+              document.getElementById("locationBtn").addEventListener("click", async () => {
+                const btn = document.getElementById("locationBtn");
+                const input = document.getElementById("startAddress");
+                btn.disabled = true;
+                setStatus("Standort wird ermittelt...", "");
+
+                try {
+                  currentLocationOrigin = await requestCurrentLocation();
+                  input.value = "";
+                  input.placeholder = "Aktueller Standort wird verwendet";
+                  setStatus("Standort erkannt. Du kannst die Route starten.", "success");
+                } catch (err) {
+                  setStatus(err.message + " Bitte Startadresse eingeben.", "error");
+                  input.focus();
+                } finally {
+                  btn.disabled = false;
+                }
+              });
+
+              document.getElementById("routeForm").addEventListener("submit", (event) => {
+                event.preventDefault();
+                calculateRoute();
+              });
+            </script>
+            <script src="https://maps.googleapis.com/maps/api/js?key=<%= mapsApiKey %>&libraries=marker&v=weekly&callback=initMap" async defer></script>
+          <% } else { %>
+            <div class="no-key">
+              <h3>API-Key erforderlich</h3>
+              <p>Bitte konfigurieren Sie den <code>GOOGLE_MAPS_API_KEY</code> in Ihrer Umgebung.</p>
+            </div>
+          <% } %>
+        </div>
+      </section>
+    </main>
+
     <script>
       (function () {
-        const section = document.getElementById("bavaria");
-        const text    = document.getElementById("bavariaText");
-        if (!section || !text) return;
-
-        const mask = document.querySelector(".bavaria-mask");
-        const MIN = 160;
-        const MAX = 2800;
-        // Phase 1: 0–0.45  → Text wächst
-        // Phase 2: 0.45–0.75 → Maske blendet aus
-        // Phase 3: 0.75–1.0 → Video voll sichtbar, dann weiter zur Map
-        const P1_END = 0.45;
-        const P2_END = 0.75;
-        let ticking = false;
-
-        function clamp01(v) { return Math.min(1, Math.max(0, v)); }
-
-        function update() {
-          const rect = section.getBoundingClientRect();
-          const vh   = window.innerHeight;
-          const total = section.offsetHeight - vh;
-          const scrolled = Math.min(Math.max(-rect.top, 0), total);
-          const progress = total > 0 ? scrolled / total : 0;
-
-          // Phase 1: Text wächst
-          const growT = clamp01(progress / P1_END);
-          const size = MIN + growT * (MAX - MIN);
-          text.setAttribute("font-size", size);
-
-          // Phase 2: Maske blendet aus
-          const fadeT = clamp01((progress - P1_END) / (P2_END - P1_END));
-          if (mask) mask.style.opacity = 1 - fadeT;
-
-          ticking = false;
-        }
-
-        window.addEventListener("scroll", () => {
-          if (!ticking) {
-            window.requestAnimationFrame(update);
-            ticking = true;
-          }
-        }, { passive: true });
-        window.addEventListener("resize", update);
-
-        update();
-      })();
-    </script>
-
-    <!-- Snap: Hero → Modelle (danach normales Scrollen) -->
-    <script>
-      (function () {
-        const models = document.querySelector('.models-section');
+        const experience = document.querySelector('.experience-section');
         let snapping = false;
 
-        window.addEventListener('wheel', function (e) {
-          if (snapping) return;
-          const modelsTop = models.offsetTop;
-          if (window.scrollY < modelsTop && e.deltaY > 0) {
+        window.addEventListener('wheel', function (event) {
+          if (!experience || snapping) return;
+          const experienceTop = experience.offsetTop;
+          if (window.scrollY < experienceTop && event.deltaY > 0) {
             snapping = true;
-            e.preventDefault();
-            window.scrollTo({ top: modelsTop, behavior: 'smooth' });
+            event.preventDefault();
+            window.scrollTo({ top: experienceTop, behavior: 'smooth' });
             setTimeout(function () { snapping = false; }, 900);
           }
         }, { passive: false });
