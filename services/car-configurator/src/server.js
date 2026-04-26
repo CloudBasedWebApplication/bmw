@@ -206,6 +206,22 @@ async function getConfigurationRowBySelection(modelId, colorId, wheelsId, interi
   return rows[0] || null;
 }
 
+async function getConfigurationRowByModelColorAndWheels(modelId, colorId, wheelsId) {
+  if (!modelId || !wheelsId) return null;
+
+  const [rows] = await pool.query(
+    `${configurationSelect}
+     WHERE cfg.model_id = ?
+       AND cfg.color_id <=> ?
+       AND cfg.wheels_id = ?
+     ORDER BY cfg.id
+     LIMIT 1`,
+    [modelId, colorId, wheelsId]
+  );
+
+  return rows[0] || null;
+}
+
 async function getModelById(modelId) {
   const [rows] = await pool.query(
     `SELECT id, code, name, package_name, base_price, max_power, drive_type
@@ -442,19 +458,29 @@ app.post("/configuration/calculate", async (req, res) => {
     const wheelsPrice = parseMoney(wheels?.price);
     const interiorPrice = parseMoney(interior?.price);
 
-    const [exactConfig, exteriorConfig] = await Promise.all([
+    const [exactConfig, exteriorConfig, wheelsConfig] = await Promise.all([
       getConfigurationRowBySelection(modelId, colorId, wheelsId, interiorId),
       colorId != null ? getConfigurationRowByModelAndColorIds(modelId, colorId) : Promise.resolve(null),
+      getConfigurationRowByModelColorAndWheels(modelId, colorId, wheelsId),
     ]);
 
     let exteriorImages = {};
     let exactImages = {};
+    let wheelsImages = {};
     const imageRequests = [];
 
     if (exteriorConfig) {
       imageRequests.push(
         getImagesByConfigurationId(exteriorConfig.configuration_id).then((imageKeys) => {
           exteriorImages = mapImageUrls(imageKeys);
+        })
+      );
+    }
+
+    if (wheelsConfig) {
+      imageRequests.push(
+        getImagesByConfigurationId(wheelsConfig.configuration_id).then((imageKeys) => {
+          wheelsImages = mapImageUrls(imageKeys);
         })
       );
     }
@@ -490,7 +516,7 @@ app.post("/configuration/calculate", async (req, res) => {
       previewImages: {
         front: exteriorImages.front || null,
         back: exteriorImages.back || null,
-        wheels: exactImages.wheels || exteriorImages.wheels || (wheels ? imageUrl(wheels.image_key) : null),
+        wheels: wheelsImages.wheels || exactImages.wheels || exteriorImages.wheels || (wheels ? imageUrl(wheels.image_key) : null),
         interior: exactImages.interior || exteriorImages.interior || (interior ? imageUrl(interior.image_key) : null),
       },
       advantages: exactConfig ? parseCsvList(exactConfig.advantages) : [],
