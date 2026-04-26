@@ -19,7 +19,6 @@ services:
       - ai-feature
     volumes:
       - ./api-gateway/src:/app/src
-      - ./api-gateway/views:/app/views
       - ./services:/app/services
 
   car-configurator:
