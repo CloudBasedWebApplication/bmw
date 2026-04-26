@@ -7,9 +7,9 @@ Course project for a cloud-based web application built with a microservices arch
 ```text
 bmw/
 ├─ api-gateway/
-│  ├─ src/
-│  └─ views/
+│  └─ src/
 ├─ services/
+│  ├─ home/
 │  ├─ car-configurator/
 │  ├─ merch-shop/
 │  ├─ ai-feature/
@@ -31,15 +31,15 @@ bmw/
 Contains the user-facing entry application.
 
 - `api-gateway/src/`: gateway and server-side application code
-- `api-gateway/views/`: EJS templates rendered for the web UI
 
-This directory acts as the unified entry point for the app. It serves the pages and coordinates calls to backend services.
+This directory acts as the unified entry point for the app. It renders service-owned EJS views and coordinates calls to backend services.
 
 ### `services/`
 
 Contains all backend microservices.
 
 - `services/car-configurator/`: resolves selected options into a pre-generated image, validates combinations, and calculates price
+- `services/home/`: customer-facing start page with the BMW journey and route planning experience
 - `services/merch-shop/`: provides merchandise catalog and product detail data
 - `services/ai-feature/`: integrates Gemini, generates recommendations, and calls the configurator service
 - `services/shopping-cart/`: stores and returns unified cart state for both car configurations and merchandise
