@@ -126,11 +126,11 @@ The AI assistant integrates with Gemini. It fetches the current configuration op
 
 ---
 
-### 3.6 road-to-supercar
+### 3.6 home
 
 #### What Is Working
 
-The route planning page uses the Google Maps JavaScript API, loaded in the browser with a key injected by the gateway at render time. On page load, the destination dropdown is populated by a fetch to `GET /api/destinations`, which returns the six BMW locations from the gateway. The user selects a destination, clicks "Route berechnen," and the browser uses geolocation and `DirectionsService` to calculate and render the driving route. Distance and duration are shown in an info badge.
+The customer home page uses the Google Maps JavaScript API, loaded in the browser with a key injected by the gateway at render time. On page load, the destination dropdown is populated by a fetch to `GET /api/destinations`, which returns the six BMW locations from the gateway. The user selects a destination, clicks "Route berechnen," and the browser uses geolocation and `DirectionsService` to calculate and render the driving route. Distance and duration are shown in an info badge.
 
 The Google Maps API key is configured in `.env` (`GOOGLE_MAPS_API_KEY`) and injected into the EJS template server-side. If the key is absent or empty, the page shows a clear "API-Key erforderlich" fallback state instead of a broken map.
 
@@ -329,5 +329,5 @@ Append-only. When an issue is resolved, change Status to `Resolved` — do not d
 | 1 | No merch product-detail page | merch-shop, ai-feature, api-gateway | §6.2, §6.4 | High | AI recommendations land on the generic product list; no stable product URL exists for deep-linking | Open |
 | 2 | No structured AI prompt/output schema | ai-feature | §6.4 | High | The AI service now returns structured recommendation items and the free-form contract has been replaced | Resolved |
 | 3 | Cart quantity update | shopping-cart, api-gateway | §6.5 | Medium | Users had no way to change item quantities without removing and re-adding | Resolved |
-| 4 | Destinations hardcoded in frontend | road-to-supercar, api-gateway | §6.3 | Medium | Destination data was embedded in the EJS template rather than served from the gateway | Resolved |
+| 4 | Destinations hardcoded in frontend | home, api-gateway | §6.3 | Medium | Destination data was embedded in the EJS template rather than served from the gateway | Resolved |
 | 5 | No checkout / order submission | shopping-cart | §3 (out of scope) | Out of Scope | Cart has no payment or order flow; confirmed not in v1 scope | Out of Scope |

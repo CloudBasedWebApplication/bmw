@@ -14,7 +14,23 @@ const pool = mysql.createPool({
   connectionLimit: 10,
 });
 
-const minioBase = `http://${process.env.MINIO_PUBLIC_HOST || "localhost"}:${process.env.MINIO_PORT || 9000}/${process.env.MINIO_BUCKET || "configurator-images"}`;
+function trimTrailingSlash(value) {
+  return String(value || "").replace(/\/+$/, "");
+}
+
+function resolveMinioPublicBaseUrl() {
+  if (process.env.MINIO_PUBLIC_URL) {
+    return trimTrailingSlash(process.env.MINIO_PUBLIC_URL);
+  }
+
+  const protocol = process.env.MINIO_PUBLIC_PROTOCOL || "http";
+  const host = process.env.MINIO_PUBLIC_HOST || "localhost";
+  const port = process.env.MINIO_PUBLIC_PORT || process.env.MINIO_PORT || 9000;
+
+  return `${protocol}://${host}${port ? `:${port}` : ""}`;
+}
+
+const minioBase = `${resolveMinioPublicBaseUrl()}/${process.env.MINIO_BUCKET || "configurator-images"}`;
 
 app.use(express.json());
 
@@ -201,6 +217,22 @@ async function getConfigurationRowBySelection(modelId, colorId, wheelsId, interi
      ORDER BY cfg.id
      LIMIT 1`,
     [modelId, colorId, wheelsId, interiorId]
+  );
+
+  return rows[0] || null;
+}
+
+async function getConfigurationRowByModelColorAndWheels(modelId, colorId, wheelsId) {
+  if (!modelId || !wheelsId) return null;
+
+  const [rows] = await pool.query(
+    `${configurationSelect}
+     WHERE cfg.model_id = ?
+       AND cfg.color_id <=> ?
+       AND cfg.wheels_id = ?
+     ORDER BY cfg.id
+     LIMIT 1`,
+    [modelId, colorId, wheelsId]
   );
 
   return rows[0] || null;
@@ -442,16 +474,42 @@ app.post("/configuration/calculate", async (req, res) => {
     const wheelsPrice = parseMoney(wheels?.price);
     const interiorPrice = parseMoney(interior?.price);
 
-    const [exactConfig, exteriorConfig] = await Promise.all([
+    const [exactConfig, exteriorConfig, wheelsConfig] = await Promise.all([
       getConfigurationRowBySelection(modelId, colorId, wheelsId, interiorId),
       colorId != null ? getConfigurationRowByModelAndColorIds(modelId, colorId) : Promise.resolve(null),
+      getConfigurationRowByModelColorAndWheels(modelId, colorId, wheelsId),
     ]);
 
     let exteriorImages = {};
+    let exactImages = {};
+    let wheelsImages = {};
+    const imageRequests = [];
+
     if (exteriorConfig) {
-      const exteriorImageKeys = await getImagesByConfigurationId(exteriorConfig.configuration_id);
-      exteriorImages = mapImageUrls(exteriorImageKeys);
+      imageRequests.push(
+        getImagesByConfigurationId(exteriorConfig.configuration_id).then((imageKeys) => {
+          exteriorImages = mapImageUrls(imageKeys);
+        })
+      );
     }
+
+    if (wheelsConfig) {
+      imageRequests.push(
+        getImagesByConfigurationId(wheelsConfig.configuration_id).then((imageKeys) => {
+          wheelsImages = mapImageUrls(imageKeys);
+        })
+      );
+    }
+
+    if (exactConfig) {
+      imageRequests.push(
+        getImagesByConfigurationId(exactConfig.configuration_id).then((imageKeys) => {
+          exactImages = mapImageUrls(imageKeys);
+        })
+      );
+    }
+
+    await Promise.all(imageRequests);
 
     res.json({
       model: {
@@ -474,8 +532,8 @@ app.post("/configuration/calculate", async (req, res) => {
       previewImages: {
         front: exteriorImages.front || null,
         back: exteriorImages.back || null,
-        wheels: wheels ? imageUrl(wheels.image_key) : exteriorImages.wheels || null,
-        interior: interior ? imageUrl(interior.image_key) : exteriorImages.interior || null,
+        wheels: wheelsImages.wheels || exactImages.wheels || exteriorImages.wheels || (wheels ? imageUrl(wheels.image_key) : null),
+        interior: exactImages.interior || exteriorImages.interior || (interior ? imageUrl(interior.image_key) : null),
       },
       advantages: exactConfig ? parseCsvList(exactConfig.advantages) : [],
       disadvantages: exactConfig ? parseCsvList(exactConfig.disadvantages) : [],

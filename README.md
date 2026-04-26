@@ -7,9 +7,9 @@ Course project for a cloud-based web application built with a microservices arch
 ```text
 bmw/
 ├─ api-gateway/
-│  ├─ src/
-│  └─ views/
+│  └─ src/
 ├─ services/
+│  ├─ home/
 │  ├─ car-configurator/
 │  ├─ merch-shop/
 │  ├─ ai-feature/
@@ -31,15 +31,15 @@ bmw/
 Contains the user-facing entry application.
 
 - `api-gateway/src/`: gateway and server-side application code
-- `api-gateway/views/`: EJS templates rendered for the web UI
 
-This directory acts as the unified entry point for the app. It serves the pages and coordinates calls to backend services.
+This directory acts as the unified entry point for the app. It renders service-owned EJS views and coordinates calls to backend services.
 
 ### `services/`
 
 Contains all backend microservices.
 
 - `services/car-configurator/`: resolves selected options into a pre-generated image, validates combinations, and calculates price
+- `services/home/`: customer-facing start page with the BMW journey and route planning experience
 - `services/merch-shop/`: provides merchandise catalog and product detail data
 - `services/ai-feature/`: integrates Gemini, generates recommendations, and calls the configurator service
 - `services/shopping-cart/`: stores and returns unified cart state for both car configurations and merchandise
@@ -84,6 +84,30 @@ Copy-Item .env.example .env # Windows
 After copying the file, fill in at least `GEMINI_API_KEY` and `GOOGLE_MAPS_API_KEY` in `.env`.
 If you want to override the Gemini model selection locally, `GEMINI_MODEL` defaults to `gemini-2.5-flash` and `GEMINI_FALLBACK_MODEL` defaults to `gemini-2.5-flash-lite`.
 
+`MINIO_PUBLIC_URL` controls the image URLs that are sent to the browser. Keep the default for local development:
+
+```env
+MINIO_PUBLIC_URL=http://localhost:9000
+```
+
+If another device opens the app, `localhost` would point to that device instead of your Docker host. In that case, set `MINIO_PUBLIC_URL` to a browser-reachable host:
+
+```env
+MINIO_PUBLIC_URL=http://192.168.178.20:9000
+```
+
+For GitHub Codespaces, forward port `9000` and use the forwarded MinIO URL:
+
+```env
+MINIO_PUBLIC_URL=https://<codespace-name>-9000.app.github.dev
+```
+
+After changing `.env`, recreate the affected containers:
+
+```bash
+docker compose up -d car-configurator merch-shop
+```
+
 ### 2. Start the full local stack
 
 ```powershell
@@ -115,9 +139,9 @@ docker compose down
 
 ## MinIO Image Sync
 
-Images are imported from the project folders `Configurator/` and `Webshop/` into the MinIO bucket `MINIO_BUCKET`.
+Images are imported from the project folders `assets/configurator/` and `assets/merch-shop/` into the MinIO bucket `MINIO_BUCKET`.
 
-1. Put the car images into `Configurator/` and the merchandise images into `Webshop/`.
+1. Put the car images into `assets/configurator/` and the merchandise images into `assets/merch-shop/`.
 2. Start the infrastructure:
 
 ```bash
@@ -140,12 +164,12 @@ docker compose run --rm minio-init # Windows
 The sync writes object keys with stable prefixes:
 
 - `configurator/<filename>`
-- `webshop/<filename>`
+- `merch-shop/<filename>`
 
 Example object keys:
 
 - `configurator/1_front.jpg`
-- `webshop/BMW_Merchandise_Sweatshirt.avif`
+- `merch-shop/BMW_Merchandise_Sweatshirt.avif`
 
 For new merch assets, prefer ASCII-only filenames in `assets/merch-shop/` so object keys stay stable across encodings. For example, use `weiss` instead of `weiß` in filenames.
 

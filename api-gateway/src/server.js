@@ -6,15 +6,18 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 app.set("view engine", "ejs");
-app.set("views", path.join(__dirname, "..", "views"));
 app.disable("view cache");
 app.use(express.json());
 app.use(cookieParser());
 
-// Static assets for road-to-supercar (e.g. BMW CI fonts)
+// Static assets for the customer home experience (e.g. BMW CI fonts)
+app.use(
+  "/home/static",
+  express.static(path.join(__dirname, "..", "services", "home", "public"))
+);
 app.use(
   "/road-to-supercar/static",
-  express.static(path.join(__dirname, "..", "services", "road-to-supercar", "public"))
+  express.static(path.join(__dirname, "..", "services", "home", "public"))
 );
 
 // Service base URLs (container-internal)
@@ -32,6 +35,13 @@ app.use((req, res, next) => {
 });
 
 const serviceCatalog = [
+  {
+    path: "/",
+    name: "Home",
+    description: "Kunden-Startseite mit BMW Journey, Modell-Einstieg und Routenplanung.",
+    views: "../services/home/views",
+    accent: "light",
+  },
   {
     path: "/car-configurator",
     name: "Car Configurator",
@@ -54,13 +64,6 @@ const serviceCatalog = [
     accent: "light",
   },
   {
-    path: "/road-to-supercar",
-    name: "Road To Supercar",
-    description: "Showroom- und Erlebnisansicht fuer die BMW-Plattform.",
-    views: "../services/road-to-supercar/views",
-    accent: "light",
-  },
-  {
     path: "/shopping-cart",
     name: "Shopping Cart",
     description: "Warenkorb fuer Merchandise und Fahrzeug-Snapshots.",
@@ -80,16 +83,13 @@ function renderServiceView(res, viewsDirectory, locals = {}) {
 // ── Page routes ──────────────────────────────────────────────────────────────
 
 app.get(["/", "/index.html"], (_req, res) => {
-  res.render("index", {
-    title: "BMW API Gateway",
-    headline: "BMW API Gateway",
-    message: "Die Startseite buendelt alle Services, Infrastrukturinfos und die wichtigsten Einstiege an einem Ort.",
-    services: serviceCatalog,
-    infrastructure: [
-      { label: "MinIO", value: `localhost:${process.env.MINIO_PORT || 9000}/${process.env.MINIO_BUCKET || "configurator-images"}` },
-      { label: "Gateway Port", value: String(port) },
-    ],
+  renderServiceView(res, "../services/home/views", {
+    mapsApiKey: process.env.GOOGLE_MAPS_API_KEY || "",
   });
+});
+
+app.get("/home", (_req, res) => {
+  res.redirect(301, "/");
 });
 
 app.get("/health", (_req, res) => {
@@ -116,25 +116,25 @@ app.get("/merch-shop", async (_req, res) => {
 });
 
 app.get("/road-to-supercar", (_req, res) => {
-  renderServiceView(res, "../services/road-to-supercar/views", {
-    mapsApiKey: process.env.GOOGLE_MAPS_API_KEY || "",
-  });
+  res.redirect(301, "/");
 });
 
 // Remaining service views load their data client-side
-for (const route of serviceCatalog.filter(({ path: p }) => !["/car-configurator", "/merch-shop", "/road-to-supercar"].includes(p))) {
+for (const route of serviceCatalog.filter(({ path: p }) => !["/", "/car-configurator", "/merch-shop"].includes(p))) {
   app.get(route.path, (_req, res) => renderServiceView(res, route.views));
 }
 
 // ── API proxy routes ─────────────────────────────────────────────────────────
 
 const DESTINATIONS = [
-  { label: "BMW Welt München",          value: "BMW Welt München,Germany" },
-  { label: "BMW Werk Leipzig",          value: "BMW Group Werk Leipzig,Germany" },
-  { label: "BMW Museum München",        value: "BMW Museum München,Germany" },
-  { label: "BMW Niederlassung Berlin",  value: "BMW Niederlassung Berlin,Germany" },
-  { label: "BMW Niederlassung Hamburg", value: "BMW Niederlassung Hamburg,Germany" },
-  { label: "BMW Niederlassung Frankfurt", value: "BMW Niederlassung Frankfurt,Germany" },
+  {
+    id: "bmw-welt",
+    name: "BMW Welt München",
+    address: "Am Olympiapark 1, 80809 München",
+    destination: "BMW Welt München, Am Olympiapark 1, 80809 München, Germany",
+    label: "BMW Welt München",
+    value: "BMW Welt München, Am Olympiapark 1, 80809 München, Germany",
+  },
 ];
 
 app.get("/api/destinations", (_req, res) => {
