@@ -80,6 +80,28 @@ function renderServiceView(res, viewsDirectory, locals = {}) {
   });
 }
 
+function getConfiguratorInitialSelection(req) {
+  const routeSelection = req.params.model
+    ? {
+        model: req.params.model,
+        color: req.params.color || null,
+        interior: req.params.interior || null,
+        wheels: req.params.wheels || null,
+      }
+    : null;
+
+  const legacyQuerySelection = req.query.model || req.query.color || req.query.interior || req.query.wheels
+    ? {
+        model: req.query.model || null,
+        color: req.query.color || null,
+        interior: req.query.interior || null,
+        wheels: req.query.wheels || null,
+      }
+    : null;
+
+  return routeSelection || legacyQuerySelection || null;
+}
+
 // ── Page routes ──────────────────────────────────────────────────────────────
 
 app.get(["/", "/index.html"], (_req, res) => {
@@ -101,8 +123,16 @@ app.get("/health", (_req, res) => {
   });
 });
 
-app.get("/car-configurator", (_req, res) => {
-  renderServiceView(res, "../services/car-configurator/views");
+app.get("/car-configurator", (req, res) => {
+  renderServiceView(res, "../services/car-configurator/views", {
+    initialSelection: getConfiguratorInitialSelection(req),
+  });
+});
+
+app.get("/car-configurator/:model/:color/:interior/:wheels", (req, res) => {
+  renderServiceView(res, "../services/car-configurator/views", {
+    initialSelection: getConfiguratorInitialSelection(req),
+  });
 });
 
 app.get("/merch-shop", async (_req, res) => {
