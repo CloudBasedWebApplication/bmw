@@ -5,51 +5,85 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>BMW Warenkorb | Ihr Gateway</title>
     <style>
+      @font-face {
+        font-family: 'BMWTypeNext';
+        font-style: normal; font-weight: 200; font-display: swap;
+        src: url('/home/static/fonts/BMWTypeNextLatin-Thin.woff2') format('woff2'),
+             url('/home/static/fonts/BMWTypeNextLatin-Thin.woff') format('woff');
+      }
+      @font-face {
+        font-family: 'BMWTypeNext';
+        font-style: normal; font-weight: 400; font-display: swap;
+        src: url('/home/static/fonts/BMWTypeNextLatin-Light.woff2') format('woff2'),
+             url('/home/static/fonts/BMWTypeNextLatin-Light.woff') format('woff');
+      }
+      @font-face {
+        font-family: 'BMWTypeNext';
+        font-style: normal; font-weight: 700; font-display: swap;
+        src: url('/home/static/fonts/BMWTypeNextLatin-Bold.woff2') format('woff2'),
+             url('/home/static/fonts/BMWTypeNextLatin-Bold.woff') format('woff');
+      }
+
       :root {
-        --accent: #0066b1;
-        --bg: #f5f7f9;
+        --accent: #1c69d4;
+        --accent-dark: #114a96;
+        --bg: #f6f7f9;
         --panel: #ffffff;
-        --text: #0f172a;
-        --muted: #64748b;
+        --text: #111827;
+        --muted: #697386;
         --danger: #ef4444;
-        --radius: 20px;
-        --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+        --radius: 8px;
+        --shadow: 0 20px 55px rgba(16, 24, 40, 0.12);
+        --line: rgba(17, 24, 39, 0.12);
       }
 
       * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
 
       body {
         margin: 0;
-        font-family: 'Inter', -apple-system, system-ui, sans-serif;
-        background-color: var(--bg);
+        font-family: 'BMWTypeNext', 'Inter', -apple-system, system-ui, sans-serif;
+        background:
+          linear-gradient(rgba(17, 24, 39, 0.045) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(17, 24, 39, 0.045) 1px, transparent 1px),
+          var(--bg);
+        background-size: 44px 44px;
         color: var(--text);
         line-height: 1.5;
       }
 
-      .topbar { padding: 20px; }
-      .topbar-inner {
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 12px 24px;
-        background: rgba(255, 255, 255, 0.8);
-        backdrop-filter: blur(15px);
-        border-radius: 999px;
-        border: 1px solid rgba(255,255,255,0.4);
-        box-shadow: 0 4px 20px rgba(0,0,0,0.03);
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
+      .nav-outer {
+        position: sticky; top: 0; z-index: 50;
+        padding: 20px 20px 0;
+        pointer-events: none;
       }
-      .brand { text-decoration: none; color: var(--text); font-weight: 800; font-size: 1.1rem; }
+      .site-nav {
+        pointer-events: auto;
+        width: min(1180px, 100%); margin: 0 auto;
+        min-height: 64px; display: flex; align-items: center;
+        justify-content: space-between; gap: 24px;
+        padding: 12px 14px 12px 20px;
+        color: #fff;
+        border: 1px solid rgba(255,255,255,0.18);
+        border-radius: 8px;
+        background: rgba(7,12,18,0.92);
+        backdrop-filter: blur(18px);
+        box-shadow: 0 16px 40px rgba(0,0,0,0.25);
+      }
+      .brand {
+        text-decoration: none; color: #fff;
+        display: flex; flex-direction: column; gap: 2px;
+      }
+      .brand strong { font-size: 0.9rem; font-weight: 700; }
+      .brand span { font-size: 0.7rem; opacity: 0.5; letter-spacing: 0.04em; }
       .nav-links { display: flex; gap: 4px; flex-wrap: wrap; }
       .nav-links a {
-        text-decoration: none; color: var(--muted); padding: 8px 16px;
-        border-radius: 999px; font-size: 0.85rem; font-weight: 500; transition: 0.2s;
+        text-decoration: none; color: rgba(255,255,255,0.65); padding: 8px 16px;
+        border-radius: 6px; font-size: 0.85rem; font-weight: 500; transition: 0.2s;
       }
-      .nav-links a.active, .nav-links a:hover { background: var(--text); color: white; }
+      .nav-links a.active, .nav-links a:hover { background: rgba(255,255,255,0.1); color: #fff; }
 
       .layout { max-width: 800px; margin: 0 auto; padding: 40px 20px; }
-      h1 { font-size: 2.5rem; font-weight: 800; letter-spacing: -0.03em; margin: 0 0 32px; }
+      h1 { font-size: clamp(2rem, 4vw, 3rem); font-weight: 700; letter-spacing: 0; line-height: 1.02; margin: 0; }
 
       .empty-state {
         text-align: center; padding: 80px 40px; background: var(--panel);
@@ -58,22 +92,23 @@
       .empty-state p { color: var(--muted); margin-bottom: 24px; font-size: 1.1rem; }
       .btn-primary {
         display: inline-block; padding: 12px 28px; background: var(--accent);
-        color: white; text-decoration: none; border-radius: 12px; font-weight: 700;
-        transition: 0.3s;
+        color: white; text-decoration: none; border-radius: var(--radius);
+        font-weight: 700; font-size: 0.82rem; letter-spacing: 0.08em; text-transform: uppercase;
+        transition: 0.3s; font-family: inherit; border: none; cursor: pointer;
       }
-      .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 102, 177, 0.2); }
+      .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(28,105,212,0.25); }
 
       .item {
         background: var(--panel); border-radius: var(--radius);
         padding: 20px; display: flex; gap: 20px; align-items: center;
-        margin-bottom: 16px; border: 1px solid rgba(0,0,0,0.03);
+        margin-bottom: 12px; border: 1px solid var(--line);
         box-shadow: var(--shadow); transition: transform 0.2s;
       }
       .item:hover { transform: scale(1.01); }
 
       .item img {
         width: 120px; height: 90px; object-fit: cover;
-        border-radius: 12px; background: #f8fafc; flex-shrink: 0;
+        border-radius: var(--radius); background: #f8fafc; flex-shrink: 0;
       }
 
       .item-info { flex: 1; }
@@ -90,8 +125,9 @@
 
       .remove-btn {
         background: #fee2e2; border: none; color: var(--danger);
-        padding: 6px 12px; border-radius: 8px; cursor: pointer;
-        font-size: 0.8rem; font-weight: 700; transition: 0.2s;
+        padding: 6px 12px; border-radius: var(--radius); cursor: pointer;
+        font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+        transition: 0.2s; font-family: inherit;
       }
       .remove-btn:hover { background: var(--danger); color: white; }
 
@@ -99,28 +135,29 @@
         display: flex; align-items: center; gap: 8px; margin-top: 4px;
       }
       .qty-btn {
-        width: 28px; height: 28px; border: 1px solid #e2e8f0; background: #f8fafc;
-        border-radius: 6px; cursor: pointer; font-size: 1rem; font-weight: 700;
+        width: 28px; height: 28px; border: 1px solid var(--line); background: #f8fafc;
+        border-radius: var(--radius); cursor: pointer; font-size: 1rem; font-weight: 700;
         color: var(--text); display: flex; align-items: center; justify-content: center;
-        transition: 0.2s; padding: 0;
+        transition: 0.2s; padding: 0; font-family: inherit;
       }
       .qty-btn:hover { background: var(--accent); color: white; border-color: var(--accent); }
       .qty-btn:disabled { opacity: 0.4; cursor: default; }
       .qty-value { font-size: 0.95rem; font-weight: 700; min-width: 20px; text-align: center; }
 
       .summary {
-        margin-top: 32px; padding: 32px; background: var(--text);
+        margin-top: 24px; padding: 32px; background: #0b0f14;
         border-radius: var(--radius); color: white;
         display: flex; justify-content: space-between; align-items: center;
-        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.18);
       }
-      .total-label { font-size: 1.1rem; opacity: 0.7; }
-      .total-value { font-size: 2rem; font-weight: 800; }
+      .total-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; opacity: 0.6; }
+      .total-value { font-size: 2rem; font-weight: 700; letter-spacing: -0.01em; }
 
       .btn-ghost {
         display: inline-block; padding: 10px 20px; background: transparent;
-        color: var(--muted); border: 1px solid #e2e8f0; border-radius: 12px;
-        font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: 0.2s;
+        color: var(--muted); border: 1px solid var(--line); border-radius: var(--radius);
+        font-size: 0.78rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+        cursor: pointer; transition: 0.2s; font-family: inherit; text-decoration: none;
       }
       .btn-ghost:hover { border-color: var(--danger); color: var(--danger); background: #fff5f5; }
 
@@ -150,9 +187,9 @@
       .form-card {
         background: var(--panel); border-radius: var(--radius);
         box-shadow: var(--shadow); padding: 32px; margin-bottom: 16px;
-        border: 1px solid rgba(0,0,0,0.03);
+        border: 1px solid var(--line);
       }
-      .form-card h2 { font-size: 1.15rem; font-weight: 800; margin: 0 0 24px; }
+      .form-card h2 { font-size: 1.1rem; font-weight: 700; letter-spacing: 0; margin: 0 0 24px; }
       .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
       .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
       .form-group:last-child { margin-bottom: 0; }
@@ -161,7 +198,7 @@
         letter-spacing: 0.08em; color: var(--muted);
       }
       .form-group input, .form-group select {
-        padding: 12px 14px; border: 1px solid #e2e8f0; border-radius: 10px;
+        padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--radius);
         font-size: 0.95rem; font-family: inherit; color: var(--text);
         background: #fafbfc; outline: none; transition: border-color 0.2s;
       }
@@ -170,10 +207,10 @@
       .payment-options { display: flex; flex-direction: column; gap: 10px; }
       .payment-option {
         display: flex; align-items: center; gap: 14px; padding: 14px 18px;
-        border: 2px solid #e2e8f0; border-radius: 12px; cursor: pointer;
+        border: 1px solid var(--line); border-radius: var(--radius); cursor: pointer;
         transition: border-color 0.2s, background 0.2s;
       }
-      .payment-option:has(input:checked) { border-color: var(--accent); background: rgba(0,102,177,0.03); }
+      .payment-option:has(input:checked) { border-color: var(--accent); background: rgba(28,105,212,0.04); }
       .payment-option input { accent-color: var(--accent); }
       .payment-option-label { font-weight: 600; font-size: 0.92rem; }
       .payment-option-sub { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
@@ -181,12 +218,12 @@
       .order-summary-card {
         background: var(--panel); border-radius: var(--radius);
         box-shadow: var(--shadow); padding: 24px 28px; margin-bottom: 24px;
-        border: 1px solid rgba(0,0,0,0.03);
+        border: 1px solid var(--line);
       }
       .order-summary-card h3 { font-size: 0.85rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin: 0 0 16px; }
       .summary-line {
         display: flex; justify-content: space-between; align-items: center;
-        padding: 9px 0; border-bottom: 1px solid rgba(0,0,0,0.05);
+        padding: 9px 0; border-bottom: 1px solid var(--line);
         font-size: 0.88rem;
       }
       .summary-line:last-child { border-bottom: none; font-weight: 800; font-size: 1rem; padding-top: 14px; }
@@ -194,9 +231,10 @@
       .summary-line-price { font-weight: 700; color: var(--text); }
 
       .btn-back {
-        background: none; border: 1px solid #e2e8f0; color: var(--muted);
-        padding: 11px 22px; border-radius: 12px; font-size: 0.88rem;
-        font-weight: 600; cursor: pointer; transition: 0.2s; font-family: inherit;
+        background: none; border: 1px solid var(--line); color: var(--muted);
+        padding: 11px 22px; border-radius: var(--radius); font-size: 0.78rem;
+        font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+        cursor: pointer; transition: 0.2s; font-family: inherit;
       }
       .btn-back:hover { border-color: var(--text); color: var(--text); }
 
@@ -204,7 +242,7 @@
       .confirmation-card {
         background: var(--panel); border-radius: var(--radius);
         box-shadow: var(--shadow); padding: 64px 40px; text-align: center;
-        border: 1px solid rgba(0,0,0,0.03);
+        border: 1px solid var(--line);
       }
       .confirm-icon {
         width: 72px; height: 72px; border-radius: 50%; background: #16a34a;
@@ -217,7 +255,7 @@
         border-right: 3px solid white; border-bottom: 3px solid white;
         transform: rotate(45deg) translate(-2px, -3px);
       }
-      .confirmation-card h2 { font-size: 2rem; font-weight: 800; letter-spacing: -0.03em; margin: 0 0 14px; }
+      .confirmation-card h2 { font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 700; letter-spacing: 0; line-height: 1.02; margin: 0 0 14px; }
       .confirmation-card .conf-sub { color: var(--muted); font-size: 1rem; margin: 0 0 6px; }
       .conf-order-nr { font-size: 0.88rem; font-weight: 700; color: var(--accent); margin-top: 8px; }
       .confirmation-actions { margin-top: 40px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
@@ -229,18 +267,18 @@
     </style>
   </head>
   <body>
-    <header class="topbar">
-      <div class="topbar-inner">
-        <a class="brand" href="/">BMW Gateway</a>
-        <nav class="nav-links">
+    <div class="nav-outer">
+      <nav class="site-nav" aria-label="Hauptnavigation">
+        <a class="brand" href="/"><strong>Bayerische Motoren Werke AG</strong><span>Seit 1916</span></a>
+        <div class="nav-links">
           <a href="/">Home</a>
-          <a href="/car-configurator">Configurator</a>
-          <a href="/merch-shop">Shop</a>
-          <a href="/ai-feature">AI</a>
+          <a href="/car-configurator">Konfigurator</a>
+          <a href="/merch-shop">Merchandise</a>
+          <a href="/ai-feature">KI</a>
           <a href="/shopping-cart" class="active">Warenkorb</a>
-        </nav>
-      </div>
-    </header>
+        </div>
+      </nav>
+    </div>
 
     <div class="layout">
 
