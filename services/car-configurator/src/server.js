@@ -91,6 +91,42 @@ function mapImageUrls(images) {
   );
 }
 
+function normalizeSlug(value) {
+  return String(value || "")
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/ß/g, "ss")
+    .replace(/[^a-zA-Z0-9]+/g, "")
+    .toLowerCase();
+}
+
+function resolveInteriorPreviewImage(model, interior, fallbackUrl = null) {
+  const modelKey = normalizeSlug(model?.name || model?.code);
+  const interiorKey = normalizeSlug(interior?.name);
+
+  if (modelKey !== "bmwx5" && modelKey !== "x5") {
+    return fallbackUrl;
+  }
+
+  if (interiorKey.includes("black") || interiorKey.includes("schwarz")) {
+    return imageUrl("configurator/16_interior.jpg");
+  }
+
+  if (
+    interiorKey.includes("white") ||
+    interiorKey.includes("weiss") ||
+    interiorKey.includes("elfenbein")
+  ) {
+    return imageUrl("configurator/17_interior.jpg");
+  }
+
+  if (interiorKey.includes("coffee")) {
+    return imageUrl("configurator/18_interior.jpg");
+  }
+
+  return fallbackUrl;
+}
+
 function mapModel(row) {
   return {
     id: row.model_id,
@@ -526,6 +562,12 @@ app.post("/configuration/calculate", async (req, res) => {
 
     await Promise.all(imageRequests);
 
+    const interiorPreview = resolveInteriorPreviewImage(
+      model,
+      interior,
+      exactImages.interior || exteriorImages.interior || (interior ? imageUrl(interior.image_key) : null)
+    );
+
     res.json({
       model: {
         id: model.id,
@@ -548,7 +590,7 @@ app.post("/configuration/calculate", async (req, res) => {
         front: exteriorImages.front || null,
         back: exteriorImages.back || null,
         wheels: wheelsImages.wheels || exactImages.wheels || exteriorImages.wheels || (wheels ? imageUrl(wheels.image_key) : null),
-        interior: exactImages.interior || exteriorImages.interior || (interior ? imageUrl(interior.image_key) : null),
+        interior: interiorPreview,
       },
       advantages: exactConfig ? parseCsvList(exactConfig.advantages) : [],
       disadvantages: exactConfig ? parseCsvList(exactConfig.disadvantages) : [],
@@ -576,6 +618,12 @@ app.get("/configure", async (req, res) => {
     const images = await getImagesByConfigurationId(row.configuration_id);
     const price = buildPriceDetails(row);
     const imageUrls = mapImageUrls(images);
+    const interiorPreview = resolveInteriorPreviewImage(
+      { name: row.model_name, code: row.code },
+      { name: row.interior_name },
+      imageUrls.interior ||
+        (row.interior_id ? imageUrl(`configurator/${row.interior_id}_interior.jpg`) : null)
+    );
 
     res.json({
       configurationId: row.configuration_id,
@@ -590,9 +638,7 @@ app.get("/configure", async (req, res) => {
       imageUrl: imageUrls.front || null,
       imageUrlBack: imageUrls.back || null,
       imageUrlWheels: imageUrls.wheels || null,
-      imageUrlInterior:
-        imageUrls.interior ||
-        (row.interior_id ? imageUrl(`configurator/${row.interior_id}_interior.jpg`) : null),
+      imageUrlInterior: interiorPreview,
       images,
       imageUrls,
       advantages: parseCsvList(row.advantages),
