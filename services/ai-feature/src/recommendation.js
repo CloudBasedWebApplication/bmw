@@ -13,11 +13,21 @@ const recommendationSchema = {
       properties: {
         model: {
           type: Type.STRING,
-          description: "Recommended car model code",
+          description: "Recommended car model code, exactly as listed",
         },
         color: {
           type: Type.STRING,
-          description: "Recommended car color",
+          description: "Recommended color name, exactly as listed",
+        },
+        wheels: {
+          type: Type.STRING,
+          nullable: true,
+          description: "Recommended wheels name exactly as listed, or null if no wheels available",
+        },
+        interior: {
+          type: Type.STRING,
+          nullable: true,
+          description: "Recommended interior name exactly as listed, or null if no interiors available",
         },
       },
       required: ["model", "color"],
@@ -65,6 +75,9 @@ function coerceRecommendationPayload(payload) {
     }
   }
 
+  const normalizeOptionalString = (v) =>
+    typeof v === "string" && v.trim() ? v.trim() : null;
+
   if (!Array.isArray(merchItems)) {
     throw new Error("Gemini merchItems is invalid");
   }
@@ -86,9 +99,18 @@ function coerceRecommendationPayload(payload) {
     });
   }
 
+  const normalizedCar = carRecommendation
+    ? {
+        model:    carRecommendation.model.trim(),
+        color:    carRecommendation.color.trim(),
+        wheels:   normalizeOptionalString(carRecommendation.wheels),
+        interior: normalizeOptionalString(carRecommendation.interior),
+      }
+    : null;
+
   return {
     text: text.trim(),
-    carRecommendation: carRecommendation ?? null,
+    carRecommendation: normalizedCar,
     merchItems: normalizedMerchItems,
   };
 }
@@ -102,8 +124,11 @@ function buildRecommendationResponse(recommendation, products = []) {
   };
 
   if (recommendation.carRecommendation?.model && recommendation.carRecommendation?.color) {
-    const { model, color } = recommendation.carRecommendation;
-    response.carLink = `/car-configurator?model=${encodeURIComponent(model)}&color=${encodeURIComponent(color)}`;
+    const { model, color, wheels, interior } = recommendation.carRecommendation;
+    const params = new URLSearchParams({ model, color });
+    if (wheels)   params.set("wheels", wheels);
+    if (interior) params.set("interior", interior);
+    response.carLink = `/car-configurator?${params.toString()}`;
   }
 
   if (Array.isArray(recommendation.merchItems)) {
@@ -119,10 +144,18 @@ function buildRecommendationResponse(recommendation, products = []) {
         title,
         subtitle,
         imageUrl,
+        price: product?.price ?? null,
         reason,
         url: `/merch-shop?product=${item.id}`,
       };
     });
+  }
+
+  if (recommendation.carRecommendation?.model) {
+    response.carModel    = recommendation.carRecommendation.model;
+    response.carColor    = recommendation.carRecommendation.color;
+    response.carWheels   = recommendation.carRecommendation.wheels   ?? null;
+    response.carInterior = recommendation.carRecommendation.interior ?? null;
   }
 
   return response;

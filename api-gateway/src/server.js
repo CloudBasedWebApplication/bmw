@@ -332,6 +332,15 @@ app.delete("/api/cart/items/:itemId", async (req, res) => {
   }
 });
 
+app.get("/api/merch/products", async (_req, res) => {
+  try {
+    const r = await fetch(`${MERCH}/products`);
+    res.status(r.status).json(await r.json());
+  } catch (err) {
+    res.status(502).json({ error: err.message });
+  }
+});
+
 app.post("/api/ai/recommend", async (req, res) => {
   try {
     const r = await fetch(`${AI}/recommend`, {

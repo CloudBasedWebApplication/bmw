@@ -3,18 +3,18 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>BMW AI Assistant</title>
+    <title>BMW AI Advisor</title>
     <style>
       :root {
         --accent: #0066b1;
         --accent-dark: #004a80;
         --accent-soft: rgba(0, 102, 177, 0.08);
-        --bg: #f5f7f9;
+        --bg: #f0f2f5;
         --panel: #ffffff;
         --text: #111111;
         --muted: #636366;
         --radius: 20px;
-        --shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+        --shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
       }
 
       * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
@@ -22,20 +22,18 @@
       body {
         margin: 0;
         font-family: 'Inter', -apple-system, system-ui, sans-serif;
-        background-color: var(--bg);
-        background-image:
-          radial-gradient(at 0% 0%, rgba(0, 102, 177, 0.05) 0px, transparent 50%),
-          radial-gradient(at 100% 100%, rgba(0, 102, 177, 0.03) 0px, transparent 50%);
+        background: var(--bg);
         color: var(--text);
         line-height: 1.6;
       }
 
+      /* ── Topbar ── */
       .topbar { padding: 20px; }
       .topbar-inner {
-        max-width: 800px; margin: 0 auto; padding: 12px 24px;
-        background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(15px);
-        border-radius: 999px; border: 1px solid rgba(255,255,255,0.4);
-        box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+        max-width: 820px; margin: 0 auto; padding: 12px 24px;
+        background: rgba(255,255,255,0.85); backdrop-filter: blur(16px);
+        border-radius: 999px; border: 1px solid rgba(255,255,255,0.5);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.04);
         display: flex; align-items: center; justify-content: space-between;
       }
       .brand { text-decoration: none; color: var(--text); font-weight: 800; font-size: 1.1rem; }
@@ -46,192 +44,247 @@
       }
       .nav-links a.active, .nav-links a:hover { background: var(--text); color: white; }
 
-      .layout { max-width: 740px; margin: 0 auto; padding: 40px 20px; }
+      /* ── Layout ── */
+      .layout { max-width: 760px; margin: 0 auto; padding: 48px 20px 80px; }
 
-      .header-area { text-align: center; margin-bottom: 28px; }
-      h1 { font-size: 2.4rem; font-weight: 800; letter-spacing: -0.03em; margin: 0 0 12px; }
-      .subtitle { color: var(--muted); font-size: 1.08rem; max-width: 540px; margin: 0 auto; }
-
-      .hint-card {
-        max-width: 540px;
-        margin: 0 auto 24px;
-        padding: 14px 18px;
-        background: var(--accent-soft);
-        border: 1px solid rgba(0, 102, 177, 0.15);
-        border-radius: 14px;
-        font-size: 0.9rem;
-        color: var(--accent-dark);
+      /* ── Hero ── */
+      .hero {
         text-align: center;
+        margin-bottom: 40px;
       }
-      .hint-card strong { color: var(--accent-dark); }
-
-      .examples { margin-bottom: 16px; }
-      .examples-label {
-        font-size: 0.78rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        color: var(--muted);
-        margin-bottom: 10px;
-        text-align: center;
-      }
-      .example-chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
-      .chip {
-        background: white;
-        border: 1px solid rgba(0,0,0,0.08);
-        padding: 8px 16px;
-        border-radius: 999px;
-        font-size: 0.88rem;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        color: #334155;
-        font-family: inherit;
-      }
-      .chip:hover {
-        border-color: var(--accent);
-        color: var(--accent);
-        background: var(--accent-soft);
-        transform: translateY(-1px);
-      }
-
-      .chat-box {
-        background: var(--panel); border-radius: var(--radius);
-        padding: 8px; box-shadow: var(--shadow);
-        display: flex; flex-direction: column; gap: 8px;
-        border: 1px solid rgba(0,0,0,0.05); transition: transform 0.3s ease;
-      }
-      .chat-box:focus-within { transform: translateY(-2px); border-color: var(--accent); }
-
-      textarea {
-        width: 100%; padding: 20px; border: none; border-radius: var(--radius);
-        font-size: 1.05rem; font-family: inherit; resize: none; min-height: 130px; outline: none;
-        line-height: 1.6;
-      }
-
-      .actions { display: flex; justify-content: space-between; align-items: center; padding: 4px 14px 10px; gap: 12px; }
-      .char-hint { font-size: 0.8rem; color: var(--muted); }
-      .send-btn {
-        padding: 12px 28px; border: none; border-radius: 999px;
-        background: var(--accent); color: #fff; font-size: 1rem; font-weight: 700;
-        cursor: pointer; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      }
-      .send-btn:hover:not(:disabled) { background: var(--accent-dark); transform: scale(1.05); }
-      .send-btn:disabled { background: #cbd5e1; cursor: not-allowed; }
-
-      .result {
-        background: var(--panel); border-radius: var(--radius);
-        padding: 40px; margin-top: 30px; box-shadow: var(--shadow);
-        border: 1px solid rgba(0,0,0,0.03);
-        display: none; opacity: 0; transform: translateY(10px);
-        transition: all 0.5s ease;
-      }
-      .result.visible { display: block; opacity: 1; transform: translateY(0); }
-
-      .result-text { font-size: 1.1rem; color: #334155; margin-bottom: 20px; line-height: 1.7; }
-
-      .links-label {
-        font-size: 0.75rem;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: 0.12em;
-        color: var(--accent-dark);
-        margin: 28px 0 14px;
-      }
-
-      .car-cta {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 16px;
-        padding: 20px 24px;
-        background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
-        color: white;
-        border-radius: 16px;
-        text-decoration: none;
+      .hero-eyebrow {
+        display: inline-block;
+        font-size: 0.72rem;
         font-weight: 700;
-        font-size: 1rem;
-        box-shadow: 0 10px 25px rgba(0, 102, 177, 0.25);
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--accent);
+        margin-bottom: 16px;
+        padding: 6px 14px;
+        background: var(--accent-soft);
+        border-radius: 999px;
       }
-      .car-cta:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 14px 30px rgba(0, 102, 177, 0.35);
+      h1 {
+        font-size: 2.6rem;
+        font-weight: 800;
+        letter-spacing: -0.035em;
+        line-height: 1.15;
+        margin: 0 0 16px;
       }
-      .car-cta-arrow { font-size: 1.3rem; }
+      .subtitle {
+        color: var(--muted);
+        font-size: 1.05rem;
+        max-width: 460px;
+        margin: 0 auto;
+      }
 
-      .merch-list { display: grid; gap: 12px; }
-
-      .merch-card {
-        display: grid;
-        grid-template-columns: 72px minmax(0, 1fr) minmax(160px, 220px);
-        align-items: center;
-        gap: 16px;
-        padding: 16px 18px;
-        background: linear-gradient(180deg, #fffcf8 0%, #ffffff 100%);
-        border: 1px solid #eadfd0;
-        border-radius: 18px;
-        text-decoration: none;
+      /* ── Input card ── */
+      .input-card {
+        background: var(--panel);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        border: 1px solid rgba(0,0,0,0.05);
+        overflow: hidden;
+        transition: box-shadow 0.3s ease;
+      }
+      .input-card:focus-within {
+        box-shadow: 0 0 0 2px var(--accent), var(--shadow);
+      }
+      textarea {
+        width: 100%; padding: 24px 24px 16px; border: none;
+        font-size: 1.05rem; font-family: inherit; resize: none;
+        min-height: 150px; outline: none; line-height: 1.65;
+        background: transparent;
         color: var(--text);
-        transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
-        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
       }
-      .merch-card:hover {
-        transform: translateY(-2px);
-        border-color: #f3b37a;
-        box-shadow: 0 16px 34px rgba(15, 23, 42, 0.08);
+      .input-footer {
+        display: flex; justify-content: flex-end; align-items: center;
+        padding: 12px 20px 16px;
+        border-top: 1px solid rgba(0,0,0,0.05);
       }
+      .send-btn {
+        padding: 11px 26px; border: none; border-radius: 999px;
+        background: var(--accent); color: #fff; font-size: 0.95rem; font-weight: 700;
+        cursor: pointer; transition: all 0.25s ease; white-space: nowrap;
+      }
+      .send-btn:hover:not(:disabled) { background: var(--accent-dark); transform: translateY(-1px); }
+      .send-btn:disabled { background: #cbd5e1; cursor: not-allowed; transform: none; }
 
-      .merch-media {
-        width: 72px; height: 72px;
-        border-radius: 16px;
-        background: #f1f5f9;
-        border: 1px solid rgba(15, 23, 42, 0.08);
-        overflow: hidden;
-        display: grid; place-items: center;
-        flex-shrink: 0;
-      }
-      .merch-media img {
-        width: 100%; height: 100%;
-        object-fit: contain; padding: 8px; display: block;
-      }
-      .merch-media-fallback {
-        display: grid; place-items: center;
-        width: 100%; height: 100%;
-        font-size: 1.1rem; font-weight: 800;
-        color: #c2410c;
-        background: linear-gradient(135deg, #ffedd5, #fff7ed);
-      }
-
-      .merch-copy { min-width: 0; }
-      .merch-title { margin: 0; font-size: 1.02rem; font-weight: 800; line-height: 1.25; color: #0f172a; }
-      .merch-subtitle { margin-top: 4px; font-size: 0.88rem; color: var(--muted); }
-
-      .merch-reason {
-        justify-self: end;
-        text-align: right;
-        font-size: 0.94rem;
-        font-weight: 600;
-        color: #475569;
-        line-height: 1.4;
-        max-width: 220px;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-      }
-
-      .spinner { display: none; text-align: center; padding: 30px; font-weight: 600; color: var(--accent); }
+      /* ── Feedback ── */
+      .spinner { display: none; text-align: center; padding: 36px; font-weight: 600; color: var(--accent); font-size: 0.95rem; letter-spacing: 0.02em; }
       .spinner.visible { display: block; animation: pulse 1.5s infinite; }
-      @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-      .error { color: #dc2626; font-weight: 600; text-align: center; margin-top: 15px; }
+      @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+      .error { color: #dc2626; font-weight: 600; text-align: center; margin-top: 16px; font-size: 0.9rem; }
+
+      /* ── Result ── */
+      .result { display: none; margin-top: 32px; }
+      .result.visible { display: block; animation: fadeUp 0.45s ease both; }
+      @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+
+      /* ── Car reveal ── */
+      .car-reveal {
+        border-radius: var(--radius);
+        background: linear-gradient(135deg, #003d6b 0%, var(--accent) 60%, #0080d6 100%);
+        color: white;
+        padding: 32px 32px 28px;
+        margin-bottom: 12px;
+        position: relative;
+        overflow: hidden;
+      }
+      .car-reveal::before {
+        content: '';
+        position: absolute; inset: 0;
+        background: radial-gradient(ellipse at 80% 50%, rgba(255,255,255,0.07) 0%, transparent 60%);
+        pointer-events: none;
+      }
+      .car-reveal-eyebrow {
+        font-size: 0.68rem; font-weight: 700; letter-spacing: 0.16em;
+        text-transform: uppercase; opacity: 0.65; margin-bottom: 8px;
+      }
+      .car-reveal-model { font-size: 2rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; margin-bottom: 6px; }
+      .car-reveal-color { font-size: 0.9rem; opacity: 0.75; margin-bottom: 24px; }
+      .car-reveal-cta {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 14px 22px;
+        background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.35);
+        border-radius: 14px; color: white; text-decoration: none;
+        font-weight: 700; font-size: 0.95rem;
+        transition: background 0.2s ease; backdrop-filter: blur(4px);
+      }
+      .car-reveal-cta:hover { background: rgba(255,255,255,0.28); }
+      .car-reveal-content { display: flex; align-items: center; gap: 24px; position: relative; }
+      .car-reveal-text { flex: 1; min-width: 0; }
+      .car-reveal-image-wrap {
+        flex-shrink: 0; width: 220px; height: 150px;
+        display: flex; align-items: center; justify-content: center;
+      }
+      .car-reveal-image-wrap img {
+        width: 100%; height: 100%; object-fit: contain;
+        filter: drop-shadow(0 8px 24px rgba(0,0,0,0.45));
+        animation: carSlideIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+      }
+      @keyframes carSlideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: none; } }
+      .car-img-shimmer {
+        width: 100%; height: 100%; border-radius: 12px;
+        background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.14) 50%, rgba(255,255,255,0.05) 75%);
+        background-size: 200% 100%; animation: shimmer 1.4s infinite;
+      }
+      @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+      .hero { position: relative; }
+      .hero::after {
+        content: ''; position: absolute; top: -60px; right: -80px;
+        width: 380px; height: 380px; border-radius: 50%;
+        background: radial-gradient(circle, rgba(0,102,177,0.1) 0%, transparent 70%);
+        pointer-events: none; z-index: 0;
+      }
+      .hero > * { position: relative; z-index: 1; }
+
+      /* ── Why toggle ── */
+      .why-toggle {
+        display: flex; align-items: center; gap: 8px;
+        width: 100%; padding: 12px 20px;
+        background: var(--panel); border: 1px solid rgba(0,0,0,0.07);
+        border-radius: 14px; margin-bottom: 28px;
+        cursor: pointer; font-family: inherit;
+        font-size: 0.85rem; font-weight: 600; color: var(--muted);
+        transition: color 0.15s, border-color 0.15s;
+        text-align: left;
+      }
+      .why-toggle:hover { color: var(--accent); border-color: var(--accent); }
+      .why-arrow { margin-left: auto; font-size: 0.75rem; transition: transform 0.25s ease; }
+      .why-toggle.open .why-arrow { transform: rotate(180deg); }
+
+      .why-panel {
+        max-height: 0; overflow: hidden;
+        transition: max-height 0.35s ease, opacity 0.3s ease;
+        opacity: 0;
+        margin-top: -20px; margin-bottom: 0;
+      }
+      .why-panel.open {
+        max-height: 300px; opacity: 1;
+        margin-bottom: 24px;
+      }
+      .why-panel-inner {
+        padding: 20px 24px;
+        background: var(--panel); border: 1px solid rgba(0,0,0,0.05);
+        border-radius: 14px;
+        font-size: 0.95rem; color: #334155; line-height: 1.7;
+      }
+
+      /* ── Merch grid ── */
+      .merch-section-label {
+        font-size: 0.72rem; font-weight: 800; text-transform: uppercase;
+        letter-spacing: 0.14em; color: var(--muted); margin-bottom: 16px;
+      }
+      .merch-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 200px));
+        gap: 14px;
+        justify-content: center;
+      }
+      .merch-product-card {
+        background: var(--panel);
+        border: 1px solid rgba(0,0,0,0.07);
+        border-radius: 16px;
+        overflow: hidden;
+        display: flex; flex-direction: column;
+        cursor: pointer;
+        transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+      }
+      .merch-product-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 28px rgba(0,0,0,0.09);
+        border-color: rgba(0,0,0,0.12);
+      }
+      .merch-product-img {
+        width: 100%; aspect-ratio: 1/1;
+        background: #f1f5f9;
+        display: grid; place-items: center;
+        overflow: hidden;
+      }
+      .merch-product-img img {
+        width: 100%; height: 100%; object-fit: contain; padding: 16px;
+        transition: transform 0.3s ease;
+      }
+      .merch-product-card:hover .merch-product-img img { transform: scale(1.06); }
+      .merch-product-img-fallback {
+        font-size: 1.4rem; font-weight: 800; color: var(--accent-dark);
+      }
+      .merch-product-body {
+        padding: 12px 14px 14px;
+        display: flex; flex-direction: column; gap: 10px; flex: 1;
+      }
+      .merch-product-name {
+        font-size: 0.88rem; font-weight: 700; color: #0f172a;
+        line-height: 1.3;
+        display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+      }
+      .merch-product-price {
+        font-size: 1rem; font-weight: 800; color: var(--accent);
+      }
+      .add-to-cart-btn {
+        width: 100%; padding: 9px 12px;
+        background: var(--accent); color: white; border: none;
+        border-radius: 10px; font-size: 0.8rem; font-weight: 700;
+        cursor: pointer; font-family: inherit;
+        transition: background 0.18s;
+        margin-top: auto;
+      }
+      .add-to-cart-btn:hover:not(:disabled) { background: var(--accent-dark); }
+      .add-to-cart-btn.added { background: #16a34a; cursor: default; }
+      .add-to-cart-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
       @media (max-width: 640px) {
         h1 { font-size: 2rem; }
-        .merch-card { grid-template-columns: 60px 1fr; }
-        .merch-reason { grid-column: 1 / -1; justify-self: start; text-align: left; max-width: 100%; }
-        .actions { flex-direction: column; align-items: stretch; }
-        .send-btn { width: 100%; }
+        .hero::after { width: 200px; height: 200px; top: -20px; right: -30px; }
+        .car-reveal { padding: 22px; }
+        .car-reveal-content { flex-direction: column-reverse; gap: 12px; }
+        .car-reveal-image-wrap { width: 100%; height: 130px; }
+        .car-reveal-model { font-size: 1.6rem; }
+        .merch-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        .input-footer { flex-direction: column; align-items: stretch; }
+        .send-btn { width: 100%; text-align: center; }
       }
     </style>
   </head>
@@ -250,88 +303,216 @@
     </header>
 
     <div class="layout">
-      <div class="header-area">
+      <div class="hero">
+        <span class="hero-eyebrow">BMW AI Advisor</span>
         <h1>Dein BMW, auf dich abgestimmt.</h1>
-        <p class="subtitle">Erzähl uns, wer du bist — und unsere KI findet die Kombination aus Modell und Farbe, die wirklich zu deinem Leben passt.</p>
+        <p class="subtitle">Beschreib deinen Alltag. Wir finden deinen BMW.</p>
       </div>
 
-      <div class="hint-card">
-        💡 Je mehr du teilst, desto besser das Match. <strong>Beruf, Alltag, Hobbys, Stil</strong> — alles hilft.
-      </div>
-
-      <div class="examples">
-        <div class="examples-label">Beispiele zum Starten</div>
-        <div class="example-chips" id="chips"></div>
-      </div>
-
-      <div class="chat-box">
-        <textarea id="prompt" placeholder="Beschreibe dich selbst — dein Alltag, deine Hobbys, dein Stil..."></textarea>
-        <div class="actions">
-          <span class="char-hint" id="charHint">Mindestens 20 Zeichen empfohlen</span>
-          <button class="send-btn" id="sendBtn">Meine Konfiguration finden</button>
+      <div class="input-card">
+        <textarea id="prompt" placeholder="Ich arbeite als Architekt, pendle täglich in die Stadt und fahre am Wochenende gern durch die Berge..."></textarea>
+        <div class="input-footer">
+          <button class="send-btn" id="sendBtn">Konfiguration finden</button>
         </div>
       </div>
 
       <div class="error" id="errorMsg"></div>
-
-      <div class="spinner" id="spinner">Analysiere deine Antworten...</div>
+      <div class="spinner" id="spinner">Analysiere deinen Lifestyle ...</div>
 
       <div class="result" id="result">
-        <div class="result-text" id="resultText"></div>
-        <div id="linksSection"></div>
+        <div id="carReveal"></div>
+        <div class="ai-text-card" id="resultText"></div>
+        <div id="merchSection"></div>
       </div>
     </div>
 
     <script>
-      // Beispiel-Prompts: Label auf dem Chip, full prompt wird in Textarea geladen
-      const EXAMPLES = [
-        {
-          label: "Business-Pendler",
-          prompt: "Ich pendle täglich 60 km zur Arbeit und bin viel auf der Autobahn. Im Beruf habe ich oft Kundentermine, da kommt es auf einen seriösen Auftritt an. In der Freizeit mag ich es ruhig — ein gutes Buch, Restaurantbesuche, ab und zu ein Wochenendtrip."
-        },
-        {
-          label: "Outdoor & Berge",
-          prompt: "Ich liebe es, am Wochenende rauszukommen — Wandern, Mountainbiken, im Winter Skifahren. Viel Gepäck, oft schlechte Straßen. Unter der Woche arbeite ich als Ingenieur und brauche das Auto eher selten in der Stadt."
-        },
-        {
-          label: "Urban Creator",
-          prompt: "Ich lebe mitten in der Stadt, arbeite als Designer, viel Kaffee, viel Kultur. Mein Auto brauche ich nicht täglich, aber wenn, dann soll es Stil zeigen. Am Wochenende mal raus aufs Land, mit Freunden."
-        },
-        {
-          label: "Junge Familie",
-          prompt: "Junge Familie mit zwei Kindern. Wir brauchen Platz für Urlaub und den Kindersitz, aber ich möchte nicht auf Sportlichkeit und modernen Look verzichten. Viele Kurzstrecken, manchmal längere Urlaubsfahrten."
+      const COLOR_DE    = { Black: "Schwarz", Blue: "Blau", White: "Weiß" };
+      const STORAGE_KEY = "bmw_ai_last_result";
+
+      // Fetch merch prices once on load — independent of ai-feature container state
+      const merchPrices = {};
+      fetch("/api/merch/products")
+        .then(r => r.json())
+        .then(products => { products.forEach(p => { merchPrices[p.id] = parseFloat(p.price) || 0; }); })
+        .catch(() => {});
+
+      const promptInput = document.getElementById("prompt");
+      const btn         = document.getElementById("sendBtn");
+      const spinner     = document.getElementById("spinner");
+      const result      = document.getElementById("result");
+      const error       = document.getElementById("errorMsg");
+
+      const escapeHtml = (v) => String(v ?? "")
+        .replaceAll("&", "&amp;").replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;");
+
+      function renderResults(data) {
+        // ── Car reveal ─────────────────────────────────────────────────
+        let carHtml = "";
+        let carModel = null;
+        let carColor = null;
+        let modelLabel = "Dein BMW";
+        if (data.carLink) {
+          carModel = data.carModel    || null;
+          carColor = data.carColor    || null;
+          const carWheels   = data.carWheels   || null;
+          const carInterior = data.carInterior || null;
+          if (!carModel) {
+            try {
+              const u = new URL(data.carLink, location.origin);
+              carModel = u.searchParams.get("model") || "";
+              carColor = u.searchParams.get("color") || "";
+            } catch {}
+          }
+          modelLabel = carModel ? `BMW ${escapeHtml(carModel)}` : "Dein BMW";
+          const colorLabel   = COLOR_DE[carColor] || escapeHtml(carColor || "");
+          const wheelsLine   = carWheels   ? `<div class="car-reveal-color">Felgen: ${escapeHtml(carWheels)}</div>`       : "";
+          const interiorLine = carInterior ? `<div class="car-reveal-color">Interieur: ${escapeHtml(carInterior)}</div>` : "";
+          carHtml = `
+            <div class="car-reveal">
+              <div class="car-reveal-content">
+                <div class="car-reveal-text">
+                  <div class="car-reveal-eyebrow">Deine Empfehlung</div>
+                  <div class="car-reveal-model">${modelLabel}</div>
+                  ${colorLabel ? `<div class="car-reveal-color">Farbe: ${colorLabel}</div>` : ""}
+                  ${wheelsLine}
+                  ${interiorLine}
+                  <a class="car-reveal-cta" href="${escapeHtml(data.carLink)}">
+                    Konfiguration ansehen &nbsp;→
+                  </a>
+                </div>
+                <div class="car-reveal-image-wrap" id="carImgWrap">
+                  <div class="car-img-shimmer"></div>
+                </div>
+              </div>
+            </div>`;
         }
-      ];
+        document.getElementById("carReveal").innerHTML = carHtml;
 
-      const chipsContainer = document.getElementById("chips");
-      const promptInput    = document.getElementById("prompt");
-      const btn            = document.getElementById("sendBtn");
-      const spinner        = document.getElementById("spinner");
-      const result         = document.getElementById("result");
-      const error          = document.getElementById("errorMsg");
-      const charHint       = document.getElementById("charHint");
+          // Async: load car image from configurator
+          if (carModel) {
+            fetch(`/api/configurator/configure?model=${encodeURIComponent(carModel)}&color=${encodeURIComponent(carColor)}`)
+              .then(r => r.ok ? r.json() : null)
+              .then(cfg => {
+                const wrap = document.getElementById("carImgWrap");
+                if (!wrap || !cfg?.imageUrl) return;
+                const img = new Image();
+                img.onload = () => { wrap.innerHTML = ""; wrap.appendChild(img); };
+                img.onerror = () => { wrap.innerHTML = ""; };
+                img.src = cfg.imageUrl;
+                img.alt = modelLabel;
+              })
+              .catch(() => {});
+          }
 
-      EXAMPLES.forEach((ex) => {
-        const chip = document.createElement("button");
-        chip.type = "button";
-        chip.className = "chip";
-        chip.textContent = ex.label;
-        chip.addEventListener("click", () => {
-          promptInput.value = ex.prompt;
-          promptInput.focus();
-          updateCharHint();
+        // ── Why toggle + collapsible AI text ───────────────────────────
+        const whyHtml = `
+          <button class="why-toggle" id="whyToggle" type="button">
+            <span>Warum passt das zu mir?</span>
+            <span class="why-arrow">▼</span>
+          </button>
+          <div class="why-panel" id="whyPanel">
+            <div class="why-panel-inner" id="whyText"></div>
+          </div>`;
+        document.getElementById("resultText").innerHTML = whyHtml;
+        document.getElementById("whyText").textContent = data.text;
+        document.getElementById("whyToggle").addEventListener("click", () => {
+          const toggle = document.getElementById("whyToggle");
+          const panel  = document.getElementById("whyPanel");
+          toggle.classList.toggle("open");
+          panel.classList.toggle("open");
         });
-        chipsContainer.appendChild(chip);
-      });
 
-      function updateCharHint() {
-        const len = promptInput.value.trim().length;
-        if (len === 0)       charHint.textContent = "Mindestens 20 Zeichen empfohlen";
-        else if (len < 20)   charHint.textContent = `${len} Zeichen — gerne mehr Details`;
-        else                 charHint.textContent = `${len} Zeichen — sieht gut aus`;
+        // ── Merch grid ─────────────────────────────────────────────────
+        let merchHtml = "";
+        if (data.merchLinks?.length) {
+          merchHtml += `<div class="merch-section-label">Was ebenfalls zu deinem Lifestyle passt</div><div class="merch-grid">`;
+          data.merchLinks.forEach((l) => {
+            const rawTitle = l.title || "Produkt";
+            const title    = escapeHtml(rawTitle);
+            const imageUrl = l.imageUrl ? escapeHtml(l.imageUrl) : "";
+            const fallback = escapeHtml(rawTitle.slice(0, 2).toUpperCase());
+            const price    = (l.price != null && !isNaN(Number(l.price))) ? Number(l.price) : 0;
+            const id       = Number(l.id);
+            const color    = escapeHtml(l.subtitle || "");
+
+            merchHtml += `
+              <div class="merch-product-card"
+                   data-product-id="${id}"
+                   data-title="${title}"
+                   data-price="${price}"
+                   data-image="${imageUrl}"
+                   data-color="${color}"
+                   onclick="window.location.href='/merch-shop'">
+                <div class="merch-product-img">
+                  ${imageUrl
+                    ? `<img src="${imageUrl}" alt="${title}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='grid';" /><span class="merch-product-img-fallback" style="display:none">${fallback}</span>`
+                    : `<span class="merch-product-img-fallback">${fallback}</span>`}
+                </div>
+                <div class="merch-product-body">
+                  <span class="merch-product-name">${title}</span>
+                  ${price > 0 ? `<span class="merch-product-price">${price.toLocaleString("de-DE", { style: "currency", currency: "EUR" })}</span>` : ""}
+                  <button class="add-to-cart-btn" type="button" onclick="event.stopPropagation()">In den Warenkorb</button>
+                </div>
+              </div>`;
+          });
+          merchHtml += `</div>`;
+        }
+        document.getElementById("merchSection").innerHTML = merchHtml;
+
+        // ── Cart button listeners ───────────────────────────────────────
+        document.querySelectorAll(".merch-product-card .add-to-cart-btn").forEach((cartBtn) => {
+          cartBtn.addEventListener("click", async (e) => {
+            e.stopPropagation();
+            const card     = cartBtn.closest(".merch-product-card");
+            const name     = card.dataset.title;
+            const id       = parseInt(card.dataset.productId);
+            const imageUrl = card.dataset.image || null;
+
+            cartBtn.disabled = true;
+            cartBtn.textContent = "...";
+
+            // Always fetch price fresh at click time — bypasses stale AI response
+            let price = 0;
+            let found = null;
+            try {
+              const pr = await fetch("/api/merch/products");
+              if (pr.ok) {
+                const products = await pr.json();
+                found = products.find(p => p.id === id) || null;
+                price = parseFloat(found?.price) || 0;
+              }
+            } catch {}
+
+            try {
+              const r = await fetch("/api/cart/items", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  type: "merch",
+                  name,
+                  price,
+                  imageUrl,
+                  quantity: 1,
+                  details: { productId: id, color: found?.color || card.dataset.color || '' },
+                }),
+              });
+              if (!r.ok) throw new Error();
+              cartBtn.textContent = "Hinzugefügt ✓";
+              cartBtn.classList.add("added");
+            } catch {
+              cartBtn.textContent = "Fehler — erneut versuchen";
+              cartBtn.disabled = false;
+              setTimeout(() => {
+                cartBtn.textContent = "In den Warenkorb";
+              }, 2500);
+            }
+          });
+        });
       }
-      promptInput.addEventListener("input", updateCharHint);
 
+      // ── Send ──────────────────────────────────────────────────────────
       btn.addEventListener("click", async () => {
         const text = promptInput.value.trim();
         if (!text) return;
@@ -348,65 +529,14 @@
             body: JSON.stringify({ prompt: text }),
           });
           const data = await res.json();
-
           if (!res.ok) throw new Error(data.error || "Anfrage fehlgeschlagen");
 
-          const escapeHtml = (value) => String(value ?? "")
-            .replaceAll("&", "&amp;")
-            .replaceAll("<", "&lt;")
-            .replaceAll(">", "&gt;")
-            .replaceAll('"', "&quot;")
-            .replaceAll("'", "&#39;");
+          try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ data, prompt: text })); } catch {}
 
-          document.getElementById("resultText").textContent = data.text;
-
-          let linksHtml = "";
-          if (data.carLink) {
-            linksHtml += `<div class="links-label">Deine Konfiguration</div>
-              <a class="car-cta" href="${escapeHtml(data.carLink)}">
-                <span>🚗 Jetzt deine BMW-Konfiguration ansehen</span>
-                <span class="car-cta-arrow">→</span>
-              </a>`;
-          }
-          if (data.merchLinks?.length) {
-            linksHtml += `<div class="links-label">Passender Lifestyle & Merch</div>
-              <div class="merch-list">`;
-
-            data.merchLinks.forEach((l) => {
-              const rawTitle = l.title || "Produkt";
-              const title = escapeHtml(rawTitle);
-              const subtitle = escapeHtml(l.subtitle || "");
-              const reason = escapeHtml(l.reason || "Empfohlen auf Basis deiner Beschreibung");
-              const imageUrl = l.imageUrl ? escapeHtml(l.imageUrl) : "";
-              const fallback = escapeHtml((rawTitle || "BMW").slice(0, 2).toUpperCase());
-
-              linksHtml += `<a class="merch-card" href="${escapeHtml(l.url)}" aria-label="${title}">
-                <span class="merch-media">
-                  ${
-                    imageUrl
-                      ? `<img src="${imageUrl}" alt="${title}" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.hidden=false;" />
-                         <span class="merch-media-fallback" hidden>${fallback}</span>`
-                      : `<span class="merch-media-fallback">${fallback}</span>`
-                  }
-                </span>
-                <span class="merch-copy">
-                  <span class="merch-title">${title}</span>
-                  ${subtitle ? `<span class="merch-subtitle">${subtitle}</span>` : ""}
-                </span>
-                <span class="merch-reason">${reason}</span>
-              </a>`;
-            });
-
-            linksHtml += `</div>`;
-          }
-          document.getElementById("linksSection").innerHTML = linksHtml;
-
-          setTimeout(() => {
-            spinner.classList.remove("visible");
-            result.classList.add("visible");
-            btn.disabled = false;
-          }, 400);
-
+          renderResults(data);
+          spinner.classList.remove("visible");
+          result.classList.add("visible");
+          btn.disabled = false;
         } catch (err) {
           error.textContent = err.message;
           btn.disabled = false;
@@ -414,14 +544,15 @@
         }
       });
 
-      promptInput.addEventListener("keydown", e => {
-        if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
-          e.preventDefault();
-          btn.click();
+      // ── Restore previous result on page load ──────────────────────────
+      try {
+        const saved = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || "null");
+        if (saved?.data) {
+          promptInput.value = saved.prompt || "";
+          renderResults(saved.data);
+          result.classList.add("visible");
         }
-      });
-
-      updateCharHint();
+      } catch {}
     </script>
   </body>
 </html>
