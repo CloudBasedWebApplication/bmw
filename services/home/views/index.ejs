@@ -243,12 +243,8 @@
       }
 
       .experience-section {
-        background:
-          linear-gradient(rgba(17, 24, 39, 0.045) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(17, 24, 39, 0.045) 1px, transparent 1px),
-          var(--paper);
-        background-size: 44px 44px;
-        padding: clamp(76px, 9vw, 124px) 0;
+        background: #fff;
+        padding: clamp(76px, 9vw, 124px) 0 0;
       }
 
       .section-kicker {
@@ -277,165 +273,42 @@
         font-size: clamp(1rem, 1.55vw, 1.14rem);
       }
 
-      .atelier-board {
-        margin-top: 52px;
-        display: grid;
-        grid-template-columns: minmax(310px, 0.88fr) minmax(0, 1.12fr);
-        min-height: 620px;
-        border: 1px solid var(--line);
-        background: #fff;
-        box-shadow: var(--shadow);
-      }
-
-      .order-sheet {
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        padding: clamp(28px, 4.5vw, 54px);
-        border-right: 1px solid var(--line);
-      }
-
-      .doc-meta {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        padding-bottom: 22px;
-        border-bottom: 1px solid var(--line);
-      }
-
-      .doc-meta span {
-        display: inline-flex;
-        min-height: 30px;
-        align-items: center;
-        padding: 0 10px;
-        border: 1px solid rgba(17, 24, 39, 0.16);
-        color: var(--ink-soft);
-        font-size: 0.72rem;
-        font-weight: 700;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-      }
-
-      .order-sheet h3 {
-        margin: 34px 0 0;
-        max-width: 480px;
-        font-size: clamp(2.2rem, 4vw, 4.45rem);
-        font-weight: 700;
-        letter-spacing: 0;
-        line-height: 0.96;
-      }
-
-      .order-copy {
-        margin: 22px 0 0;
-        color: var(--ink-soft);
-        font-size: 1.04rem;
-      }
-
-      .spec-table {
-        margin: 38px 0 0;
-        border-top: 1px solid var(--line);
-      }
-
-      .spec-row {
-        display: grid;
-        grid-template-columns: 120px 1fr;
-        gap: 18px;
-        padding: 14px 0;
-        border-bottom: 1px solid var(--line);
-      }
-
-      .spec-row span {
-        color: var(--muted);
-        font-size: 0.72rem;
-        font-weight: 700;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-      }
-
-      .spec-row strong {
-        color: var(--ink);
-        font-size: 0.98rem;
-        font-weight: 700;
-      }
-
-      .action-row {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        margin-top: 30px;
-      }
-
-      .button {
-        min-height: 48px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0 20px;
-        border: 1px solid transparent;
-        border-radius: 0;
-        text-decoration: none;
-        font-size: 0.82rem;
-        font-weight: 700;
-        letter-spacing: 0.09em;
-        text-transform: uppercase;
-        transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
-      }
-
-      .button:hover {
-        transform: translateY(-2px);
-      }
-
-      .button.primary {
-        background: var(--accent);
-        color: #fff;
-      }
-
-      .button.primary:hover {
-        background: var(--accent-dark);
-      }
-
-      .button.outline {
-        border-color: rgba(17, 24, 39, 0.28);
-        color: var(--ink);
-        background: transparent;
-      }
-
-      .button.outline:hover {
-        border-color: var(--ink);
-        background: #fff;
-      }
-
-      .model-stage {
+      .vehicle-hero {
+        margin-top: 0;
+        margin-left: calc(50% - 50vw);
         position: relative;
-        min-height: 620px;
+        width: 100vw;
+        min-height: 100vh;
+        min-height: 100svh;
         overflow: hidden;
-        background: var(--dark);
+        background: #070b10;
         color: #fff;
       }
 
-      .model-stage img {
+      .vehicle-hero img {
         position: absolute;
         inset: 0;
         width: 100%;
         height: 100%;
         object-fit: cover;
-        transform: scale(1.03);
+        object-position: center;
       }
 
-      .model-stage::after {
+      .vehicle-hero::after {
         content: "";
         position: absolute;
         inset: 0;
+        z-index: 1;
         background:
-          linear-gradient(180deg, rgba(9, 13, 18, 0.02), rgba(9, 13, 18, 0.82)),
-          linear-gradient(90deg, rgba(9, 13, 18, 0.08), rgba(9, 13, 18, 0.44));
+          linear-gradient(180deg, rgba(6, 10, 16, 0.12) 0%, rgba(6, 10, 16, 0.22) 48%, rgba(6, 10, 16, 0.76) 100%),
+          linear-gradient(90deg, rgba(6, 10, 16, 0.46) 0%, rgba(6, 10, 16, 0.08) 52%, rgba(6, 10, 16, 0.24) 100%);
       }
 
       .stage-index {
         position: absolute;
         top: 28px;
         left: 28px;
-        z-index: 1;
+        z-index: 2;
         color: rgba(255, 255, 255, 0.72);
         font-size: 0.74rem;
         font-weight: 700;
@@ -447,7 +320,7 @@
         position: absolute;
         top: 24px;
         right: 24px;
-        z-index: 1;
+        z-index: 2;
         display: grid;
         gap: 8px;
       }
@@ -475,59 +348,46 @@
         left: clamp(24px, 4vw, 48px);
         right: clamp(24px, 4vw, 48px);
         bottom: clamp(24px, 4vw, 46px);
-        z-index: 1;
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) auto;
-        gap: 22px;
-        align-items: end;
+        z-index: 2;
       }
 
       .stage-caption h4 {
         margin: 0;
-        max-width: 560px;
-        font-size: clamp(1.8rem, 3.3vw, 3.35rem);
+        max-width: 760px;
+        color: #fff;
+        font-size: clamp(2.4rem, 5.6vw, 5.9rem);
         font-weight: 700;
         letter-spacing: 0;
-        line-height: 1;
-      }
-
-      .stage-caption p {
-        margin: 12px 0 0;
-        max-width: 430px;
-        color: rgba(255, 255, 255, 0.76);
-      }
-
-      .stage-coordinates {
-        min-width: 150px;
-        padding-left: 18px;
-        border-left: 1px solid rgba(255, 255, 255, 0.28);
-        color: rgba(255, 255, 255, 0.76);
-        font-size: 0.78rem;
-        font-weight: 700;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
+        line-height: 0.96;
+        text-shadow: 0 18px 46px rgba(0, 0, 0, 0.45);
       }
 
       .service-rail {
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
-        margin-top: 18px;
+        margin-bottom: clamp(52px, 8vw, 96px);
         border: 1px solid var(--line);
         background: rgba(255, 255, 255, 0.72);
       }
 
       .service-link {
-        min-height: 154px;
+        min-height: 260px;
         display: grid;
-        grid-template-columns: auto minmax(0, 1fr);
-        grid-template-rows: auto 1fr;
-        column-gap: 18px;
-        row-gap: 10px;
-        padding: 22px;
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto auto 1fr;
+        row-gap: 12px;
+        padding: 18px;
         border-right: 1px solid var(--line);
         color: var(--ink);
         text-decoration: none;
         transition: background 0.2s ease, transform 0.2s ease;
+      }
+
+      .service-image {
+        width: 100%;
+        aspect-ratio: 16 / 9;
+        object-fit: cover;
+        background: #e7ebf0;
       }
 
       .service-link:last-child {
@@ -540,7 +400,6 @@
       }
 
       .service-number {
-        grid-row: 1 / span 2;
         color: var(--accent);
         font-size: 0.82rem;
         font-weight: 700;
@@ -558,6 +417,153 @@
         margin: 0;
         color: var(--muted);
         font-size: 0.95rem;
+      }
+
+      .merch-preview-section {
+        min-height: 100vh;
+        min-height: 100svh;
+        display: flex;
+        align-items: flex-start;
+        background: #fff;
+        padding: clamp(32px, 5vw, 64px) 0 clamp(76px, 9vw, 124px);
+      }
+
+      .merch-preview-section .page-shell {
+        width: min(1180px, calc(100% - 40px));
+      }
+
+      .merch-preview-head {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 28px;
+        margin-bottom: 36px;
+      }
+
+      .merch-preview-head .section-copy {
+        max-width: 520px;
+      }
+
+      .merch-preview-link {
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 18px;
+        border: 1px solid rgba(17, 24, 39, 0.2);
+        color: var(--ink);
+        text-decoration: none;
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        white-space: nowrap;
+        transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+      }
+
+      .merch-preview-link:hover {
+        background: var(--ink);
+        color: #fff;
+        transform: translateY(-2px);
+      }
+
+      .merch-preview-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .merch-carousel-button {
+        width: 44px;
+        height: 44px;
+        border: 1px solid rgba(17, 24, 39, 0.2);
+        background: #fff;
+        color: var(--ink);
+        cursor: pointer;
+        font-size: 1.2rem;
+        font-weight: 700;
+        transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+      }
+
+      .merch-carousel-button:hover {
+        background: var(--ink);
+        color: #fff;
+        transform: translateY(-2px);
+      }
+
+      .merch-grid {
+        display: grid;
+        grid-auto-flow: column;
+        grid-auto-columns: minmax(280px, calc((100% - 36px) / 3));
+        gap: 18px;
+        overflow-x: auto;
+        overscroll-behavior-inline: contain;
+        padding: 0 0 12px;
+        scroll-padding-inline: 2px;
+        scroll-snap-type: inline mandatory;
+        scrollbar-width: thin;
+      }
+
+      .merch-card {
+        min-height: 100%;
+        display: grid;
+        grid-template-rows: auto 1fr;
+        scroll-snap-align: start;
+        border: 1px solid var(--line);
+        background: #fff;
+        color: var(--ink);
+        text-decoration: none;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+      }
+
+      .merch-card:hover {
+        border-color: rgba(17, 24, 39, 0.26);
+        box-shadow: 0 18px 42px rgba(16, 24, 40, 0.1);
+        transform: translateY(-4px);
+      }
+
+      .merch-card-image {
+        width: 100%;
+        aspect-ratio: 4 / 3;
+        display: block;
+        object-fit: contain;
+        padding: 24px;
+        background: #f5f7f9;
+      }
+
+      .merch-card-body {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding: 22px;
+      }
+
+      .merch-card-kicker {
+        color: var(--accent);
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .merch-card h3 {
+        margin: 0;
+        font-size: clamp(1.28rem, 2vw, 1.8rem);
+        font-weight: 700;
+        line-height: 1.05;
+      }
+
+      .merch-card p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      .merch-card-price {
+        margin-top: auto;
+        color: var(--ink);
+        font-size: 1.06rem;
+        font-weight: 700;
       }
 
       .heritage-section {
@@ -1007,30 +1013,8 @@
           justify-content: flex-start;
         }
 
-        .atelier-board,
         .route-layout {
           grid-template-columns: 1fr;
-        }
-
-        .order-sheet {
-          border-right: 0;
-          border-bottom: 1px solid var(--line);
-        }
-
-        .model-stage {
-          min-height: 520px;
-        }
-
-        .stage-caption {
-          grid-template-columns: 1fr;
-        }
-
-        .stage-coordinates {
-          width: max-content;
-          padding-left: 0;
-          padding-top: 14px;
-          border-left: 0;
-          border-top: 1px solid rgba(255, 255, 255, 0.28);
         }
 
         .heritage-content {
@@ -1068,33 +1052,41 @@
           display: none;
         }
 
-        .experience-section,
         .route-section {
           padding: 64px 0;
         }
 
-        .atelier-board {
-          margin-top: 34px;
+        .vehicle-hero {
+          margin-top: 0;
         }
 
-        .order-sheet {
-          padding: 24px;
-        }
-
-        .spec-row,
         .service-rail,
         .heritage-ledger {
           grid-template-columns: 1fr;
         }
 
-        .model-stage {
-          min-height: 500px;
+        .merch-preview-head {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+
+        .merch-preview-actions {
+          width: 100%;
+          justify-content: space-between;
+        }
+
+        .merch-grid {
+          grid-auto-columns: minmax(260px, 82vw);
+        }
+
+        .stage-index {
+          top: 28px;
+          left: 18px;
         }
 
         .model-picks {
-          left: 18px;
-          right: auto;
-          top: 50px;
+          top: 18px;
+          right: 18px;
         }
 
         .heritage-section {
@@ -1179,79 +1171,135 @@
     <main>
       <section class="experience-section" id="experience">
         <div class="page-shell">
-          <p class="section-kicker">Werkauftrag 01</p>
-          <h2 class="section-title">Vom ersten Strich zur eigenen Linie.</h2>
-          <p class="section-copy">Die Startseite arbeitet wie ein kuratierter Auftrag: erst das Fahrzeug festlegen, dann Beratung, Ausstattung und Route anschließen.</p>
-
-          <div class="atelier-board">
-            <article class="order-sheet">
-              <div>
-                <div class="doc-meta" aria-label="Konfigurator Status">
-                  <span>Bayerische Motoren Werke AG</span>
-                  <span>Konfiguration</span>
-                  <span>München</span>
-                </div>
-                <h3>Fahrzeug als Handschrift.</h3>
-                <p class="order-copy">Kein Kataloggefühl. Der Konfigurator wird zum ersten Werkstück: Modell, Farbe und Ausstattung werden bewusst gesetzt.</p>
-
-                <div class="spec-table" aria-label="Konfigurator Details">
-                  <div class="spec-row">
-                    <span>Modelle</span>
-                    <strong>BMW 3er und BMW X5</strong>
-                  </div>
-                  <div class="spec-row">
-                    <span>Ausrichtung</span>
-                    <strong>Präzise Auswahl statt endloser Produktwand</strong>
-                  </div>
-                  <div class="spec-row">
-                    <span>Nächster Schritt</span>
-                    <strong>Konfiguration speichern und in den Warenkorb übernehmen</strong>
-                  </div>
-                </div>
-              </div>
-
-              <div class="action-row">
-                <a class="button primary" href="/car-configurator">Konfigurator starten</a>
-                <a class="button outline" href="/ai-feature">Beratung anfragen</a>
-              </div>
-            </article>
-
-            <aside class="model-stage" aria-label="Modellbühne">
-              <img src="/home/static/images/x5-hero.webp" alt="BMW X5 Frontansicht" loading="lazy">
-              <span class="stage-index">Aktueller Fokus</span>
-              <div class="model-picks" aria-label="Schnelle Modellwahl">
-                <a href="/car-configurator?model=3er">3er Linie</a>
-                <a href="/car-configurator?model=x5">X5 Linie</a>
-              </div>
-              <div class="stage-caption">
-                <div>
-                  <h4>Eine Bühne, zwei Charaktere.</h4>
-                  <p>Sportliche Limousine oder souveräner SUV. Die Seite führt nicht in eine Liste, sondern in eine Entscheidung.</p>
-                </div>
-                <div class="stage-coordinates">
-                  MUC 48.1769<br>
-                  AG 1916
-                </div>
-              </div>
-            </aside>
-          </div>
-
+          <%
+            const minioPublicBase = process.env.CODESPACE_NAME
+              ? `https://${process.env.CODESPACE_NAME}-9000.app.github.dev`
+              : (process.env.MINIO_PUBLIC_URL || `http://localhost:${process.env.MINIO_PORT || 9000}`);
+            const minioBucket = process.env.MINIO_BUCKET || "configurator-images";
+            const merchImageBase = `${String(minioPublicBase).replace(/\/+$/, "")}/${minioBucket}/merch-shop`;
+          %>
           <div class="service-rail" aria-label="Weitere Einstiege">
             <a class="service-link" href="/ai-feature">
+              <img class="service-image" src="/home/static/images/bmw_ai.png" alt="BMW KI Beratung" loading="lazy">
               <span class="service-number">02</span>
               <h3>KI Beratung</h3>
               <p>Aus einem Alltagssatz wird ein konkreter Vorschlag für Fahrzeug und Zubehör.</p>
             </a>
             <a class="service-link" href="/merch-shop">
+              <img class="service-image" src="/home/static/images/bmw_merch.png" alt="BMW Merchandise" loading="lazy">
               <span class="service-number">03</span>
               <h3>Merchandise</h3>
               <p>Ausgewählte Begleiter für Fahrt, Reise und Alltag.</p>
             </a>
             <a class="service-link" href="#route-planner">
+              <img class="service-image" src="/home/static/images/bmw_world.png" alt="BMW Welt München" loading="lazy">
               <span class="service-number">04</span>
               <h3>Route zur BMW Welt</h3>
               <p>Der Weg nach München bleibt Teil der Experience, aber ohne laute Oberfläche.</p>
             </a>
+          </div>
+
+          <section class="vehicle-hero" aria-label="Modellbühne">
+            <img src="/home/static/images/bmw_duo_4k_uhd.png" alt="BMW 3er und BMW X5" loading="lazy">
+            <span class="stage-index">Aktueller Fokus</span>
+            <div class="model-picks" aria-label="Schnelle Modellwahl">
+              <a href="/car-configurator?model=3er">3er Linie</a>
+              <a href="/car-configurator?model=x5">X5 Linie</a>
+            </div>
+            <div class="stage-caption">
+              <h4>Eine Bühne, zwei Charaktere.</h4>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section class="merch-preview-section" aria-label="Merchandise Highlights">
+        <div class="page-shell">
+          <%
+            const merchPreviewProducts = [
+              {
+                name: "BMW Poloshirt",
+                variant: "Schwarz",
+                category: "Clothes",
+                price: "45,50 EUR",
+                description: "Bequemes Poloshirt mit lockerer Passform.",
+                image: "BMW_Merchandise_Schwarz.avif",
+              },
+              {
+                name: "BMW Poloshirt",
+                variant: "Weiß",
+                category: "Clothes",
+                price: "45,50 EUR",
+                description: "Bequemes Poloshirt mit lockerer Passform.",
+                image: "BMW_Merchandise_weiss.avif",
+              },
+              {
+                name: "BMW Isolierte Jacke",
+                variant: "Schwarz",
+                category: "Clothes",
+                price: "258,30 EUR",
+                description: "Warme Jacke mit wasserabweisender Oberfläche.",
+                image: "BMW_Merchandise_Schwarz_Pullover.avif",
+              },
+              {
+                name: "BMW Kapuzenjacke",
+                variant: "Blau",
+                category: "Clothes",
+                price: "77,00 EUR",
+                description: "Sportliche Kapuzenjacke mit hohem Tragekomfort.",
+                image: "BMW_Merchandise_Blau_Pullover.avif",
+              },
+              {
+                name: "BMW Sweatshirt",
+                variant: "Schwarz",
+                category: "Clothes",
+                price: "70,00 EUR",
+                description: "Bequemes Sweatshirt mit weichem Material.",
+                image: "BMW_Merchandise_Sweatshirt.avif",
+              },
+              {
+                name: "BMW Z1 Modellauto",
+                variant: "Grün",
+                category: "Accessoires",
+                price: "139,00 EUR",
+                description: "Detailgetreues Modellauto im Maßstab 1:18.",
+                image: "BMW_Merchandise_Modellauto.avif",
+              },
+              {
+                name: "BMW Smartphone-Hülle",
+                variant: "Blau",
+                category: "Accessoires",
+                price: "84,00 EUR",
+                description: "Robuste Hülle mit Stoßschutz und MagSafe.",
+                image: "BMW_Merchandise_Iphone_Huelle.avif",
+              },
+            ];
+          %>
+          <div class="merch-preview-head">
+            <div>
+              <p class="section-kicker">Merchandise Highlights</p>
+              <h2 class="section-title">Alle Produkte zum Durchswipen.</h2>
+              <p class="section-copy">Die komplette Auswahl aus dem Store. Ein Klick führt direkt zum Merchandise Shop.</p>
+            </div>
+            <div class="merch-preview-actions">
+              <a class="merch-preview-link" href="/merch-shop">Zum Shop</a>
+              <button class="merch-carousel-button" type="button" aria-label="Vorherige Produkte" data-merch-prev>&larr;</button>
+              <button class="merch-carousel-button" type="button" aria-label="Nächste Produkte" data-merch-next>&rarr;</button>
+            </div>
+          </div>
+
+          <div class="merch-grid" data-merch-carousel>
+            <% merchPreviewProducts.forEach(function(product) { %>
+              <a class="merch-card" href="/merch-shop">
+                <img class="merch-card-image" src="<%= merchImageBase %>/<%= product.image %>" alt="<%= product.name %> <%= product.variant %>" loading="lazy">
+                <div class="merch-card-body">
+                  <span class="merch-card-kicker"><%= product.category %> / <%= product.variant %></span>
+                  <h3><%= product.name %></h3>
+                  <p><%= product.description %></p>
+                  <span class="merch-card-price"><%= product.price %></span>
+                </div>
+              </a>
+            <% }) %>
           </div>
         </div>
       </section>
@@ -1674,7 +1722,30 @@
     <script>
       (function () {
         const experience = document.querySelector('.experience-section');
+        const merchCarousel = document.querySelector('[data-merch-carousel]');
+        const merchPrev = document.querySelector('[data-merch-prev]');
+        const merchNext = document.querySelector('[data-merch-next]');
         let snapping = false;
+
+        function scrollMerchCarousel(direction) {
+          if (!merchCarousel) return;
+          merchCarousel.scrollBy({
+            left: direction * Math.max(280, merchCarousel.clientWidth * 0.82),
+            behavior: 'smooth',
+          });
+        }
+
+        if (merchPrev) {
+          merchPrev.addEventListener('click', function () {
+            scrollMerchCarousel(-1);
+          });
+        }
+
+        if (merchNext) {
+          merchNext.addEventListener('click', function () {
+            scrollMerchCarousel(1);
+          });
+        }
 
         window.addEventListener('wheel', function (event) {
           if (!experience || snapping) return;
