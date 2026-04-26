@@ -119,10 +119,16 @@ function buildRecommendationResponse(recommendation, products = []) {
         title,
         subtitle,
         imageUrl,
+        price: product?.price ?? null,
         reason,
         url: `/merch-shop?product=${item.id}`,
       };
     });
+  }
+
+  if (recommendation.carRecommendation?.model) {
+    response.carModel = recommendation.carRecommendation.model;
+    response.carColor = recommendation.carRecommendation.color;
   }
 
   return response;
