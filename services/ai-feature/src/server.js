@@ -28,42 +28,52 @@ app.post("/recommend", async (req, res) => {
   }
 
   try {
-    // Fetch context from other services
-    const [modelsRes, productsRes] = await Promise.all([
+    // Fetch all available options from services in parallel
+    const [modelsRes, productsRes, colorsRes, wheelsRes, interiorsRes] = await Promise.all([
       fetch(`${CONFIGURATOR_URL}/models`),
       fetch(`${MERCH_URL}/products`),
+      fetch(`${CONFIGURATOR_URL}/options/colors`),
+      fetch(`${CONFIGURATOR_URL}/options/wheels`),
+      fetch(`${CONFIGURATOR_URL}/options/interiors`),
     ]);
-    const models   = await modelsRes.json();
-    const products = await productsRes.json();
+    const models    = await modelsRes.json();
+    const products  = await productsRes.json();
+    const colors    = colorsRes.ok    ? await colorsRes.json()    : [];
+    const wheels    = wheelsRes.ok    ? await wheelsRes.json()    : [];
+    const interiors = interiorsRes.ok ? await interiorsRes.json() : [];
 
-    const modelList   = models.map((m) => `- ${m.code} (${m.name} ${m.packageName}, ab ${m.basePrice} €)`).join("\n");
-    const productList = products.map((p) => `- ID ${p.id}: ${p.name} ${p.color || ""} (${p.price} €)`).join("\n");
+    const formatPrice = (price) => price > 0 ? ` (+${price} €)` : "";
+
+    const modelList    = models.map((m) => `- ${m.code} (${m.name} ${m.packageName}, ab ${m.basePrice} €)`).join("\n");
+    const colorList    = colors.map((c) => `- ${c.name}${formatPrice(c.price)}`).join("\n");
+    const wheelsList   = wheels.map((w) => `- ${w.name}${formatPrice(w.price)}`).join("\n");
+    const interiorList = interiors.map((i) => `- ${i.name}${formatPrice(i.price)}`).join("\n");
+    const productList  = products.map((p) => `- ID ${p.id}: ${p.name} ${p.color || ""} (${p.price} €)`).join("\n");
+
+    const optionalSections = [
+      colorList    ? `Verfügbare Lackierungen:\n${colorList}`         : null,
+      wheelsList   ? `Verfügbare Felgen:\n${wheelsList}`              : null,
+      interiorList ? `Verfügbare Innenausstattungen:\n${interiorList}` : null,
+    ].filter(Boolean).join("\n\n");
 
     const systemPrompt = `Du bist ein persönlicher BMW-Berater. Der Nutzer beschreibt dir im Freitext wer er ist — Beruf, Alltag, Hobbys, Stil, Lebensumstände. Deine Aufgabe:
 
 1. Analysiere die Persönlichkeit und den Lifestyle des Nutzers aus seinem Text.
-2. Wähle GENAU EINE Kombination aus Modell UND Farbe aus den unten gelisteten verfügbaren Optionen, die am besten zum Nutzer passt. Erfinde keine Modelle oder Farben, die nicht in der Liste stehen.
+2. Wähle GENAU EINE vollständige Fahrzeugkonfiguration aus den unten gelisteten verfügbaren Optionen. Nutze ausschließlich Werte, die exakt in der jeweiligen Liste stehen — erfinde nichts.
 3. Wähle 1-3 passende Merchandise-Produkte, die zum beschriebenen Lifestyle passen.
 
 Regeln für das "text"-Feld:
 - 2-4 Sätze, direkte Ansprache ("Zu deinem ...", "Für deinen Alltag ...").
-- Begründe persönlich WARUM diese Modell-Farbe-Kombination zu genau diesem Nutzer passt. Beziehe dich konkret auf Details, die der Nutzer genannt hat.
+- Begründe persönlich WARUM diese Konfiguration zu genau diesem Nutzer passt. Beziehe dich konkret auf Details, die der Nutzer genannt hat.
 - Kein Marketing-Sprech, keine Aufzählung von Features — sondern persönliches Matching.
 
-Verfügbare Automodelle (verfügbare Farben je Modell: Black, Blue, White):
+Verfügbare Automodelle:
 ${modelList}
 
-Verfügbare Merchandise-Produkte:
-${productList}
+${optionalSections}
 
-Antworte im folgenden JSON-Format (kein Markdown, nur reines JSON):
-{
-  "text": "Persönliche Begründung, warum diese Kombination zum Nutzer passt (2-4 Sätze)",
-  "carRecommendation": { "model": "3 oder X5", "color": "Black, Blue oder White" },
-  "merchItems": [
-    { "id": 7, "reason": "Kurz und konkret, warum dieses Produkt zum Lifestyle passt" }
-  ]
-}`;
+Verfügbare Merchandise-Produkte:
+${productList}`;
 
     const ai = new GoogleGenAI({ apiKey });
     const recommendation = await generateRecommendation(ai, systemPrompt, prompt, [GEMINI_MODEL, GEMINI_FALLBACK_MODEL]);

@@ -260,6 +260,9 @@
         line-height: 1.3;
         display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
       }
+      .merch-product-price {
+        font-size: 1rem; font-weight: 800; color: var(--accent);
+      }
       .add-to-cart-btn {
         width: 100%; padding: 9px 12px;
         background: var(--accent); color: white; border: none;
@@ -351,8 +354,10 @@
         let carColor = null;
         let modelLabel = "Dein BMW";
         if (data.carLink) {
-          carModel = data.carModel || null;
-          carColor = data.carColor || null;
+          carModel = data.carModel    || null;
+          carColor = data.carColor    || null;
+          const carWheels   = data.carWheels   || null;
+          const carInterior = data.carInterior || null;
           if (!carModel) {
             try {
               const u = new URL(data.carLink, location.origin);
@@ -361,7 +366,9 @@
             } catch {}
           }
           modelLabel = carModel ? `BMW ${escapeHtml(carModel)}` : "Dein BMW";
-          const colorLabel = COLOR_DE[carColor] || escapeHtml(carColor || "");
+          const colorLabel   = COLOR_DE[carColor] || escapeHtml(carColor || "");
+          const wheelsLine   = carWheels   ? `<div class="car-reveal-color">Felgen: ${escapeHtml(carWheels)}</div>`       : "";
+          const interiorLine = carInterior ? `<div class="car-reveal-color">Interieur: ${escapeHtml(carInterior)}</div>` : "";
           carHtml = `
             <div class="car-reveal">
               <div class="car-reveal-content">
@@ -369,6 +376,8 @@
                   <div class="car-reveal-eyebrow">Deine Empfehlung</div>
                   <div class="car-reveal-model">${modelLabel}</div>
                   ${colorLabel ? `<div class="car-reveal-color">Farbe: ${colorLabel}</div>` : ""}
+                  ${wheelsLine}
+                  ${interiorLine}
                   <a class="car-reveal-cta" href="${escapeHtml(data.carLink)}">
                     Konfiguration ansehen &nbsp;→
                   </a>
@@ -443,6 +452,7 @@
                 </div>
                 <div class="merch-product-body">
                   <span class="merch-product-name">${title}</span>
+                  ${price > 0 ? `<span class="merch-product-price">${price.toLocaleString("de-DE", { style: "currency", currency: "EUR" })}</span>` : ""}
                   <button class="add-to-cart-btn" type="button" onclick="event.stopPropagation()">In den Warenkorb</button>
                 </div>
               </div>`;
