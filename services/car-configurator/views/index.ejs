@@ -464,6 +464,14 @@
             return options.find(matcher) || options[0];
         }
 
+        function setActiveView(view) {
+            state.selection.view = view;
+            document.querySelectorAll(".view-tab").forEach((tab) => {
+                tab.classList.toggle("active", tab.dataset.view === view);
+            });
+            updateImage();
+        }
+
         async function loadInitialData() {
             try {
                 state.models = await fetchJson("/api/configurator/models");
@@ -539,6 +547,7 @@
                 btn.addEventListener("click", async () => {
                     if (state.selection.modelId === model.id) return;
                     state.selection.modelId = model.id;
+                    setActiveView("front");
                     renderModelButtons();
                     await loadOptionsForModel();
                     await recalculate();
@@ -577,6 +586,7 @@
                 btn.textContent = `${interior.name} (+${formatPrice(interior.price)})`;
                 btn.addEventListener("click", async () => {
                     state.selection.interiorId = interior.id;
+                    setActiveView("interior");
                     renderInteriorButtons();
                     await recalculate();
                 });
@@ -594,6 +604,7 @@
                 btn.textContent = `${wheel.name} (+${formatPrice(wheel.price)})`;
                 btn.addEventListener("click", async () => {
                     state.selection.wheelsId = wheel.id;
+                    setActiveView("wheels");
                     renderWheelsButtons();
                     await recalculate();
                 });
@@ -603,10 +614,7 @@
 
         document.querySelectorAll(".view-tab").forEach((tab) => {
             tab.addEventListener("click", () => {
-                state.selection.view = tab.dataset.view;
-                document.querySelectorAll(".view-tab").forEach((item) => item.classList.remove("active"));
-                tab.classList.add("active");
-                updateImage();
+                setActiveView(tab.dataset.view);
             });
         });
 

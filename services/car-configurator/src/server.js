@@ -448,10 +448,26 @@ app.post("/configuration/calculate", async (req, res) => {
     ]);
 
     let exteriorImages = {};
+    let exactImages = {};
+    const imageRequests = [];
+
     if (exteriorConfig) {
-      const exteriorImageKeys = await getImagesByConfigurationId(exteriorConfig.configuration_id);
-      exteriorImages = mapImageUrls(exteriorImageKeys);
+      imageRequests.push(
+        getImagesByConfigurationId(exteriorConfig.configuration_id).then((imageKeys) => {
+          exteriorImages = mapImageUrls(imageKeys);
+        })
+      );
     }
+
+    if (exactConfig) {
+      imageRequests.push(
+        getImagesByConfigurationId(exactConfig.configuration_id).then((imageKeys) => {
+          exactImages = mapImageUrls(imageKeys);
+        })
+      );
+    }
+
+    await Promise.all(imageRequests);
 
     res.json({
       model: {
@@ -474,8 +490,8 @@ app.post("/configuration/calculate", async (req, res) => {
       previewImages: {
         front: exteriorImages.front || null,
         back: exteriorImages.back || null,
-        wheels: wheels ? imageUrl(wheels.image_key) : exteriorImages.wheels || null,
-        interior: interior ? imageUrl(interior.image_key) : exteriorImages.interior || null,
+        wheels: exactImages.wheels || exteriorImages.wheels || (wheels ? imageUrl(wheels.image_key) : null),
+        interior: exactImages.interior || exteriorImages.interior || (interior ? imageUrl(interior.image_key) : null),
       },
       advantages: exactConfig ? parseCsvList(exactConfig.advantages) : [],
       disadvantages: exactConfig ? parseCsvList(exactConfig.disadvantages) : [],
