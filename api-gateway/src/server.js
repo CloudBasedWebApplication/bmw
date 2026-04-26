@@ -127,12 +127,14 @@ for (const route of serviceCatalog.filter(({ path: p }) => !["/", "/car-configur
 // ── API proxy routes ─────────────────────────────────────────────────────────
 
 const DESTINATIONS = [
-  { label: "BMW Welt München",          value: "BMW Welt München,Germany" },
-  { label: "BMW Werk Leipzig",          value: "BMW Group Werk Leipzig,Germany" },
-  { label: "BMW Museum München",        value: "BMW Museum München,Germany" },
-  { label: "BMW Niederlassung Berlin",  value: "BMW Niederlassung Berlin,Germany" },
-  { label: "BMW Niederlassung Hamburg", value: "BMW Niederlassung Hamburg,Germany" },
-  { label: "BMW Niederlassung Frankfurt", value: "BMW Niederlassung Frankfurt,Germany" },
+  {
+    id: "bmw-welt",
+    name: "BMW Welt München",
+    address: "Am Olympiapark 1, 80809 München",
+    destination: "BMW Welt München, Am Olympiapark 1, 80809 München, Germany",
+    label: "BMW Welt München",
+    value: "BMW Welt München, Am Olympiapark 1, 80809 München, Germany",
+  },
 ];
 
 app.get("/api/destinations", (_req, res) => {
