@@ -401,6 +401,8 @@
     </div>
 
     <script>
+        const initialSelection = <%- JSON.stringify(initialSelection || null) %>;
+
         const state = {
             models: [],
             colors: [],
@@ -417,14 +419,81 @@
         };
 
         const urlParams = new URLSearchParams(window.location.search);
-        const preferredModel = urlParams.get("model");
-        const preferredColor = urlParams.get("color");
+        const legacySelection = {
+            model: urlParams.get("model"),
+            color: urlParams.get("color"),
+            interior: urlParams.get("interior"),
+            wheels: urlParams.get("wheels")
+        };
 
         function formatPrice(value) {
             return Number(value || 0).toLocaleString("de-DE", {
                 style: "currency",
                 currency: "EUR"
             });
+        }
+
+        function normalizeText(value) {
+            return String(value || "")
+                .normalize("NFKD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .replace(/ß/g, "ss")
+                .trim();
+        }
+
+        function tokenizeSlug(value) {
+            return normalizeText(value)
+                .replace(/[^a-zA-Z0-9]+/g, " ")
+                .trim()
+                .split(/\s+/)
+                .filter(Boolean);
+        }
+
+        function toCompactSlug(value) {
+            return tokenizeSlug(value)
+                .map((token) => token.charAt(0).toUpperCase() + token.slice(1))
+                .join("");
+        }
+
+        function inferInteriorSlug(name) {
+            const key = normalizeText(name).toLowerCase();
+
+            if (key.includes("black") || key.includes("schwarz")) return "Black";
+            if (key.includes("white") || key.includes("weiss") || key.includes("elfenbein")) return "White";
+            if (key.includes("coffee")) return "Coffee";
+
+            return toCompactSlug(name);
+        }
+
+        function inferWheelsSlug(name) {
+            const key = normalizeText(name).toLowerCase();
+
+            if (key.includes("bicolor")) return "Bicolor";
+            if (key.includes("jet black")) return "JetBlack";
+            if (key.includes("plus")) return "Plus";
+            if (key.includes("schmiederad")) return "Schmiederad";
+
+            return toCompactSlug(name);
+        }
+
+        function getModelSlug(model) {
+            return toCompactSlug(model ? model.name : "");
+        }
+
+        function getColorSlug(color) {
+            return toCompactSlug(color ? color.name : "");
+        }
+
+        function getInteriorSlug(interior) {
+            return inferInteriorSlug(interior ? interior.name : "");
+        }
+
+        function getWheelsSlug(wheels) {
+            return inferWheelsSlug(wheels ? wheels.name : "");
+        }
+
+        function matchesSlug(actualSlug, expectedSlug) {
+            return normalizeText(actualSlug).toLowerCase() === normalizeText(expectedSlug).toLowerCase();
         }
 
         function colorFromName(name) {
@@ -464,21 +533,109 @@
             return options.find(matcher) || options[0];
         }
 
+        function findOptionBySlug(options, expectedSlug, getSlug) {
+            if (!expectedSlug) return null;
+            return options.find((option) => matchesSlug(getSlug(option), expectedSlug)) || null;
+        }
+
+        function getCurrentSelectionSlugs() {
+            const model = state.models.find((entry) => entry.id === state.selection.modelId) || null;
+            const color = state.colors.find((entry) => entry.id === state.selection.colorId) || null;
+            const interior = state.interiors.find((entry) => entry.id === state.selection.interiorId) || null;
+            const wheels = state.wheels.find((entry) => entry.id === state.selection.wheelsId) || null;
+
+            return {
+                model: model ? getModelSlug(model) : null,
+                color: color ? getColorSlug(color) : null,
+                interior: interior ? getInteriorSlug(interior) : null,
+                wheels: wheels ? getWheelsSlug(wheels) : null
+            };
+        }
+
+        function buildConfiguratorPath(selectionSlugs) {
+            if (!selectionSlugs.model || !selectionSlugs.color || !selectionSlugs.interior || !selectionSlugs.wheels) {
+                return "/car-configurator";
+            }
+
+            return `/car-configurator/${encodeURIComponent(selectionSlugs.model)}/${encodeURIComponent(selectionSlugs.color)}/${encodeURIComponent(selectionSlugs.interior)}/${encodeURIComponent(selectionSlugs.wheels)}`;
+        }
+
+        function getInitialRequestedSelection() {
+            if (initialSelection) return initialSelection;
+            if (legacySelection.model || legacySelection.color || legacySelection.interior || legacySelection.wheels) {
+                return legacySelection;
+            }
+
+            return null;
+        }
+
+        function getInitialView() {
+            const hashView = window.location.hash.replace(/^#/, "");
+            const allowedViews = new Set(["front", "back", "wheels", "interior"]);
+            return allowedViews.has(hashView) ? hashView : "front";
+        }
+
+        function modelMatchesSelection(model, expectedModel) {
+            const requested = normalizeText(expectedModel).toLowerCase();
+            if (!requested) return false;
+
+            const modelSlug = normalizeText(getModelSlug(model)).toLowerCase();
+            const modelCode = normalizeText(model ? model.code : "").toLowerCase();
+            const modelName = normalizeText(model ? model.name : "").toLowerCase();
+
+            return (
+                modelSlug === requested ||
+                modelCode === requested ||
+                modelName === requested ||
+                modelSlug.includes(requested) ||
+                modelName.includes(requested)
+            );
+        }
+
         function setActiveView(view) {
             state.selection.view = view;
             document.querySelectorAll(".view-tab").forEach((tab) => {
                 tab.classList.toggle("active", tab.dataset.view === view);
             });
+            if (state.selection.modelId) {
+                window.history.replaceState(
+                    null,
+                    "",
+                    `${window.location.pathname}#${view}`
+                );
+            }
             updateImage();
+        }
+
+        async function fetchOptionsForModel(modelId) {
+            const encodedModelId = encodeURIComponent(modelId);
+            const [colors, interiors, wheels] = await Promise.all([
+                fetchJson(`/api/configurator/options/colors?modelId=${encodedModelId}`),
+                fetchJson(`/api/configurator/options/interiors?modelId=${encodedModelId}`),
+                fetchJson(`/api/configurator/options/wheels?modelId=${encodedModelId}`)
+            ]);
+
+            return {
+                colors: [...colors].sort((left, right) => {
+                    const rankDifference = colorSortRank(left.name) - colorSortRank(right.name);
+                    if (rankDifference !== 0) return rankDifference;
+                    return String(left.name).localeCompare(String(right.name), "de");
+                }),
+                interiors,
+                wheels
+            };
         }
 
         async function loadInitialData() {
             try {
                 state.models = await fetchJson("/api/configurator/models");
+                state.selection.view = getInitialView();
+
+                const requestedSelection = getInitialRequestedSelection();
 
                 const initialModel = pickPreferredOrFirst(
                     state.models,
-                    (model) => model.code === preferredModel || model.name === preferredModel
+                    (model) => modelMatchesSelection(model, requestedSelection && requestedSelection.model)
                 );
 
                 if (initialModel) {
@@ -486,8 +643,10 @@
                 }
 
                 renderModelButtons();
-                await loadOptionsForModel();
+                await loadOptionsForModel(requestedSelection);
                 await recalculate();
+                setActiveView(state.selection.view);
+                syncBrowserUrl(true);
             } catch (err) {
                 console.error(err);
                 document.getElementById("placeholder").textContent = "Fehler beim Laden";
@@ -496,44 +655,80 @@
             }
         }
 
-        async function loadOptionsForModel() {
+        async function loadOptionsForModel(requestedSelection = null) {
             if (!state.selection.modelId) return;
 
-            const modelId = encodeURIComponent(state.selection.modelId);
-            const [colors, interiors, wheels] = await Promise.all([
-                fetchJson(`/api/configurator/options/colors?modelId=${modelId}`),
-                fetchJson(`/api/configurator/options/interiors?modelId=${modelId}`),
-                fetchJson(`/api/configurator/options/wheels?modelId=${modelId}`)
-            ]);
-
-            state.colors = [...colors].sort((left, right) => {
-                const rankDifference = colorSortRank(left.name) - colorSortRank(right.name);
-                if (rankDifference !== 0) return rankDifference;
-                return String(left.name).localeCompare(String(right.name), "de");
-            });
-            state.interiors = interiors;
-            state.wheels = wheels;
+            const optionSet = await fetchOptionsForModel(state.selection.modelId);
+            state.colors = optionSet.colors;
+            state.interiors = optionSet.interiors;
+            state.wheels = optionSet.wheels;
 
             const selectedColor = pickPreferredOrFirst(
                 state.colors,
-                (color) => color.name === preferredColor || String(color.name).toLowerCase() === String(preferredColor || "").toLowerCase()
+                (color) =>
+                    (requestedSelection && matchesSlug(getColorSlug(color), requestedSelection.color)) ||
+                    state.selection.colorId === color.id
             );
 
             if (!state.colors.some((color) => color.id === state.selection.colorId)) {
                 state.selection.colorId = selectedColor ? selectedColor.id : null;
             }
 
-            if (!interiors.some((interior) => interior.id === state.selection.interiorId)) {
-                state.selection.interiorId = interiors.length ? interiors[0].id : null;
+            const selectedInterior =
+                findOptionBySlug(state.interiors, requestedSelection && requestedSelection.interior, getInteriorSlug) ||
+                state.interiors.find((interior) => interior.id === state.selection.interiorId) ||
+                state.interiors[0] ||
+                null;
+
+            if (!state.interiors.some((interior) => interior.id === state.selection.interiorId)) {
+                state.selection.interiorId = selectedInterior ? selectedInterior.id : null;
             }
 
-            if (!wheels.some((wheel) => wheel.id === state.selection.wheelsId)) {
-                state.selection.wheelsId = wheels.length ? wheels[0].id : null;
+            const selectedWheels =
+                findOptionBySlug(state.wheels, requestedSelection && requestedSelection.wheels, getWheelsSlug) ||
+                state.wheels.find((wheel) => wheel.id === state.selection.wheelsId) ||
+                state.wheels[0] ||
+                null;
+
+            if (!state.wheels.some((wheel) => wheel.id === state.selection.wheelsId)) {
+                state.selection.wheelsId = selectedWheels ? selectedWheels.id : null;
             }
 
             renderColorButtons();
             renderInteriorButtons();
             renderWheelsButtons();
+        }
+
+        function syncBrowserUrl(replace) {
+            const targetUrl = `${buildConfiguratorPath(getCurrentSelectionSlugs())}${state.selection.view ? `#${state.selection.view}` : ""}`;
+            const currentUrl = `${window.location.pathname}${window.location.hash}`;
+
+            if (targetUrl === currentUrl) return;
+
+            if (replace) {
+                window.history.replaceState(null, "", targetUrl);
+                return;
+            }
+
+            window.location.assign(targetUrl);
+        }
+
+        async function navigateToModel(model) {
+            const currentSlugs = getCurrentSelectionSlugs();
+            const optionSet = await fetchOptionsForModel(model.id);
+
+            const nextColor = findOptionBySlug(optionSet.colors, currentSlugs.color, getColorSlug) || optionSet.colors[0] || null;
+            const nextInterior = findOptionBySlug(optionSet.interiors, currentSlugs.interior, getInteriorSlug) || optionSet.interiors[0] || null;
+            const nextWheels = findOptionBySlug(optionSet.wheels, currentSlugs.wheels, getWheelsSlug) || optionSet.wheels[0] || null;
+
+            window.location.assign(
+                `${buildConfiguratorPath({
+                    model: getModelSlug(model),
+                    color: nextColor ? getColorSlug(nextColor) : null,
+                    interior: nextInterior ? getInteriorSlug(nextInterior) : null,
+                    wheels: nextWheels ? getWheelsSlug(nextWheels) : null
+                })}#front`
+            );
         }
 
         function renderModelButtons() {
@@ -546,11 +741,7 @@
                 btn.textContent = model.name;
                 btn.addEventListener("click", async () => {
                     if (state.selection.modelId === model.id) return;
-                    state.selection.modelId = model.id;
-                    setActiveView("front");
-                    renderModelButtons();
-                    await loadOptionsForModel();
-                    await recalculate();
+                    await navigateToModel(model);
                 });
                 container.appendChild(btn);
             });
@@ -567,10 +758,10 @@
                     <span class="swatch" style="background:${colorFromName(color.name)}"></span>
                     <span class="swatch-label">${color.name}</span>
                 `;
-                wrapper.addEventListener("click", async () => {
+                wrapper.addEventListener("click", () => {
+                    if (state.selection.colorId === color.id) return;
                     state.selection.colorId = color.id;
-                    renderColorButtons();
-                    await recalculate();
+                    syncBrowserUrl(false);
                 });
                 container.appendChild(wrapper);
             });
@@ -584,11 +775,11 @@
                 const btn = document.createElement("button");
                 btn.className = "option-btn" + (state.selection.interiorId === interior.id ? " active" : "");
                 btn.textContent = `${interior.name} (+${formatPrice(interior.price)})`;
-                btn.addEventListener("click", async () => {
+                btn.addEventListener("click", () => {
+                    if (state.selection.interiorId === interior.id) return;
                     state.selection.interiorId = interior.id;
                     setActiveView("interior");
-                    renderInteriorButtons();
-                    await recalculate();
+                    syncBrowserUrl(false);
                 });
                 container.appendChild(btn);
             });
@@ -602,11 +793,11 @@
                 const btn = document.createElement("button");
                 btn.className = "option-btn" + (state.selection.wheelsId === wheel.id ? " active" : "");
                 btn.textContent = `${wheel.name} (+${formatPrice(wheel.price)})`;
-                btn.addEventListener("click", async () => {
+                btn.addEventListener("click", () => {
+                    if (state.selection.wheelsId === wheel.id) return;
                     state.selection.wheelsId = wheel.id;
                     setActiveView("wheels");
-                    renderWheelsButtons();
-                    await recalculate();
+                    syncBrowserUrl(false);
                 });
                 container.appendChild(btn);
             });

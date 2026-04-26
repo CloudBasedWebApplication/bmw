@@ -19,6 +19,11 @@ function trimTrailingSlash(value) {
 }
 
 function resolveMinioPublicBaseUrl() {
+  // Auto-detect GitHub Codespace first (takes precedence)
+  if (process.env.CODESPACE_NAME) {
+    return `https://${process.env.CODESPACE_NAME}-9000.app.github.dev`;
+  }
+
   if (process.env.MINIO_PUBLIC_URL) {
     return trimTrailingSlash(process.env.MINIO_PUBLIC_URL);
   }
@@ -383,7 +388,17 @@ app.get("/options/interiors", async (req, res) => {
 app.get("/configurations", async (_req, res) => {
   try {
     const [rows] = await pool.query(`${configurationSelect} ORDER BY cfg.id`);
-    res.json(rows.map(mapConfigurationSummary));
+    
+    const configurations = await Promise.all(
+      rows.map(async (row) => {
+        const summary = mapConfigurationSummary(row);
+        const images = await getImagesByConfigurationId(row.configuration_id);
+        const imageUrls = mapImageUrls(images);
+        return { ...summary, images, imageUrls };
+      })
+    );
+    
+    res.json(configurations);
   } catch (err) {
     sendJsonError(res, 500, "Failed to load configurations", err.message);
   }

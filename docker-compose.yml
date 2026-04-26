@@ -29,7 +29,8 @@ services:
     env_file: .env
     environment:
       PORT: 3001
-      MINIO_PUBLIC_URL: ${MINIO_PUBLIC_URL:-http://localhost:9000}
+      CODESPACE_NAME: ${CODESPACE_NAME:-}
+      MINIO_PUBLIC_URL: ${MINIO_PUBLIC_URL:-}
     depends_on:
       mysql:
         condition: service_healthy
@@ -42,7 +43,8 @@ services:
     env_file: .env
     environment:
       PORT: 3002
-      MINIO_PUBLIC_URL: ${MINIO_PUBLIC_URL:-http://localhost:9000}
+      CODESPACE_NAME: ${CODESPACE_NAME:-}
+      MINIO_PUBLIC_URL: ${MINIO_PUBLIC_URL:-}
     depends_on:
       mysql:
         condition: service_healthy
