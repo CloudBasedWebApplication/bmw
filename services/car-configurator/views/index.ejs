@@ -715,6 +715,7 @@
 
         async function navigateToModel(model) {
             const currentSlugs = getCurrentSelectionSlugs();
+            const currentView = state.selection.view || "front";
             const optionSet = await fetchOptionsForModel(model.id);
 
             const nextColor = findOptionBySlug(optionSet.colors, currentSlugs.color, getColorSlug) || optionSet.colors[0] || null;
@@ -727,7 +728,7 @@
                     color: nextColor ? getColorSlug(nextColor) : null,
                     interior: nextInterior ? getInteriorSlug(nextInterior) : null,
                     wheels: nextWheels ? getWheelsSlug(nextWheels) : null
-                })}#front`
+                })}#${currentView}`
             );
         }
 
@@ -761,6 +762,7 @@
                 wrapper.addEventListener("click", () => {
                     if (state.selection.colorId === color.id) return;
                     state.selection.colorId = color.id;
+                    setActiveView("front");
                     syncBrowserUrl(false);
                 });
                 container.appendChild(wrapper);
