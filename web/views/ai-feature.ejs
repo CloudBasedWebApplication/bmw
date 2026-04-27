@@ -282,13 +282,6 @@
   const COLOR_DE    = { Black: "Schwarz", Blue: "Blau", White: "Weiß" };
   const STORAGE_KEY = "bmw_ai_last_result";
 
-  // Fetch merch prices once on load — independent of ai-feature container state
-  const merchPrices = {};
-  fetch("/api/merch/products")
-    .then(r => r.json())
-    .then(products => { products.forEach(p => { merchPrices[p.id] = parseFloat(p.price) || 0; }); })
-    .catch(() => {});
-
   const promptInput = document.getElementById("prompt");
   const btn         = document.getElementById("sendBtn");
   const spinner     = document.getElementById("spinner");
