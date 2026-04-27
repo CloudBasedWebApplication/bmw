@@ -1,12 +1,16 @@
 FROM node:22-alpine
 
-WORKDIR /app
+WORKDIR /app/api-gateway
 
-COPY api-gateway/package.json ./
+COPY api-gateway/package.json api-gateway/package-lock.json* ./
 RUN npm install
 
 COPY api-gateway/src ./src
-COPY services ./services
+
+WORKDIR /app
+COPY web ./web
+
+WORKDIR /app/api-gateway
 
 EXPOSE 3000
 

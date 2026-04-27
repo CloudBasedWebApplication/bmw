@@ -18,8 +18,8 @@ services:
       - shopping-cart
       - ai-feature
     volumes:
-      - ./api-gateway/src:/app/src
-      - ./services:/app/services
+      - ./api-gateway/src:/app/api-gateway/src
+      - ./web:/app/web
 
   car-configurator:
     build:

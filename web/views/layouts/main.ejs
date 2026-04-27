@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= typeof title !== 'undefined' && title ? title : 'Bayerische Motoren Werke AG' %></title>
+    <link rel="stylesheet" href="/static/ci/bmw-ci.css">
+  </head>
+  <body>
+    <%
+      const variant = (typeof navVariant !== 'undefined' && navVariant) ? navVariant : 'solid';
+      const active = (typeof activePage !== 'undefined' && activePage) ? activePage : null;
+      const navLinks = [
+        { key: 'home',         href: '/',                  label: 'Home' },
+        { key: 'configurator', href: '/car-configurator',  label: 'Konfigurator' },
+        { key: 'merch',        href: '/merch-shop',        label: 'Merchandise' },
+        { key: 'ai',           href: '/ai-feature',        label: 'KI' },
+        { key: 'cart',         href: '/shopping-cart',     label: 'Warenkorb' },
+      ];
+    %>
+    <nav class="site-nav site-nav--<%= variant %>" aria-label="Hauptnavigation">
+      <a class="brand" href="/">
+        <strong>Bayerische Motoren Werke AG</strong>
+        <span>Seit 1916</span>
+      </a>
+      <div class="nav-links">
+        <% navLinks.forEach(function(link) { %>
+          <a href="<%= link.href %>"<% if (link.key === active) { %> class="active"<% } %>><%= link.label %></a>
+        <% }) %>
+      </div>
+    </nav>
+
+    <%- body %>
+
+    <footer class="site-footer" id="impressum">
+      <div class="page-shell footer-grid">
+        <div class="footer-brand">
+          <strong>Bayerische Motoren Werke AG</strong>
+          <span>Studentisches Cloud-Web-Projekt mit Konfigurator, Merchandise, KI-Beratung und Route.</span>
+          <span class="footer-legal">Impressum: BMW Cloud Web App Team, Cloud Based Web Development, München.</span>
+          <span class="footer-legal">© 2026 Bayerische Motoren Werke AG Experience. Hochschulprojekt.</span>
+        </div>
+        <nav class="footer-links" aria-label="Footer Navigation">
+          <a href="/">Home</a>
+          <a href="/car-configurator">Konfigurator</a>
+          <a href="/merch-shop">Merchandise</a>
+          <a href="/ai-feature">KI</a>
+          <a href="#impressum">Impressum</a>
+        </nav>
+      </div>
+    </footer>
+  </body>
+</html>
