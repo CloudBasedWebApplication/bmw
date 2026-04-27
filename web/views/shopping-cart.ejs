@@ -605,20 +605,30 @@
     btn.disabled = true;
     btn.textContent = "Wird verarbeitet …";
 
-    await fetch("/api/cart", { method: "DELETE" });
+    try {
+      const res = await fetch("/api/cart", { method: "DELETE" });
 
-    const orderNr = "BMW-" + Date.now().toString(36).toUpperCase().slice(-6)
-      + Math.random().toString(36).slice(2,5).toUpperCase();
+      if (!res.ok) {
+        throw new Error(`Failed to clear cart: ${res.status}`);
+      }
 
-    document.getElementById("confEmail").textContent =
-      `Eine Bestätigung wird an ${email} gesendet.`;
-    document.getElementById("confOrderNr").textContent =
-      `Bestellnummer: ${orderNr}`;
+      const orderNr = "BMW-" + Date.now().toString(36).toUpperCase().slice(-6)
+        + Math.random().toString(36).slice(2,5).toUpperCase();
 
-    document.getElementById("step2").classList.add("done");
-    document.getElementById("step3").classList.add("active", "done");
-    document.getElementById("checkoutView").classList.remove("active");
-    document.getElementById("confirmationView").classList.add("active");
-    window.scrollTo({ top: 0, behavior: "smooth" });
+      document.getElementById("confEmail").textContent =
+        `Eine Bestätigung wird an ${email} gesendet.`;
+      document.getElementById("confOrderNr").textContent =
+        `Bestellnummer: ${orderNr}`;
+
+      document.getElementById("step2").classList.add("done");
+      document.getElementById("step3").classList.add("active", "done");
+      document.getElementById("checkoutView").classList.remove("active");
+      document.getElementById("confirmationView").classList.add("active");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (err) {
+      btn.disabled = false;
+      btn.textContent = "Jetzt kostenpflichtig bestellen";
+      alert("Die Bestellung konnte nicht abgeschlossen werden. Bitte versuchen Sie es erneut.");
+    }
   }
 </script>
