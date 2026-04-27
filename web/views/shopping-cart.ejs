@@ -542,18 +542,40 @@
       if (!items || !items.length) return;
       cartSnapshot = { items, total };
 
-      let linesHtml = items.map(item => `
-        <div class="summary-line">
-          <span class="summary-line-name">${normalizeText(item.name)}${item.quantity > 1 ? ` ×${item.quantity}` : ""}</span>
-          <span class="summary-line-price">${(item.price * item.quantity).toLocaleString("de-DE", { style: "currency", currency: "EUR" })}</span>
-        </div>`).join("");
-      linesHtml += `
-        <div class="summary-line">
-          <span class="summary-line-name">Gesamtsumme</span>
-          <span class="summary-line-price">${total.toLocaleString("de-DE", { style: "currency", currency: "EUR" })}</span>
-        </div>`;
-      document.getElementById("checkoutSummaryLines").innerHTML = linesHtml;
+      const checkoutSummaryLines = document.getElementById("checkoutSummaryLines");
+      checkoutSummaryLines.textContent = "";
 
+      items.forEach(item => {
+        const line = document.createElement("div");
+        line.className = "summary-line";
+
+        const name = document.createElement("span");
+        name.className = "summary-line-name";
+        name.textContent = `${normalizeText(item.name)}${item.quantity > 1 ? ` ×${item.quantity}` : ""}`;
+
+        const price = document.createElement("span");
+        price.className = "summary-line-price";
+        price.textContent = (item.price * item.quantity).toLocaleString("de-DE", { style: "currency", currency: "EUR" });
+
+        line.appendChild(name);
+        line.appendChild(price);
+        checkoutSummaryLines.appendChild(line);
+      });
+
+      const totalLine = document.createElement("div");
+      totalLine.className = "summary-line";
+
+      const totalName = document.createElement("span");
+      totalName.className = "summary-line-name";
+      totalName.textContent = "Gesamtsumme";
+
+      const totalPrice = document.createElement("span");
+      totalPrice.className = "summary-line-price";
+      totalPrice.textContent = total.toLocaleString("de-DE", { style: "currency", currency: "EUR" });
+
+      totalLine.appendChild(totalName);
+      totalLine.appendChild(totalPrice);
+      checkoutSummaryLines.appendChild(totalLine);
       document.getElementById("cartWrapper").style.display = "none";
       document.getElementById("checkoutView").classList.add("active");
       document.getElementById("step1").classList.add("active");
