@@ -367,40 +367,126 @@
         return;
       }
 
-      const list = items.map(item => `
-        <div class="item" id="item-${item.id}">
-          ${item.imageUrl
-            ? `<img src="${normalizeImageUrl(item.imageUrl)}" alt="${normalizeText(item.name)}" />`
-            : '<div style="width:120px;height:90px;background:#f1f5f9;border-radius:12px;flex-shrink:0"></div>'}
-          <div class="item-info">
-            <div class="item-meta">${item.type === "car" ? "Fahrzeug" : "Lifestyle & Merch"}</div>
-            <div class="item-name">${normalizeText(item.name)}</div>
-            ${item.details?.color ? `<div class="item-variant">Farbe: ${normalizeText(item.details.color)}</div>` : ""}
-            <div class="qty-controls">
-              <button class="qty-btn" data-id="${item.id}" data-delta="-1">−</button>
-              <span class="qty-value">${item.quantity}</span>
-              <button class="qty-btn" data-id="${item.id}" data-delta="1">+</button>
-            </div>
-          </div>
-          <div class="item-right">
-            <div class="item-price">${(item.price * item.quantity).toLocaleString("de-DE", { style: "currency", currency: "EUR" })}</div>
-            <button class="remove-btn" data-id="${item.id}">Entfernen</button>
-          </div>
-        </div>
-      `).join("");
+      container.replaceChildren();
 
-      container.innerHTML = list + `
-        <div class="summary">
-          <div>
-            <div class="total-label">Gesamtsumme</div>
-            <div style="font-size: 0.8rem; opacity: 0.5;">Inkl. MwSt. zzgl. Versand</div>
-          </div>
-          <div class="total-value">${total.toLocaleString("de-DE", { style: "currency", currency: "EUR" })}</div>
-        </div>
-        <div class="checkout-action">
-          <button class="btn btn-primary" onclick="showCheckout()">Zur Kasse gehen</button>
-        </div>`;
+      items.forEach(item => {
+        const itemEl = document.createElement("div");
+        itemEl.className = "item";
+        itemEl.id = `item-${item.id}`;
 
+        if (item.imageUrl) {
+          const imageEl = document.createElement("img");
+          imageEl.src = normalizeImageUrl(item.imageUrl);
+          imageEl.alt = normalizeText(item.name);
+          itemEl.appendChild(imageEl);
+        } else {
+          const placeholderEl = document.createElement("div");
+          placeholderEl.style.width = "120px";
+          placeholderEl.style.height = "90px";
+          placeholderEl.style.background = "#f1f5f9";
+          placeholderEl.style.borderRadius = "12px";
+          placeholderEl.style.flexShrink = "0";
+          itemEl.appendChild(placeholderEl);
+        }
+
+        const itemInfoEl = document.createElement("div");
+        itemInfoEl.className = "item-info";
+
+        const itemMetaEl = document.createElement("div");
+        itemMetaEl.className = "item-meta";
+        itemMetaEl.textContent = item.type === "car" ? "Fahrzeug" : "Lifestyle & Merch";
+        itemInfoEl.appendChild(itemMetaEl);
+
+        const itemNameEl = document.createElement("div");
+        itemNameEl.className = "item-name";
+        itemNameEl.textContent = normalizeText(item.name);
+        itemInfoEl.appendChild(itemNameEl);
+
+        if (item.details?.color) {
+          const itemVariantEl = document.createElement("div");
+          itemVariantEl.className = "item-variant";
+          itemVariantEl.textContent = `Farbe: ${normalizeText(item.details.color)}`;
+          itemInfoEl.appendChild(itemVariantEl);
+        }
+
+        const qtyControlsEl = document.createElement("div");
+        qtyControlsEl.className = "qty-controls";
+
+        const decreaseBtn = document.createElement("button");
+        decreaseBtn.className = "qty-btn";
+        decreaseBtn.dataset.id = String(item.id);
+        decreaseBtn.dataset.delta = "-1";
+        decreaseBtn.textContent = "−";
+        qtyControlsEl.appendChild(decreaseBtn);
+
+        const qtyValueEl = document.createElement("span");
+        qtyValueEl.className = "qty-value";
+        qtyValueEl.textContent = String(item.quantity);
+        qtyControlsEl.appendChild(qtyValueEl);
+
+        const increaseBtn = document.createElement("button");
+        increaseBtn.className = "qty-btn";
+        increaseBtn.dataset.id = String(item.id);
+        increaseBtn.dataset.delta = "1";
+        increaseBtn.textContent = "+";
+        qtyControlsEl.appendChild(increaseBtn);
+
+        itemInfoEl.appendChild(qtyControlsEl);
+        itemEl.appendChild(itemInfoEl);
+
+        const itemRightEl = document.createElement("div");
+        itemRightEl.className = "item-right";
+
+        const itemPriceEl = document.createElement("div");
+        itemPriceEl.className = "item-price";
+        itemPriceEl.textContent = (item.price * item.quantity).toLocaleString("de-DE", { style: "currency", currency: "EUR" });
+        itemRightEl.appendChild(itemPriceEl);
+
+        const removeBtn = document.createElement("button");
+        removeBtn.className = "remove-btn";
+        removeBtn.dataset.id = String(item.id);
+        removeBtn.textContent = "Entfernen";
+        itemRightEl.appendChild(removeBtn);
+
+        itemEl.appendChild(itemRightEl);
+        container.appendChild(itemEl);
+      });
+
+      const summaryEl = document.createElement("div");
+      summaryEl.className = "summary";
+
+      const summaryInfoEl = document.createElement("div");
+
+      const totalLabelEl = document.createElement("div");
+      totalLabelEl.className = "total-label";
+      totalLabelEl.textContent = "Gesamtsumme";
+      summaryInfoEl.appendChild(totalLabelEl);
+
+      const summarySubtextEl = document.createElement("div");
+      summarySubtextEl.style.fontSize = "0.8rem";
+      summarySubtextEl.style.opacity = "0.5";
+      summarySubtextEl.textContent = "Inkl. MwSt. zzgl. Versand";
+      summaryInfoEl.appendChild(summarySubtextEl);
+
+      summaryEl.appendChild(summaryInfoEl);
+
+      const totalValueEl = document.createElement("div");
+      totalValueEl.className = "total-value";
+      totalValueEl.textContent = total.toLocaleString("de-DE", { style: "currency", currency: "EUR" });
+      summaryEl.appendChild(totalValueEl);
+
+      container.appendChild(summaryEl);
+
+      const checkoutActionEl = document.createElement("div");
+      checkoutActionEl.className = "checkout-action";
+
+      const checkoutBtn = document.createElement("button");
+      checkoutBtn.className = "btn btn-primary";
+      checkoutBtn.textContent = "Zur Kasse gehen";
+      checkoutBtn.addEventListener("click", showCheckout);
+      checkoutActionEl.appendChild(checkoutBtn);
+
+      container.appendChild(checkoutActionEl);
       container.querySelectorAll(".remove-btn").forEach(btn => {
         btn.addEventListener("click", async () => {
           btn.disabled = true;
