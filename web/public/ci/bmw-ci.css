@@ -455,7 +455,7 @@ video {
 @media (max-width: 720px) {
   .page-shell,
   .site-nav {
-    width: min(100% - 28px, 1180px);
+    width: min(calc(100% - 28px), 1180px);
   }
 
   .site-nav--transparent {
