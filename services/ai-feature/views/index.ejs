@@ -24,15 +24,16 @@
              url('/home/static/fonts/BMWTypeNextLatin-Bold.woff') format('woff');
       }
       :root {
-        --accent: #0066b1;
-        --accent-dark: #004a80;
-        --accent-soft: rgba(0, 102, 177, 0.08);
-        --bg: #f0f2f5;
+        --accent: #1c69d4;
+        --accent-dark: #114a96;
+        --accent-soft: rgba(28, 105, 212, 0.08);
+        --bg: #f6f7f9;
         --panel: #ffffff;
-        --text: #111111;
-        --muted: #636366;
-        --radius: 20px;
-        --shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+        --text: #111827;
+        --muted: #697386;
+        --radius: 8px;
+        --shadow: 0 20px 55px rgba(16, 24, 40, 0.12);
+        --line: rgba(17, 24, 39, 0.12);
       }
 
       * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
@@ -40,7 +41,11 @@
       body {
         margin: 0;
         font-family: 'BMWTypeNext', 'Inter', -apple-system, system-ui, sans-serif;
-        background: var(--bg);
+        background:
+          linear-gradient(rgba(17, 24, 39, 0.045) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(17, 24, 39, 0.045) 1px, transparent 1px),
+          var(--bg);
+        background-size: 44px 44px;
         color: var(--text);
         line-height: 1.6;
       }
@@ -76,22 +81,31 @@
         border-radius: 6px; font-size: 0.85rem; font-weight: 500; transition: 0.2s;
       }
       .nav-links a.active, .nav-links a:hover { background: rgba(255,255,255,0.1); color: #fff; }
+      .cart-badge {
+        display: inline-flex; align-items: center; justify-content: center;
+        min-width: 17px; height: 17px; padding: 0 5px;
+        background: var(--accent); color: #fff;
+        border-radius: 999px; font-size: 0.62rem; font-weight: 700;
+        margin-left: 5px; vertical-align: middle; line-height: 1;
+        opacity: 0; transition: opacity 0.2s;
+      }
+      .cart-badge.visible { opacity: 1; }
 
       /* ── Merch section ── */
       .merch-section {
         margin-top: 28px;
         padding-top: 24px;
-        border-top: 1px solid rgba(0,0,0,0.09);
+        border-top: 1px solid var(--line);
       }
       .merch-section-header {
         margin-bottom: 24px;
       }
       .merch-section-eyebrow {
-        font-size: 0.68rem; font-weight: 700; letter-spacing: 0.16em;
-        text-transform: uppercase; color: var(--accent); margin-bottom: 6px;
+        font-size: 0.72rem; font-weight: 700; letter-spacing: 0.18em;
+        text-transform: uppercase; color: var(--accent); margin-bottom: 8px;
       }
       .merch-section-title {
-        font-size: 1.35rem; font-weight: 700; letter-spacing: -0.02em; color: var(--text);
+        font-size: 1.6rem; font-weight: 700; letter-spacing: 0; line-height: 1.05; color: var(--text);
       }
 
       /* ── Layout ── */
@@ -103,10 +117,10 @@
         margin-bottom: 40px;
       }
       h1 {
-        font-size: 2.6rem;
-        font-weight: 800;
-        letter-spacing: -0.035em;
-        line-height: 1.15;
+        font-size: clamp(2.4rem, 5vw, 4rem);
+        font-weight: 700;
+        letter-spacing: 0;
+        line-height: 1.02;
         margin: 0 0 16px;
       }
       .subtitle {
@@ -121,7 +135,7 @@
         background: var(--panel);
         border-radius: var(--radius);
         box-shadow: var(--shadow);
-        border: 1px solid rgba(0,0,0,0.05);
+        border: 1px solid var(--line);
         overflow: hidden;
         transition: box-shadow 0.3s ease;
       }
@@ -141,8 +155,9 @@
         border-top: 1px solid rgba(0,0,0,0.05);
       }
       .send-btn {
-        padding: 11px 26px; border: none; border-radius: 999px;
-        background: var(--accent); color: #fff; font-size: 0.95rem; font-weight: 700;
+        padding: 11px 26px; border: none; border-radius: var(--radius);
+        background: var(--accent); color: #fff; font-size: 0.9rem; font-weight: 700;
+        letter-spacing: 0.06em; text-transform: uppercase;
         cursor: pointer; transition: all 0.25s ease; white-space: nowrap;
       }
       .send-btn:hover:not(:disabled) { background: var(--accent-dark); transform: translateY(-1px); }
@@ -185,8 +200,8 @@
         display: flex; align-items: center; justify-content: space-between;
         padding: 14px 22px;
         background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.35);
-        border-radius: 14px; color: white; text-decoration: none;
-        font-weight: 700; font-size: 0.95rem;
+        border-radius: var(--radius); color: white; text-decoration: none;
+        font-weight: 700; font-size: 0.85rem; letter-spacing: 0.08em; text-transform: uppercase;
         transition: background 0.2s ease; backdrop-filter: blur(4px);
       }
       .car-reveal-cta:hover { background: rgba(255,255,255,0.28); }
@@ -221,10 +236,11 @@
       .why-toggle {
         display: flex; align-items: center; gap: 8px;
         width: 100%; padding: 12px 20px;
-        background: var(--panel); border: 1px solid rgba(0,0,0,0.07);
-        border-radius: 14px; margin-bottom: 12px;
+        background: var(--panel); border: 1px solid var(--line);
+        border-radius: var(--radius); margin-bottom: 12px;
         cursor: pointer; font-family: inherit;
-        font-size: 0.85rem; font-weight: 600; color: var(--muted);
+        font-size: 0.78rem; font-weight: 700; color: var(--muted);
+        letter-spacing: 0.08em; text-transform: uppercase;
         transition: color 0.15s, border-color 0.15s;
         text-align: left;
       }
@@ -244,9 +260,9 @@
       }
       .why-panel-inner {
         padding: 20px 24px;
-        background: var(--panel); border: 1px solid rgba(0,0,0,0.05);
-        border-radius: 14px;
-        font-size: 0.95rem; color: #334155; line-height: 1.7;
+        background: var(--panel); border: 1px solid var(--line);
+        border-radius: var(--radius);
+        font-size: 0.95rem; color: #394150; line-height: 1.7;
       }
 
       /* ── Merch grid ── */
@@ -258,8 +274,8 @@
       }
       .merch-product-card {
         background: var(--panel);
-        border: 1px solid rgba(0,0,0,0.07);
-        border-radius: 16px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
         overflow: hidden;
         display: flex; flex-direction: column;
         cursor: pointer;
@@ -300,7 +316,8 @@
       .add-to-cart-btn {
         width: 100%; padding: 9px 12px;
         background: var(--accent); color: white; border: none;
-        border-radius: 10px; font-size: 0.8rem; font-weight: 700;
+        border-radius: var(--radius); font-size: 0.75rem; font-weight: 700;
+        letter-spacing: 0.06em; text-transform: uppercase;
         cursor: pointer; font-family: inherit;
         transition: background 0.18s;
         margin-top: auto;
