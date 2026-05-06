@@ -1,0 +1,829 @@
+<style>
+  /* Configurator-specific layout. BMW CI tokens, fonts, page-shell, site-nav,
+     site-footer, section-*, .btn*, .field/.input, .card* live in
+     /static/ci/bmw-ci.css. The page-local --shadow override below intentionally
+     replaces CI's default shadow on this view. */
+
+  :root {
+    --radius-lg: 24px;
+    --radius-md: 12px;
+    --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+  }
+
+  .config-layout {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 20px;
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: 32px;
+    align-items: start;
+  }
+
+  @media (max-width: 980px) {
+    .config-layout { grid-template-columns: 1fr; }
+    .preview-column { position: static; }
+  }
+
+  .preview-column {
+    position: sticky;
+    top: 100px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .car-stage {
+    background: #fff;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--line);
+  }
+
+  .stage-image-wrap {
+    width: 100%;
+    min-height: 520px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+    padding: 20px;
+  }
+
+  .car-stage img {
+    width: 100%;
+    max-width: 900px;
+    height: auto;
+    display: block;
+    transition: opacity 0.25s ease;
+  }
+
+  .placeholder {
+    color: var(--muted);
+    font-weight: 600;
+    text-align: center;
+  }
+
+  .view-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    padding: 14px;
+    background: #f1f5f9;
+    flex-wrap: wrap;
+  }
+
+  .view-tab {
+    padding: 8px 16px;
+    border-radius: 999px;
+    border: none;
+    background: transparent;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+  }
+
+  .view-tab.active {
+    background: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+
+  .config-column {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .panel {
+    background: #fff;
+    border-radius: var(--radius-lg);
+    padding: 28px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--line);
+  }
+
+  .price-panel { padding: 24px 28px; }
+
+  .config-layout h1 {
+    font-size: 2.3rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin: 0 0 8px;
+  }
+
+  .subtitle {
+    color: var(--muted);
+    margin-bottom: 24px;
+  }
+
+  .section-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin: 22px 0 12px;
+  }
+
+  .config-btn-group,
+  .option-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .config-btn,
+  .option-btn {
+    padding: 12px 18px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
+    font-family: inherit;
+    color: var(--ink);
+  }
+
+  .config-btn:hover,
+  .option-btn:hover {
+    border-color: var(--accent);
+  }
+
+  .config-btn.active,
+  .option-btn.active {
+    background: var(--ink);
+    color: #fff;
+    border-color: var(--ink);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+
+  .color-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .swatch-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px 8px 8px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    cursor: pointer;
+    transition: 0.2s;
+    background: #fff;
+  }
+
+  .swatch-wrapper.active {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(28, 105, 212, 0.12);
+  }
+
+  .swatch {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    display: inline-block;
+    flex-shrink: 0;
+  }
+
+  .swatch-label {
+    font-size: 0.92rem;
+    font-weight: 600;
+  }
+
+  .summary-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .summary-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .summary-row:last-child {
+    border-bottom: none;
+  }
+
+  .summary-key {
+    color: var(--muted);
+    font-weight: 600;
+  }
+
+  .summary-value {
+    font-weight: 700;
+    text-align: right;
+  }
+
+  .price-tag {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 12px;
+  }
+
+  .price-tag span {
+    font-size: 0.9rem;
+    color: var(--muted);
+    font-weight: 500;
+  }
+
+  .price-main {
+    font-size: 2.2rem;
+    font-weight: 800;
+  }
+
+  .add-btn {
+    width: 100%;
+    padding: 18px;
+    border-radius: var(--radius-md);
+    border: none;
+    background: var(--accent);
+    color: #fff;
+    font-size: 1.05rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.2s;
+    margin-top: 18px;
+    font-family: inherit;
+  }
+
+  .add-btn:hover:not(:disabled) {
+    background: var(--accent-dark);
+    transform: translateY(-1px);
+  }
+
+  .add-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  #status {
+    margin-top: 14px;
+    min-height: 20px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #10b981;
+  }
+</style>
+
+<div class="config-layout">
+  <div class="preview-column">
+    <div class="car-stage">
+      <div class="stage-image-wrap">
+        <img id="carImg" src="" alt="Auto Vorschau" style="display:none" />
+        <div class="placeholder" id="placeholder">Lade Vorschau ...</div>
+      </div>
+
+      <div class="view-tabs" id="viewTabs">
+        <button class="view-tab active" data-view="front">Exterieur</button>
+        <button class="view-tab" data-view="back">Heck</button>
+        <button class="view-tab" data-view="wheels">Felgen</button>
+        <button class="view-tab" data-view="interior">Interieur</button>
+      </div>
+    </div>
+
+    <div class="panel price-panel">
+      <div class="price-tag">
+        <span id="modelNameDisplay">Modell laden...</span>
+        <div class="price-main" id="price">0,00 EUR</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="config-column">
+    <div class="panel">
+      <h1>BMW konfigurieren</h1>
+      <p class="subtitle">Wählen Sie Modell, Exterieur-Farbe, Interieur und Felgen.</p>
+
+      <div class="section-label">Modell</div>
+      <div class="config-btn-group" id="modelBtns"></div>
+
+      <div class="section-label">Exterieur-Farbe</div>
+      <div class="color-group" id="colorBtns"></div>
+
+      <div class="section-label">Interieur</div>
+      <div class="option-group" id="interiorBtns"></div>
+
+      <div class="section-label">Felgen</div>
+      <div class="option-group" id="wheelsBtns"></div>
+    </div>
+
+    <div class="panel">
+      <div class="summary-grid">
+        <div class="summary-row">
+          <div class="summary-key">Exterieur</div>
+          <div class="summary-value" id="selectedColor">-</div>
+        </div>
+        <div class="summary-row">
+          <div class="summary-key">Interieur</div>
+          <div class="summary-value" id="selectedInterior">-</div>
+        </div>
+        <div class="summary-row">
+          <div class="summary-key">Felgen</div>
+          <div class="summary-value" id="selectedWheels">-</div>
+        </div>
+      </div>
+
+      <button class="add-btn" id="addBtn" disabled>Konfiguration abschließen</button>
+      <div id="status"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const initialSelection = <%- JSON.stringify(initialSelection || null) %>;
+
+  const state = {
+    models: [],
+    colors: [],
+    interiors: [],
+    wheels: [],
+    selection: {
+      modelId: null,
+      colorId: null,
+      interiorId: null,
+      wheelsId: null,
+      view: "front"
+    },
+    config: null
+  };
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const legacySelection = {
+    model: urlParams.get("model"),
+    color: urlParams.get("color"),
+    interior: urlParams.get("interior"),
+    wheels: urlParams.get("wheels")
+  };
+
+  function formatPrice(value) {
+    return Number(value || 0).toLocaleString("de-DE", {
+      style: "currency",
+      currency: "EUR"
+    });
+  }
+
+  function normalizeText(value) {
+    return String(value || "")
+      .normalize("NFKD")
+      .replace(/[̀-ͯ]/g, "")
+      .replace(/ß/g, "ss")
+      .trim();
+  }
+
+  function tokenizeSlug(value) {
+    return normalizeText(value)
+      .replace(/[^a-zA-Z0-9]+/g, " ")
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean);
+  }
+
+  function toCompactSlug(value) {
+    return tokenizeSlug(value)
+      .map((token) => token.charAt(0).toUpperCase() + token.slice(1))
+      .join("");
+  }
+
+  function inferInteriorSlug(name) {
+    const key = normalizeText(name).toLowerCase();
+    if (key.includes("black") || key.includes("schwarz")) return "Black";
+    if (key.includes("white") || key.includes("weiss") || key.includes("elfenbein")) return "White";
+    if (key.includes("coffee")) return "Coffee";
+    return toCompactSlug(name);
+  }
+
+  function inferWheelsSlug(name) {
+    const key = normalizeText(name).toLowerCase();
+    if (key.includes("bicolor")) return "Bicolor";
+    if (key.includes("jet black")) return "JetBlack";
+    if (key.includes("plus")) return "Plus";
+    if (key.includes("schmiederad")) return "Schmiederad";
+    return toCompactSlug(name);
+  }
+
+  function getModelSlug(model) { return toCompactSlug(model ? model.name : ""); }
+  function getColorSlug(color) { return toCompactSlug(color ? color.name : ""); }
+  function getInteriorSlug(interior) { return inferInteriorSlug(interior ? interior.name : ""); }
+  function getWheelsSlug(wheels) { return inferWheelsSlug(wheels ? wheels.name : ""); }
+
+  function matchesSlug(actualSlug, expectedSlug) {
+    return normalizeText(actualSlug).toLowerCase() === normalizeText(expectedSlug).toLowerCase();
+  }
+
+  function colorFromName(name) {
+    const key = String(name || "").toLowerCase();
+    if (key.includes("black") || key.includes("schwarz")) return "#111111";
+    if (key.includes("blue") || key.includes("blau")) return "#1c69d4";
+    if (key.includes("white") || key.includes("weiss") || key.includes("weiß")) return "#f8fafc";
+    if (key.includes("grey") || key.includes("gray") || key.includes("grau")) return "#6b7280";
+    if (key.includes("red") || key.includes("rot")) return "#b91c1c";
+    if (key.includes("silver") || key.includes("silber")) return "#cbd5e1";
+    return "#d1d5db";
+  }
+
+  function colorSortRank(name) {
+    const key = String(name || "").toLowerCase();
+    if (key.includes("black") || key.includes("schwarz")) return 1;
+    if (key.includes("blue") || key.includes("blau")) return 2;
+    if (key.includes("white") || key.includes("weiss") || key.includes("weiß")) return 3;
+    if (key.includes("grey") || key.includes("gray") || key.includes("grau")) return 4;
+    if (key.includes("red") || key.includes("rot")) return 5;
+    if (key.includes("silver") || key.includes("silber")) return 6;
+    return 99;
+  }
+
+  async function fetchJson(url, options) {
+    const res = await fetch(url, options);
+    if (!res.ok) throw new Error(`Request failed: ${url}`);
+    return res.json();
+  }
+
+  function pickPreferredOrFirst(options, matcher) {
+    if (!options.length) return null;
+    return options.find(matcher) || options[0];
+  }
+
+  function findOptionBySlug(options, expectedSlug, getSlug) {
+    if (!expectedSlug) return null;
+    return options.find((option) => matchesSlug(getSlug(option), expectedSlug)) || null;
+  }
+
+  function getCurrentSelectionSlugs() {
+    const model = state.models.find((entry) => entry.id === state.selection.modelId) || null;
+    const color = state.colors.find((entry) => entry.id === state.selection.colorId) || null;
+    const interior = state.interiors.find((entry) => entry.id === state.selection.interiorId) || null;
+    const wheels = state.wheels.find((entry) => entry.id === state.selection.wheelsId) || null;
+
+    return {
+      model: model ? getModelSlug(model) : null,
+      color: color ? getColorSlug(color) : null,
+      interior: interior ? getInteriorSlug(interior) : null,
+      wheels: wheels ? getWheelsSlug(wheels) : null
+    };
+  }
+
+  function buildConfiguratorPath(selectionSlugs) {
+    if (!selectionSlugs.model || !selectionSlugs.color || !selectionSlugs.interior || !selectionSlugs.wheels) {
+      return "/car-configurator";
+    }
+    return `/car-configurator/${encodeURIComponent(selectionSlugs.model)}/${encodeURIComponent(selectionSlugs.color)}/${encodeURIComponent(selectionSlugs.interior)}/${encodeURIComponent(selectionSlugs.wheels)}`;
+  }
+
+  function getInitialRequestedSelection() {
+    if (initialSelection) return initialSelection;
+    if (legacySelection.model || legacySelection.color || legacySelection.interior || legacySelection.wheels) {
+      return legacySelection;
+    }
+    return null;
+  }
+
+  function getInitialView() {
+    const hashView = window.location.hash.replace(/^#/, "");
+    const allowedViews = new Set(["front", "back", "wheels", "interior"]);
+    return allowedViews.has(hashView) ? hashView : "front";
+  }
+
+  function modelMatchesSelection(model, expectedModel) {
+    const requested = normalizeText(expectedModel).toLowerCase();
+    if (!requested) return false;
+    const modelSlug = normalizeText(getModelSlug(model)).toLowerCase();
+    const modelCode = normalizeText(model ? model.code : "").toLowerCase();
+    const modelName = normalizeText(model ? model.name : "").toLowerCase();
+    return (
+      modelSlug === requested ||
+      modelCode === requested ||
+      modelName === requested ||
+      modelSlug.includes(requested) ||
+      modelName.includes(requested)
+    );
+  }
+
+  function setActiveView(view) {
+    state.selection.view = view;
+    document.querySelectorAll(".view-tab").forEach((tab) => {
+      tab.classList.toggle("active", tab.dataset.view === view);
+    });
+    if (state.selection.modelId) {
+      window.history.replaceState(null, "", `${window.location.pathname}#${view}`);
+    }
+    updateImage();
+  }
+
+  async function fetchOptionsForModel(modelId) {
+    const encodedModelId = encodeURIComponent(modelId);
+    const [colors, interiors, wheels] = await Promise.all([
+      fetchJson(`/api/configurator/options/colors?modelId=${encodedModelId}`),
+      fetchJson(`/api/configurator/options/interiors?modelId=${encodedModelId}`),
+      fetchJson(`/api/configurator/options/wheels?modelId=${encodedModelId}`)
+    ]);
+    return {
+      colors: [...colors].sort((left, right) => {
+        const rankDifference = colorSortRank(left.name) - colorSortRank(right.name);
+        if (rankDifference !== 0) return rankDifference;
+        return String(left.name).localeCompare(String(right.name), "de");
+      }),
+      interiors,
+      wheels
+    };
+  }
+
+  async function loadInitialData() {
+    try {
+      state.models = await fetchJson("/api/configurator/models");
+      state.selection.view = getInitialView();
+      const requestedSelection = getInitialRequestedSelection();
+      const initialModel = pickPreferredOrFirst(
+        state.models,
+        (model) => modelMatchesSelection(model, requestedSelection && requestedSelection.model)
+      );
+      if (initialModel) {
+        state.selection.modelId = initialModel.id;
+      }
+      renderModelButtons();
+      await loadOptionsForModel(requestedSelection);
+      await recalculate();
+      setActiveView(state.selection.view);
+      syncBrowserUrl(true);
+    } catch (err) {
+      console.error(err);
+      document.getElementById("placeholder").textContent = "Fehler beim Laden";
+      document.getElementById("modelNameDisplay").textContent = "Nicht verfügbar";
+      document.getElementById("price").textContent = "Nicht verfügbar";
+    }
+  }
+
+  async function loadOptionsForModel(requestedSelection = null) {
+    if (!state.selection.modelId) return;
+    const optionSet = await fetchOptionsForModel(state.selection.modelId);
+    state.colors = optionSet.colors;
+    state.interiors = optionSet.interiors;
+    state.wheels = optionSet.wheels;
+
+    const selectedColor = pickPreferredOrFirst(
+      state.colors,
+      (color) =>
+        (requestedSelection && matchesSlug(getColorSlug(color), requestedSelection.color)) ||
+        state.selection.colorId === color.id
+    );
+    if (!state.colors.some((color) => color.id === state.selection.colorId)) {
+      state.selection.colorId = selectedColor ? selectedColor.id : null;
+    }
+
+    const selectedInterior =
+      findOptionBySlug(state.interiors, requestedSelection && requestedSelection.interior, getInteriorSlug) ||
+      state.interiors.find((interior) => interior.id === state.selection.interiorId) ||
+      state.interiors[0] ||
+      null;
+    if (!state.interiors.some((interior) => interior.id === state.selection.interiorId)) {
+      state.selection.interiorId = selectedInterior ? selectedInterior.id : null;
+    }
+
+    const selectedWheels =
+      findOptionBySlug(state.wheels, requestedSelection && requestedSelection.wheels, getWheelsSlug) ||
+      state.wheels.find((wheel) => wheel.id === state.selection.wheelsId) ||
+      state.wheels[0] ||
+      null;
+    if (!state.wheels.some((wheel) => wheel.id === state.selection.wheelsId)) {
+      state.selection.wheelsId = selectedWheels ? selectedWheels.id : null;
+    }
+
+    renderColorButtons();
+    renderInteriorButtons();
+    renderWheelsButtons();
+  }
+
+  function syncBrowserUrl(replace) {
+    const targetUrl = `${buildConfiguratorPath(getCurrentSelectionSlugs())}${state.selection.view ? `#${state.selection.view}` : ""}`;
+    const currentUrl = `${window.location.pathname}${window.location.hash}`;
+    if (targetUrl === currentUrl) return;
+    if (replace) {
+      window.history.replaceState(null, "", targetUrl);
+      return;
+    }
+    window.location.assign(targetUrl);
+  }
+
+  async function navigateToModel(model) {
+    const currentSlugs = getCurrentSelectionSlugs();
+    const currentView = state.selection.view || "front";
+    const optionSet = await fetchOptionsForModel(model.id);
+    const nextColor = findOptionBySlug(optionSet.colors, currentSlugs.color, getColorSlug) || optionSet.colors[0] || null;
+    const nextInterior = findOptionBySlug(optionSet.interiors, currentSlugs.interior, getInteriorSlug) || optionSet.interiors[0] || null;
+    const nextWheels = findOptionBySlug(optionSet.wheels, currentSlugs.wheels, getWheelsSlug) || optionSet.wheels[0] || null;
+    window.location.assign(
+      `${buildConfiguratorPath({
+        model: getModelSlug(model),
+        color: nextColor ? getColorSlug(nextColor) : null,
+        interior: nextInterior ? getInteriorSlug(nextInterior) : null,
+        wheels: nextWheels ? getWheelsSlug(nextWheels) : null
+      })}#${currentView}`
+    );
+  }
+
+  function renderModelButtons() {
+    const container = document.getElementById("modelBtns");
+    container.innerHTML = "";
+    state.models.forEach((model) => {
+      const btn = document.createElement("button");
+      btn.className = "config-btn" + (state.selection.modelId === model.id ? " active" : "");
+      btn.textContent = model.name;
+      btn.addEventListener("click", async () => {
+        if (state.selection.modelId === model.id) return;
+        await navigateToModel(model);
+      });
+      container.appendChild(btn);
+    });
+  }
+
+  function renderColorButtons() {
+    const container = document.getElementById("colorBtns");
+    container.innerHTML = "";
+    state.colors.forEach((color) => {
+      const wrapper = document.createElement("div");
+      wrapper.className = "swatch-wrapper" + (state.selection.colorId === color.id ? " active" : "");
+      wrapper.innerHTML = `
+        <span class="swatch" style="background:${colorFromName(color.name)}"></span>
+        <span class="swatch-label">${color.name}</span>
+      `;
+      wrapper.addEventListener("click", () => {
+        if (state.selection.colorId === color.id) return;
+        state.selection.colorId = color.id;
+        setActiveView("front");
+        syncBrowserUrl(false);
+      });
+      container.appendChild(wrapper);
+    });
+  }
+
+  function renderInteriorButtons() {
+    const container = document.getElementById("interiorBtns");
+    container.innerHTML = "";
+    state.interiors.forEach((interior) => {
+      const btn = document.createElement("button");
+      btn.className = "option-btn" + (state.selection.interiorId === interior.id ? " active" : "");
+      btn.textContent = `${interior.name} (+${formatPrice(interior.price)})`;
+      btn.addEventListener("click", () => {
+        if (state.selection.interiorId === interior.id) return;
+        state.selection.interiorId = interior.id;
+        setActiveView("interior");
+        syncBrowserUrl(false);
+      });
+      container.appendChild(btn);
+    });
+  }
+
+  function renderWheelsButtons() {
+    const container = document.getElementById("wheelsBtns");
+    container.innerHTML = "";
+    state.wheels.forEach((wheel) => {
+      const btn = document.createElement("button");
+      btn.className = "option-btn" + (state.selection.wheelsId === wheel.id ? " active" : "");
+      btn.textContent = `${wheel.name} (+${formatPrice(wheel.price)})`;
+      btn.addEventListener("click", () => {
+        if (state.selection.wheelsId === wheel.id) return;
+        state.selection.wheelsId = wheel.id;
+        setActiveView("wheels");
+        syncBrowserUrl(false);
+      });
+      container.appendChild(btn);
+    });
+  }
+
+  document.querySelectorAll(".view-tab").forEach((tab) => {
+    tab.addEventListener("click", () => {
+      setActiveView(tab.dataset.view);
+    });
+  });
+
+  async function recalculate() {
+    if (!state.selection.modelId) return;
+    try {
+      state.config = await fetchJson("/api/configurator/configuration/calculate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          modelId: state.selection.modelId,
+          colorId: state.selection.colorId,
+          interiorId: state.selection.interiorId,
+          wheelsId: state.selection.wheelsId
+        })
+      });
+      updateUI();
+    } catch (err) {
+      console.error(err);
+      state.config = null;
+      updateUI();
+    }
+  }
+
+  function updateUI() {
+    const cfg = state.config;
+    const img = document.getElementById("carImg");
+    const placeholder = document.getElementById("placeholder");
+    const addBtn = document.getElementById("addBtn");
+
+    if (!cfg) {
+      document.getElementById("modelNameDisplay").textContent = "Nicht verfügbar";
+      document.getElementById("price").textContent = "Nicht verfügbar";
+      document.getElementById("selectedColor").textContent = "-";
+      document.getElementById("selectedInterior").textContent = "-";
+      document.getElementById("selectedWheels").textContent = "-";
+      addBtn.disabled = true;
+      img.style.display = "none";
+      placeholder.style.display = "block";
+      placeholder.textContent = "Keine Vorschau verfügbar";
+      return;
+    }
+
+    document.getElementById("modelNameDisplay").textContent =
+      `${cfg.model.name} ${cfg.model.packageName || ""}`.trim();
+    document.getElementById("price").textContent = formatPrice(cfg.totalPrice);
+    document.getElementById("selectedColor").textContent = cfg.color ? cfg.color.name : "-";
+    document.getElementById("selectedInterior").textContent = cfg.interior ? cfg.interior.name : "-";
+    document.getElementById("selectedWheels").textContent = cfg.wheels ? cfg.wheels.name : "-";
+
+    addBtn.disabled = false;
+    updateImage();
+  }
+
+  function updateImage() {
+    const cfg = state.config;
+    const img = document.getElementById("carImg");
+    const placeholder = document.getElementById("placeholder");
+
+    if (!cfg || !cfg.previewImages) {
+      img.style.display = "none";
+      placeholder.style.display = "block";
+      placeholder.textContent = "Keine Vorschau verfügbar";
+      return;
+    }
+
+    const activeUrl = cfg.previewImages[state.selection.view] || cfg.previewImages.front;
+    if (!activeUrl) {
+      img.style.display = "none";
+      placeholder.style.display = "block";
+      placeholder.textContent = "Kein Bild für diese Ansicht vorhanden";
+      return;
+    }
+
+    placeholder.style.display = "none";
+    img.style.display = "block";
+    img.style.opacity = "0.4";
+    img.src = activeUrl;
+    img.onload = () => { img.style.opacity = "1"; };
+  }
+
+  document.getElementById("addBtn").addEventListener("click", async () => {
+    const cfg = state.config;
+    const btn = document.getElementById("addBtn");
+    const status = document.getElementById("status");
+
+    if (!cfg) return;
+
+    btn.disabled = true;
+    status.textContent = "Speichere...";
+
+    try {
+      const res = await fetch("/api/cart/items", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "car",
+          name: `${cfg.model.name} ${cfg.model.packageName || ""}`.trim(),
+          price: cfg.totalPrice,
+          imageUrl: cfg.previewImages.front,
+          quantity: 1,
+          details: {
+            modelId: cfg.model.id,
+            color: cfg.color ? cfg.color.name : null,
+            interior: cfg.interior ? cfg.interior.name : null,
+            wheels: cfg.wheels ? cfg.wheels.name : null
+          }
+        })
+      });
+
+      status.textContent = res.ok ? "Erfolgreich hinzugefügt" : "Fehler beim Hinzufügen";
+    } catch (err) {
+      console.error(err);
+      status.textContent = "Fehler beim Hinzufügen";
+    } finally {
+      btn.disabled = false;
+      setTimeout(() => { status.textContent = ""; }, 3000);
+    }
+  });
+
+  loadInitialData();
+</script>

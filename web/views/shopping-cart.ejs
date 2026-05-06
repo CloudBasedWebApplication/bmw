@@ -1,0 +1,634 @@
+<style>
+  /* Cart-specific layout. BMW CI tokens, fonts, page-shell, site-nav, site-footer,
+     section-*, .btn*, .field/.input, .card* live in /static/ci/bmw-ci.css. */
+
+  .cart-layout {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 40px 20px 80px;
+  }
+
+  .cart-layout h1 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    margin: 0 0 32px;
+  }
+
+  .cart-toolbar {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 32px;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 80px 40px;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+  }
+
+  .empty-state p {
+    color: var(--muted);
+    margin-bottom: 24px;
+    font-size: 1.1rem;
+  }
+
+  .item {
+    background: var(--panel);
+    border-radius: var(--radius);
+    padding: 20px;
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    margin-bottom: 16px;
+    border: 1px solid var(--line);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s;
+  }
+
+  .item:hover { transform: scale(1.01); }
+
+  .item img {
+    width: 120px; height: 90px; object-fit: cover;
+    border-radius: 12px; background: #f8fafc; flex-shrink: 0;
+  }
+
+  .item-info { flex: 1; }
+  .item-name { font-size: 1.1rem; font-weight: 700; margin-bottom: 4px; color: var(--ink); }
+  .item-meta {
+    font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.05em; color: var(--accent);
+  }
+  .item-variant { font-size: 0.85rem; color: var(--muted); margin-top: 6px; }
+
+  .item-right { text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+  .item-price { font-weight: 800; color: var(--ink); font-size: 1.1rem; }
+
+  .remove-btn {
+    background: #fee2e2; border: none; color: #ef4444;
+    padding: 6px 12px; border-radius: 8px; cursor: pointer;
+    font-size: 0.8rem; font-weight: 700; transition: 0.2s;
+  }
+  .remove-btn:hover { background: #ef4444; color: #fff; }
+
+  .qty-controls {
+    display: flex; align-items: center; gap: 8px; margin-top: 4px;
+  }
+  .qty-btn {
+    width: 28px; height: 28px; border: 1px solid #e2e8f0; background: #f8fafc;
+    border-radius: 6px; cursor: pointer; font-size: 1rem; font-weight: 700;
+    color: var(--ink); display: flex; align-items: center; justify-content: center;
+    transition: 0.2s; padding: 0;
+  }
+  .qty-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .qty-btn:disabled { opacity: 0.4; cursor: default; }
+  .qty-value { font-size: 0.95rem; font-weight: 700; min-width: 20px; text-align: center; }
+
+  .summary {
+    margin-top: 32px; padding: 32px; background: var(--ink);
+    border-radius: var(--radius); color: #fff;
+    display: flex; justify-content: space-between; align-items: center;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+  }
+  .total-label { font-size: 1.1rem; opacity: 0.7; }
+  .total-value { font-size: 2rem; font-weight: 800; }
+
+  .checkout-action {
+    margin-top: 24px;
+    text-align: right;
+  }
+
+  .loading { text-align: center; padding: 40px; color: var(--muted); font-weight: 500; }
+
+  /* Checkout */
+  .checkout-view, .confirmation-view { display: none; }
+  .checkout-view.active, .confirmation-view.active { display: block; }
+
+  .step-bar { display: flex; align-items: center; margin-bottom: 36px; }
+  .step {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 0.82rem; font-weight: 600; color: var(--muted);
+  }
+  .step.active { color: var(--accent); }
+  .step.done { color: #16a34a; }
+  .step-num {
+    width: 28px; height: 28px; border-radius: 50%;
+    border: 2px solid currentColor;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem; font-weight: 800; flex-shrink: 0;
+  }
+  .step-line { flex: 1; height: 1px; background: #e2e8f0; margin: 0 14px; }
+
+  .form-card {
+    background: var(--panel); border-radius: var(--radius);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); padding: 32px;
+    margin-bottom: 16px; border: 1px solid var(--line);
+  }
+  .form-card h2 { font-size: 1.15rem; font-weight: 800; margin: 0 0 24px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+  .form-group:last-child { margin-bottom: 0; }
+  .form-group label {
+    font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--muted);
+  }
+  .form-group input, .form-group select {
+    padding: 12px 14px; border: 1px solid #e2e8f0; border-radius: 10px;
+    font-size: 0.95rem; font-family: inherit; color: var(--ink);
+    background: #fafbfc; outline: none; transition: border-color 0.2s;
+  }
+  .form-group input:focus, .form-group select:focus { border-color: var(--accent); }
+
+  .payment-options { display: flex; flex-direction: column; gap: 10px; }
+  .payment-option {
+    display: flex; align-items: center; gap: 14px; padding: 14px 18px;
+    border: 2px solid #e2e8f0; border-radius: 12px; cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .payment-option:has(input:checked) { border-color: var(--accent); background: rgba(28, 105, 212, 0.04); }
+  .payment-option input { accent-color: var(--accent); }
+  .payment-option-label { font-weight: 600; font-size: 0.92rem; }
+  .payment-option-sub { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+
+  .order-summary-card {
+    background: var(--panel); border-radius: var(--radius);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); padding: 24px 28px; margin-bottom: 24px;
+    border: 1px solid var(--line);
+  }
+  .order-summary-card h3 { font-size: 0.85rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin: 0 0 16px; }
+  .summary-line {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 9px 0; border-bottom: 1px solid rgba(0,0,0,0.05);
+    font-size: 0.88rem;
+  }
+  .summary-line:last-child { border-bottom: none; font-weight: 800; font-size: 1rem; padding-top: 14px; }
+  .summary-line-name { color: var(--ink); }
+  .summary-line-price { font-weight: 700; color: var(--ink); }
+
+  .checkout-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+  }
+
+  .btn-back {
+    background: none; border: 1px solid #e2e8f0; color: var(--muted);
+    padding: 11px 22px; border-radius: 12px; font-size: 0.88rem;
+    font-weight: 600; cursor: pointer; transition: 0.2s; font-family: inherit;
+  }
+  .btn-back:hover { border-color: var(--ink); color: var(--ink); }
+
+  /* Confirmation */
+  .confirmation-card {
+    background: var(--panel); border-radius: var(--radius);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); padding: 64px 40px; text-align: center;
+    border: 1px solid var(--line);
+  }
+  .confirm-icon {
+    width: 72px; height: 72px; border-radius: 50%; background: #16a34a;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 28px;
+  }
+  .confirm-icon::after {
+    content: ''; display: block;
+    width: 18px; height: 30px;
+    border-right: 3px solid #fff; border-bottom: 3px solid #fff;
+    transform: rotate(45deg) translate(-2px, -3px);
+  }
+  .confirmation-card h2 { font-size: 2rem; font-weight: 800; letter-spacing: -0.03em; margin: 0 0 14px; }
+  .confirmation-card .conf-sub { color: var(--muted); font-size: 1rem; margin: 0 0 6px; }
+  .conf-order-nr { font-size: 0.88rem; font-weight: 700; color: var(--accent); margin-top: 8px; }
+  .confirmation-actions { margin-top: 40px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+  @media (max-width: 600px) {
+    .form-row { grid-template-columns: 1fr; }
+    .confirmation-card { padding: 40px 24px; }
+  }
+</style>
+
+<div class="cart-layout">
+
+  <!-- Cart -->
+  <div id="cartWrapper">
+    <div class="cart-toolbar">
+      <h1 style="margin:0;">Ihr Warenkorb</h1>
+      <button class="btn btn-ghost" id="clearCartBtn">Warenkorb leeren</button>
+    </div>
+    <div id="cartContent">
+      <div class="loading">Inhalt wird sicher geladen...</div>
+    </div>
+  </div>
+
+  <!-- Checkout -->
+  <div class="checkout-view" id="checkoutView">
+    <div class="cart-toolbar">
+      <h1 style="margin:0;">Kasse</h1>
+      <button class="btn-back" onclick="showCart()">← Zurück zum Warenkorb</button>
+    </div>
+
+    <div class="step-bar">
+      <div class="step active" id="step1"><span class="step-num">1</span> Lieferadresse</div>
+      <div class="step-line"></div>
+      <div class="step" id="step2"><span class="step-num">2</span> Zahlung</div>
+      <div class="step-line"></div>
+      <div class="step" id="step3"><span class="step-num">3</span> Bestätigung</div>
+    </div>
+
+    <div class="form-card">
+      <h2>Lieferadresse</h2>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Vorname</label>
+          <input type="text" id="firstName" placeholder="Max" autocomplete="given-name" />
+        </div>
+        <div class="form-group">
+          <label>Nachname</label>
+          <input type="text" id="lastName" placeholder="Mustermann" autocomplete="family-name" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>E-Mail-Adresse</label>
+        <input type="email" id="emailField" placeholder="max@example.de" autocomplete="email" />
+      </div>
+      <div class="form-group">
+        <label>Straße und Hausnummer</label>
+        <input type="text" id="street" placeholder="Musterstraße 42" autocomplete="street-address" />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Postleitzahl</label>
+          <input type="text" id="zip" placeholder="80809" autocomplete="postal-code" />
+        </div>
+        <div class="form-group">
+          <label>Stadt</label>
+          <input type="text" id="city" placeholder="München" autocomplete="address-level2" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Land</label>
+        <select id="country" autocomplete="country">
+          <option value="DE" selected>Deutschland</option>
+          <option value="AT">Österreich</option>
+          <option value="CH">Schweiz</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-card">
+      <h2>Zahlungsart</h2>
+      <div class="payment-options">
+        <label class="payment-option">
+          <input type="radio" name="payment" value="credit" checked />
+          <div>
+            <div class="payment-option-label">Kreditkarte</div>
+            <div class="payment-option-sub">Visa, Mastercard, American Express</div>
+          </div>
+        </label>
+        <label class="payment-option">
+          <input type="radio" name="payment" value="paypal" />
+          <div>
+            <div class="payment-option-label">PayPal</div>
+            <div class="payment-option-sub">Sicher bezahlen über PayPal</div>
+          </div>
+        </label>
+        <label class="payment-option">
+          <input type="radio" name="payment" value="invoice" />
+          <div>
+            <div class="payment-option-label">Rechnung</div>
+            <div class="payment-option-sub">Zahlung innerhalb von 14 Tagen</div>
+          </div>
+        </label>
+      </div>
+    </div>
+
+    <div class="order-summary-card">
+      <h3>Ihre Bestellung</h3>
+      <div id="checkoutSummaryLines"></div>
+    </div>
+
+    <div class="checkout-actions">
+      <button class="btn-back" onclick="showCart()">Zurück</button>
+      <button class="btn btn-primary" id="placeOrderBtn" onclick="placeOrder()">Bestellung aufgeben</button>
+    </div>
+  </div>
+
+  <!-- Confirmation -->
+  <div class="confirmation-view" id="confirmationView">
+    <div class="confirmation-card">
+      <div class="confirm-icon"></div>
+      <h2>Vielen Dank!</h2>
+      <p class="conf-sub">Ihre Bestellung wurde erfolgreich aufgegeben.</p>
+      <p class="conf-sub" id="confEmail"></p>
+      <p class="conf-order-nr" id="confOrderNr"></p>
+      <div class="confirmation-actions">
+        <a href="/" class="btn btn-primary">Zurück zur Startseite</a>
+        <a href="/merch-shop" class="btn btn-ghost">Weiter einkaufen</a>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  function normalizeText(text) {
+    if (!text) return text;
+    return text
+      .replaceAll("WeiÃŸ", "Weiß")
+      .replaceAll("GrÃ¼n", "Grün")
+      .replaceAll("MaÃŸ", "Maß")
+      .replaceAll("OberflÃ¤che", "Oberfläche")
+      .replaceAll("HÃ¼lle", "Hülle")
+      .replaceAll("StoÃŸ", "Stoß")
+      .replaceAll("MaÃŸstab", "Maßstab");
+  }
+
+  function normalizeImageUrl(url) {
+    if (!url) return url;
+    return url
+      .replace("BMW_Merchandise_weiÃŸ.avif", "BMW_Merchandise_weiss.avif")
+      .replace("BMW_Merchandise_weiß.avif", "BMW_Merchandise_weiss.avif");
+  }
+
+  async function loadCart() {
+    const container = document.getElementById("cartContent");
+    try {
+      const res = await fetch("/api/cart");
+      const { items, total } = await res.json();
+
+      if (!items || !items.length) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <p>Ihr Warenkorb ist zurzeit noch leer.</p>
+            <a href="/merch-shop" class="btn btn-primary">Jetzt entdecken</a>
+          </div>`;
+        return;
+      }
+
+      container.replaceChildren();
+
+      items.forEach(item => {
+        const itemEl = document.createElement("div");
+        itemEl.className = "item";
+        itemEl.id = `item-${item.id}`;
+
+        if (item.imageUrl) {
+          const imageEl = document.createElement("img");
+          imageEl.src = normalizeImageUrl(item.imageUrl);
+          imageEl.alt = normalizeText(item.name);
+          itemEl.appendChild(imageEl);
+        } else {
+          const placeholderEl = document.createElement("div");
+          placeholderEl.style.width = "120px";
+          placeholderEl.style.height = "90px";
+          placeholderEl.style.background = "#f1f5f9";
+          placeholderEl.style.borderRadius = "12px";
+          placeholderEl.style.flexShrink = "0";
+          itemEl.appendChild(placeholderEl);
+        }
+
+        const itemInfoEl = document.createElement("div");
+        itemInfoEl.className = "item-info";
+
+        const itemMetaEl = document.createElement("div");
+        itemMetaEl.className = "item-meta";
+        itemMetaEl.textContent = item.type === "car" ? "Fahrzeug" : "Lifestyle & Merch";
+        itemInfoEl.appendChild(itemMetaEl);
+
+        const itemNameEl = document.createElement("div");
+        itemNameEl.className = "item-name";
+        itemNameEl.textContent = normalizeText(item.name);
+        itemInfoEl.appendChild(itemNameEl);
+
+        if (item.details?.color) {
+          const itemVariantEl = document.createElement("div");
+          itemVariantEl.className = "item-variant";
+          itemVariantEl.textContent = `Farbe: ${normalizeText(item.details.color)}`;
+          itemInfoEl.appendChild(itemVariantEl);
+        }
+
+        const qtyControlsEl = document.createElement("div");
+        qtyControlsEl.className = "qty-controls";
+
+        const decreaseBtn = document.createElement("button");
+        decreaseBtn.className = "qty-btn";
+        decreaseBtn.dataset.id = String(item.id);
+        decreaseBtn.dataset.delta = "-1";
+        decreaseBtn.textContent = "−";
+        qtyControlsEl.appendChild(decreaseBtn);
+
+        const qtyValueEl = document.createElement("span");
+        qtyValueEl.className = "qty-value";
+        qtyValueEl.textContent = String(item.quantity);
+        qtyControlsEl.appendChild(qtyValueEl);
+
+        const increaseBtn = document.createElement("button");
+        increaseBtn.className = "qty-btn";
+        increaseBtn.dataset.id = String(item.id);
+        increaseBtn.dataset.delta = "1";
+        increaseBtn.textContent = "+";
+        qtyControlsEl.appendChild(increaseBtn);
+
+        itemInfoEl.appendChild(qtyControlsEl);
+        itemEl.appendChild(itemInfoEl);
+
+        const itemRightEl = document.createElement("div");
+        itemRightEl.className = "item-right";
+
+        const itemPriceEl = document.createElement("div");
+        itemPriceEl.className = "item-price";
+        itemPriceEl.textContent = (item.price * item.quantity).toLocaleString("de-DE", { style: "currency", currency: "EUR" });
+        itemRightEl.appendChild(itemPriceEl);
+
+        const removeBtn = document.createElement("button");
+        removeBtn.className = "remove-btn";
+        removeBtn.dataset.id = String(item.id);
+        removeBtn.textContent = "Entfernen";
+        itemRightEl.appendChild(removeBtn);
+
+        itemEl.appendChild(itemRightEl);
+        container.appendChild(itemEl);
+      });
+
+      const summaryEl = document.createElement("div");
+      summaryEl.className = "summary";
+
+      const summaryInfoEl = document.createElement("div");
+
+      const totalLabelEl = document.createElement("div");
+      totalLabelEl.className = "total-label";
+      totalLabelEl.textContent = "Gesamtsumme";
+      summaryInfoEl.appendChild(totalLabelEl);
+
+      const summarySubtextEl = document.createElement("div");
+      summarySubtextEl.style.fontSize = "0.8rem";
+      summarySubtextEl.style.opacity = "0.5";
+      summarySubtextEl.textContent = "Inkl. MwSt. zzgl. Versand";
+      summaryInfoEl.appendChild(summarySubtextEl);
+
+      summaryEl.appendChild(summaryInfoEl);
+
+      const totalValueEl = document.createElement("div");
+      totalValueEl.className = "total-value";
+      totalValueEl.textContent = total.toLocaleString("de-DE", { style: "currency", currency: "EUR" });
+      summaryEl.appendChild(totalValueEl);
+
+      container.appendChild(summaryEl);
+
+      const checkoutActionEl = document.createElement("div");
+      checkoutActionEl.className = "checkout-action";
+
+      const checkoutBtn = document.createElement("button");
+      checkoutBtn.className = "btn btn-primary";
+      checkoutBtn.textContent = "Zur Kasse gehen";
+      checkoutBtn.addEventListener("click", showCheckout);
+      checkoutActionEl.appendChild(checkoutBtn);
+
+      container.appendChild(checkoutActionEl);
+      container.querySelectorAll(".remove-btn").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          btn.disabled = true;
+          btn.textContent = "...";
+          await fetch(`/api/cart/items/${btn.dataset.id}`, { method: "DELETE" });
+          loadCart();
+        });
+      });
+
+      container.querySelectorAll(".qty-btn").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          btn.disabled = true;
+          const qtyEl = btn.parentElement.querySelector(".qty-value");
+          const newQty = parseInt(qtyEl.textContent) + parseInt(btn.dataset.delta);
+          await fetch(`/api/cart/items/${btn.dataset.id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ quantity: newQty }),
+          });
+          loadCart();
+        });
+      });
+    } catch (err) {
+      container.innerHTML = '<div class="empty-state"><p>Fehler beim Laden des Warenkorbs.</p></div>';
+    }
+  }
+
+  loadCart();
+
+  document.getElementById("clearCartBtn").addEventListener("click", async () => {
+    if (!confirm("Warenkorb wirklich leeren?")) return;
+    await fetch("/api/cart", { method: "DELETE" });
+    loadCart();
+  });
+
+  // ── Checkout flow ─────────────────────────────────────────────────
+
+  let cartSnapshot = null;
+
+  function showCart() {
+    document.getElementById("cartWrapper").style.display = "";
+    document.getElementById("checkoutView").classList.remove("active");
+    document.getElementById("confirmationView").classList.remove("active");
+    document.getElementById("step1").classList.add("active");
+    document.getElementById("step2").classList.remove("active", "done");
+    document.getElementById("step3").classList.remove("active", "done");
+  }
+
+  async function showCheckout() {
+    try {
+      const res = await fetch("/api/cart");
+      const { items, total } = await res.json();
+      if (!items || !items.length) return;
+      cartSnapshot = { items, total };
+
+      const checkoutSummaryLines = document.getElementById("checkoutSummaryLines");
+      checkoutSummaryLines.textContent = "";
+
+      items.forEach(item => {
+        const line = document.createElement("div");
+        line.className = "summary-line";
+
+        const name = document.createElement("span");
+        name.className = "summary-line-name";
+        name.textContent = `${normalizeText(item.name)}${item.quantity > 1 ? ` ×${item.quantity}` : ""}`;
+
+        const price = document.createElement("span");
+        price.className = "summary-line-price";
+        price.textContent = (item.price * item.quantity).toLocaleString("de-DE", { style: "currency", currency: "EUR" });
+
+        line.appendChild(name);
+        line.appendChild(price);
+        checkoutSummaryLines.appendChild(line);
+      });
+
+      const totalLine = document.createElement("div");
+      totalLine.className = "summary-line";
+
+      const totalName = document.createElement("span");
+      totalName.className = "summary-line-name";
+      totalName.textContent = "Gesamtsumme";
+
+      const totalPrice = document.createElement("span");
+      totalPrice.className = "summary-line-price";
+      totalPrice.textContent = total.toLocaleString("de-DE", { style: "currency", currency: "EUR" });
+
+      totalLine.appendChild(totalName);
+      totalLine.appendChild(totalPrice);
+      checkoutSummaryLines.appendChild(totalLine);
+      document.getElementById("cartWrapper").style.display = "none";
+      document.getElementById("checkoutView").classList.add("active");
+      document.getElementById("step1").classList.add("active");
+      document.getElementById("step2").classList.add("active");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch {}
+  }
+
+  async function placeOrder() {
+    const firstName = document.getElementById("firstName").value.trim();
+    const lastName  = document.getElementById("lastName").value.trim();
+    const email     = document.getElementById("emailField").value.trim();
+    const street    = document.getElementById("street").value.trim();
+    const zip       = document.getElementById("zip").value.trim();
+    const city      = document.getElementById("city").value.trim();
+
+    if (!firstName || !lastName || !email || !street || !zip || !city) {
+      const inputs = ["firstName","lastName","emailField","street","zip","city"];
+      inputs.forEach(id => {
+        const el = document.getElementById(id);
+        el.style.borderColor = el.value.trim() ? "" : "#ef4444";
+      });
+      return;
+    }
+
+    const btn = document.getElementById("placeOrderBtn");
+    btn.disabled = true;
+    btn.textContent = "Wird verarbeitet …";
+
+    try {
+      const res = await fetch("/api/cart", { method: "DELETE" });
+
+      if (!res.ok) {
+        throw new Error(`Failed to clear cart: ${res.status}`);
+      }
+
+      const orderNr = "BMW-" + Date.now().toString(36).toUpperCase().slice(-6)
+        + Math.random().toString(36).slice(2,5).toUpperCase();
+
+      document.getElementById("confEmail").textContent =
+        `Eine Bestätigung wird an ${email} gesendet.`;
+      document.getElementById("confOrderNr").textContent =
+        `Bestellnummer: ${orderNr}`;
+
+      document.getElementById("step2").classList.add("done");
+      document.getElementById("step3").classList.add("active", "done");
+      document.getElementById("checkoutView").classList.remove("active");
+      document.getElementById("confirmationView").classList.add("active");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (err) {
+      btn.disabled = false;
+      btn.textContent = "Jetzt kostenpflichtig bestellen";
+      alert("Die Bestellung konnte nicht abgeschlossen werden. Bitte versuchen Sie es erneut.");
+    }
+  }
+</script>

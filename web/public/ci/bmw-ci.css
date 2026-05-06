@@ -1,0 +1,484 @@
+/* ============================================================
+   BMW Corporate Identity
+   Single source of truth for tokens, fonts, layout primitives,
+   shell components (nav, footer, section header), and atoms
+   (buttons, inputs, cards). Page-specific layouts stay inline
+   in their respective views and must not redefine these.
+   ============================================================ */
+
+/* ---------- Fonts ---------- */
+@font-face {
+  font-family: 'BMWTypeNext';
+  font-style: normal;
+  font-weight: 200;
+  font-display: swap;
+  src: url('/static/fonts/BMWTypeNextLatin-Thin.woff2') format('woff2'),
+       url('/static/fonts/BMWTypeNextLatin-Thin.woff') format('woff');
+}
+@font-face {
+  font-family: 'BMWTypeNext';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/static/fonts/BMWTypeNextLatin-Light.woff2') format('woff2'),
+       url('/static/fonts/BMWTypeNextLatin-Light.woff') format('woff');
+}
+@font-face {
+  font-family: 'BMWTypeNext';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/static/fonts/BMWTypeNextLatin-Bold.woff2') format('woff2'),
+       url('/static/fonts/BMWTypeNextLatin-Bold.woff') format('woff');
+}
+
+/* ---------- Tokens ---------- */
+:root {
+  --accent: #1c69d4;
+  --accent-dark: #114a96;
+  --ink: #111827;
+  --ink-soft: #394150;
+  --muted: #697386;
+  --line: rgba(17, 24, 39, 0.12);
+  --paper: #f6f7f9;
+  --panel: #ffffff;
+  --dark: #0b0f14;
+  --dark-2: #151b24;
+  --radius: 8px;
+  --shadow: 0 20px 55px rgba(16, 24, 40, 0.12);
+}
+
+/* ---------- Reset & base ---------- */
+* {
+  box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: 'BMWTypeNext', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  line-height: 1.5;
+}
+
+a {
+  color: inherit;
+}
+
+img,
+video {
+  max-width: 100%;
+}
+
+/* ---------- Layout primitive ---------- */
+.page-shell {
+  width: min(1180px, calc(100% - 40px));
+  margin: 0 auto;
+}
+
+/* ---------- Site nav (shared shell) ---------- */
+.site-nav {
+  z-index: 5;
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 12px 14px 12px 20px;
+  color: #fff;
+  border-radius: var(--radius);
+}
+
+.brand {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  text-decoration: none;
+  min-width: 230px;
+}
+
+.brand strong {
+  font-size: clamp(0.9rem, 1.5vw, 1.06rem);
+  line-height: 1.1;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.brand span {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.nav-links a {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 12px;
+  border-radius: var(--radius);
+  color: rgba(255, 255, 255, 0.78);
+  text-decoration: none;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: color 0.2s ease, background 0.2s ease;
+}
+
+.nav-links a:hover,
+.nav-links a.active {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* Variant: transparent — used by Home over fullscreen video hero */
+.site-nav--transparent {
+  position: absolute;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(1180px, calc(100% - 40px));
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(7, 12, 18, 0.38);
+  backdrop-filter: blur(18px);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
+}
+
+/* Variant: solid — used by all sub-pages (Konfigurator, Merch, AI, Cart) */
+.site-nav--solid {
+  position: relative;
+  width: min(1180px, calc(100% - 40px));
+  margin: 24px auto 0;
+  background: var(--dark);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
+}
+
+/* ---------- Site footer ---------- */
+.site-footer {
+  background: #070b10;
+  color: rgba(255, 255, 255, 0.74);
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 34px 0;
+}
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 28px;
+  align-items: end;
+}
+
+.footer-brand {
+  display: grid;
+  gap: 8px;
+}
+
+.footer-brand strong {
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.footer-brand span,
+.footer-legal {
+  font-size: 0.82rem;
+}
+
+.footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 16px;
+}
+
+.footer-links a {
+  color: rgba(255, 255, 255, 0.78);
+  text-decoration: none;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.footer-links a:hover {
+  color: #fff;
+}
+
+/* ---------- Section header pattern ---------- */
+.section-kicker {
+  margin: 0 0 12px;
+  color: var(--accent);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.section-title {
+  margin: 0;
+  max-width: 840px;
+  color: var(--ink);
+  font-size: clamp(2.05rem, 4vw, 4.15rem);
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1.02;
+}
+
+.section-copy {
+  margin: 18px 0 0;
+  max-width: 670px;
+  color: var(--muted);
+  font-size: clamp(1rem, 1.55vw, 1.14rem);
+}
+
+/* ---------- Buttons ---------- */
+.btn {
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 18px;
+  border: none;
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: var(--accent-dark);
+  transform: translateY(-1px);
+}
+
+.btn-primary:disabled {
+  background: #8792a2;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-secondary {
+  background: #e7ebf0;
+  color: var(--ink);
+}
+
+.btn-secondary:hover {
+  background: #dce2ea;
+}
+
+.btn-ghost {
+  background: transparent;
+  border: 1px solid rgba(17, 24, 39, 0.2);
+  color: var(--ink);
+}
+
+.btn-ghost:hover {
+  background: var(--ink);
+  color: #fff;
+  transform: translateY(-2px);
+}
+
+.btn-cta {
+  min-height: 52px;
+  padding: 0 30px;
+  background: #fff;
+  color: var(--ink);
+  letter-spacing: 0.08em;
+  box-shadow: 0 14px 35px rgba(0, 0, 0, 0.28);
+}
+
+.btn-cta:hover {
+  background: var(--accent);
+  color: #fff;
+  transform: translateY(-2px);
+}
+
+/* ---------- Forms ---------- */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+}
+
+.field-label {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--muted);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.input {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid rgba(17, 24, 39, 0.14);
+  border-radius: var(--radius);
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.96rem;
+  font-weight: 700;
+  padding: 0 14px;
+  outline: none;
+}
+
+.input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(28, 105, 212, 0.12);
+}
+
+/* ---------- Cards ---------- */
+.card {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--ink);
+  text-decoration: none;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.card:hover {
+  border-color: rgba(17, 24, 39, 0.26);
+  box-shadow: 0 18px 42px rgba(16, 24, 40, 0.1);
+  transform: translateY(-4px);
+}
+
+.card-image {
+  width: 100%;
+  aspect-ratio: var(--card-image-aspect, 4 / 3);
+  display: block;
+  background: #f5f7f9;
+}
+
+.card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 22px;
+  flex: 1;
+}
+
+.card-kicker {
+  color: var(--accent);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.card-title {
+  margin: 0;
+  font-size: clamp(1.28rem, 2vw, 1.8rem);
+  font-weight: 700;
+  line-height: 1.05;
+}
+
+.card-text {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.card-price {
+  margin-top: auto;
+  color: var(--ink);
+  font-size: 1.06rem;
+  font-weight: 700;
+}
+
+/* Card variant: product (4:3 contained image with padding, e.g. merch products) */
+.card--product {
+  --card-image-aspect: 4 / 3;
+}
+
+.card--product .card-image {
+  object-fit: contain;
+  padding: 24px;
+  background: #f5f7f9;
+}
+
+/* Card variant: service (16:9 cover image, no padding, e.g. home service rail) */
+.card--service {
+  --card-image-aspect: 16 / 9;
+}
+
+.card--service .card-image {
+  object-fit: cover;
+  background: #e7ebf0;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 980px) {
+  .site-nav {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .brand {
+    min-width: 0;
+  }
+
+  .nav-links {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 720px) {
+  .page-shell,
+  .site-nav {
+    width: min(calc(100% - 28px), 1180px);
+  }
+
+  .site-nav--transparent {
+    top: 14px;
+    padding: 12px;
+  }
+
+  .site-nav--solid {
+    margin-top: 14px;
+    padding: 12px;
+  }
+
+  .nav-links a {
+    min-height: 34px;
+    padding: 0 9px;
+    font-size: 0.72rem;
+  }
+
+  .footer-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .footer-links {
+    justify-content: flex-start;
+  }
+}

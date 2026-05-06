@@ -1,0 +1,313 @@
+<style>
+  /* Merch-shop-specific layout. BMW CI tokens, fonts, page-shell, site-nav,
+     site-footer, section-*, .btn*, .field/.input, .card* live in
+     /static/ci/bmw-ci.css. */
+
+  .merch-shop-layout {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 20px 80px;
+  }
+
+  .shop-header { margin-bottom: 48px; }
+  .shop-header h1 {
+    font-size: 2.8rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    margin: 0 0 8px;
+  }
+  .shop-header p { color: var(--muted); font-size: 1.1rem; }
+
+  .product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 32px;
+    /* Override: merch-shop prefers square product images. */
+    --card-image-aspect: 1 / 1;
+  }
+
+  .product-grid .card-image {
+    transition: transform 0.6s ease;
+  }
+  .product-grid .card:hover .card-image {
+    transform: scale(1.08);
+  }
+
+  .category-tag {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+
+  .product-grid .card-body h2 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin: 0 0 12px;
+    color: var(--ink);
+  }
+
+  .price {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: var(--ink);
+    margin-bottom: 16px;
+  }
+
+  .variant-row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 18px;
+  }
+
+  .variant-label {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--muted);
+  }
+
+  .variant-select {
+    flex: 1;
+    border: 1px solid rgba(15, 23, 42, 0.10);
+    border-radius: 12px;
+    background: #fff;
+    padding: 12px 14px;
+    font-size: 0.95rem;
+    color: var(--ink);
+  }
+
+  .detail {
+    font-size: 0.9rem;
+    color: var(--muted);
+    margin-bottom: 20px;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .purchase-row {
+    display: flex;
+    gap: 12px;
+    align-items: stretch;
+    margin-top: auto;
+  }
+
+  .quantity-field {
+    width: 88px;
+    border: 1px solid rgba(15, 23, 42, 0.10);
+    border-radius: 12px;
+    background: #fff;
+    padding: 0 12px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .add-btn {
+    flex: 1;
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    background: #f1f5f9;
+    color: var(--ink);
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: auto;
+    font-family: inherit;
+  }
+
+  .add-btn:hover {
+    background: var(--ink);
+    color: #fff;
+  }
+
+  .add-btn.success {
+    background: #10b981;
+    color: #fff;
+  }
+
+  @media (max-width: 640px) {
+    .shop-header h1 { font-size: 2.2rem; }
+    .product-grid { gap: 20px; }
+  }
+</style>
+
+<div class="merch-shop-layout">
+  <%
+    const groupedProducts = [];
+    const groupMap = new Map();
+
+    products.forEach((product) => {
+      const groupKey = product.name;
+      const existingGroup = groupMap.get(groupKey);
+
+      if (existingGroup) {
+        existingGroup.variants.push(product);
+        return;
+      }
+
+      const group = {
+        ...product,
+        displayName: product.name,
+        variants: [product],
+      };
+
+      groupedProducts.push(group);
+      groupMap.set(groupKey, group);
+    });
+  %>
+  <header class="shop-header">
+    <h1>Lifestyle &amp; Merch</h1>
+    <p>Bringen Sie die Freude am Fahren in Ihren Alltag.</p>
+  </header>
+
+  <div class="product-grid">
+    <% groupedProducts.forEach(function(group) { const primaryProduct = group.variants[0]; const hasVariants = group.variants.length > 1; %>
+      <article class="card card--product" id="product-<%= primaryProduct.id %>">
+        <img
+          class="card-image product-image"
+          src="<%= primaryProduct.imageUrl %>"
+          alt="<%= group.displayName %>"
+          loading="lazy"
+        />
+        <div class="card-body">
+          <div class="category-tag"><%= primaryProduct.category %></div>
+          <h2><%= group.displayName %></h2>
+          <div class="price"><%= parseFloat(primaryProduct.price).toLocaleString("de-DE", { style: "currency", currency: "EUR" }) %></div>
+
+          <% if (primaryProduct.description) { %>
+            <p class="detail"><%= primaryProduct.description %></p>
+          <% } %>
+
+          <% if (hasVariants) { %>
+            <div class="variant-row">
+              <label class="variant-label" for="variant-<%= primaryProduct.id %>">Farbe</label>
+              <select class="variant-select" id="variant-<%= primaryProduct.id %>">
+                <% group.variants.forEach(function(variant) { %>
+                  <option
+                    value="<%= variant.id %>"
+                    data-name="<%= variant.name %>"
+                    data-price="<%= variant.price %>"
+                    data-image="<%= variant.imageUrl %>"
+                    data-color="<%= variant.color %>">
+                    <%= variant.color %>
+                  </option>
+                <% }) %>
+              </select>
+            </div>
+          <% } %>
+
+          <div class="purchase-row">
+            <input
+              class="quantity-field"
+              type="number"
+              min="1"
+              value="1"
+              aria-label="Menge für <%= group.displayName %>"
+            />
+            <button class="add-btn"
+              data-id="<%= primaryProduct.id %>"
+              data-name="<%= group.displayName %>"
+              data-price="<%= primaryProduct.price %>"
+              data-image="<%= primaryProduct.imageUrl %>"
+              data-color="<%= primaryProduct.color %>">
+              In den Warenkorb
+            </button>
+          </div>
+        </div>
+      </article>
+    <% }) %>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll(".add-btn").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const originalText = btn.textContent;
+      const card = btn.closest(".card");
+      const quantityInput = card.querySelector(".quantity-field");
+      const variantSelect = card.querySelector(".variant-select");
+      const quantity = Math.max(1, parseInt(quantityInput.value, 10) || 1);
+
+      if (variantSelect) {
+        const selectedOption = variantSelect.options[variantSelect.selectedIndex];
+        btn.dataset.id = selectedOption.value;
+        btn.dataset.name = selectedOption.dataset.name.trim();
+        btn.dataset.price = selectedOption.dataset.price;
+        btn.dataset.image = selectedOption.dataset.image;
+        btn.dataset.color = selectedOption.dataset.color;
+      }
+
+      quantityInput.value = quantity;
+      btn.disabled = true;
+      quantityInput.disabled = true;
+      if (variantSelect) variantSelect.disabled = true;
+
+      try {
+        const response = await fetch("/api/cart/items", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type: "merch",
+            name: btn.dataset.name.trim(),
+            price: parseFloat(btn.dataset.price),
+            imageUrl: btn.dataset.image,
+            quantity,
+            details: {
+              productId: parseInt(btn.dataset.id, 10),
+              color: btn.dataset.color,
+            },
+          }),
+        });
+
+        if (response.ok) {
+          btn.textContent = `✓ ${quantity} hinzugefügt`;
+          btn.classList.add("success");
+          setTimeout(() => {
+            btn.textContent = originalText;
+            btn.classList.remove("success");
+            btn.disabled = false;
+            quantityInput.disabled = false;
+            if (variantSelect) variantSelect.disabled = false;
+          }, 2000);
+        } else {
+          btn.textContent = "Fehler";
+          btn.disabled = false;
+          quantityInput.disabled = false;
+          if (variantSelect) variantSelect.disabled = false;
+        }
+      } catch (error) {
+        btn.textContent = "Fehler";
+        btn.disabled = false;
+        quantityInput.disabled = false;
+        if (variantSelect) variantSelect.disabled = false;
+      }
+    });
+  });
+
+  document.querySelectorAll(".card").forEach(card => {
+    const variantSelect = card.querySelector(".variant-select");
+    if (!variantSelect) return;
+
+    const productImage = card.querySelector(".product-image");
+    const addButton = card.querySelector(".add-btn");
+
+    variantSelect.addEventListener("change", () => {
+      const selectedOption = variantSelect.options[variantSelect.selectedIndex];
+      productImage.src = selectedOption.dataset.image;
+      productImage.alt = `${selectedOption.dataset.name} in ${selectedOption.dataset.color}`;
+      addButton.dataset.id = selectedOption.value;
+      addButton.dataset.name = selectedOption.dataset.name.trim();
+      addButton.dataset.price = selectedOption.dataset.price;
+      addButton.dataset.image = selectedOption.dataset.image;
+      addButton.dataset.color = selectedOption.dataset.color;
+    });
+  });
+</script>

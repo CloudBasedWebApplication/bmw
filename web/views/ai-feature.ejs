@@ -1,0 +1,507 @@
+<style>
+  /* AI-feature-specific layout. BMW CI tokens, fonts, page-shell, site-nav,
+     site-footer, section-*, .btn*, .field/.input, .card* live in
+     /static/ci/bmw-ci.css. */
+
+  .ai-layout {
+    max-width: 1060px;
+    margin: 0 auto;
+    padding: 48px 20px 80px;
+  }
+
+  /* ── Hero ── */
+  .hero {
+    text-align: center;
+    margin-bottom: 40px;
+    position: relative;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    top: -60px; right: -80px;
+    width: 380px; height: 380px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(28, 105, 212, 0.10) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .hero > * { position: relative; z-index: 1; }
+
+  .ai-layout h1 {
+    font-size: 2.6rem;
+    font-weight: 800;
+    letter-spacing: -0.035em;
+    line-height: 1.15;
+    margin: 0 0 16px;
+  }
+  .subtitle {
+    color: var(--muted);
+    font-size: 1.05rem;
+    max-width: 460px;
+    margin: 0 auto;
+  }
+
+  /* ── Input card ── */
+  .input-card {
+    background: var(--panel);
+    border-radius: 20px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(0,0,0,0.05);
+    overflow: hidden;
+    transition: box-shadow 0.3s ease;
+  }
+  .input-card:focus-within {
+    box-shadow: 0 0 0 2px var(--accent), 0 12px 40px rgba(0, 0, 0, 0.08);
+  }
+  textarea {
+    width: 100%; padding: 24px 24px 16px; border: none;
+    font-size: 1.05rem; font-family: inherit; resize: none;
+    min-height: 150px; outline: none; line-height: 1.65;
+    background: transparent;
+    color: var(--ink);
+  }
+  .input-footer {
+    display: flex; justify-content: flex-end; align-items: center;
+    padding: 12px 20px 16px;
+    border-top: 1px solid rgba(0,0,0,0.05);
+  }
+  .send-btn {
+    padding: 11px 26px; border: none; border-radius: 999px;
+    background: var(--accent); color: #fff; font-size: 0.95rem; font-weight: 700;
+    cursor: pointer; transition: all 0.25s ease; white-space: nowrap;
+    font-family: inherit;
+  }
+  .send-btn:hover:not(:disabled) { background: var(--accent-dark); transform: translateY(-1px); }
+  .send-btn:disabled { background: #cbd5e1; cursor: not-allowed; transform: none; }
+
+  /* ── Feedback ── */
+  .spinner { display: none; text-align: center; padding: 36px; font-weight: 600; color: var(--accent); font-size: 0.95rem; letter-spacing: 0.02em; }
+  .spinner.visible { display: block; animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+  .error { color: #dc2626; font-weight: 600; text-align: center; margin-top: 16px; font-size: 0.9rem; }
+
+  /* ── Result ── */
+  .result { display: none; margin-top: 32px; }
+  .result.visible { display: block; animation: fadeUp 0.45s ease both; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+
+  /* ── Car reveal ── */
+  .car-reveal {
+    border-radius: 20px;
+    background: linear-gradient(135deg, var(--accent-dark) 0%, var(--accent) 60%, #4a8ee0 100%);
+    color: #fff;
+    padding: 32px 32px 28px;
+    margin-bottom: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .car-reveal::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 80% 50%, rgba(255,255,255,0.07) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .car-reveal-eyebrow {
+    font-size: 0.68rem; font-weight: 700; letter-spacing: 0.16em;
+    text-transform: uppercase; opacity: 0.65; margin-bottom: 8px;
+  }
+  .car-reveal-model { font-size: 2rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; margin-bottom: 6px; }
+  .car-reveal-color { font-size: 0.9rem; opacity: 0.75; margin-bottom: 24px; }
+  .car-reveal-cta {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 22px;
+    background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.35);
+    border-radius: 14px; color: #fff; text-decoration: none;
+    font-weight: 700; font-size: 0.95rem;
+    transition: background 0.2s ease; backdrop-filter: blur(4px);
+  }
+  .car-reveal-cta:hover { background: rgba(255,255,255,0.28); }
+  .car-reveal-content { display: flex; align-items: center; gap: 24px; position: relative; }
+  .car-reveal-text { flex: 1; min-width: 0; }
+  .car-reveal-image-wrap {
+    flex-shrink: 0; width: 340px; height: 230px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .car-reveal-image-wrap img {
+    width: 100%; height: 100%; object-fit: contain;
+    filter: drop-shadow(0 8px 24px rgba(0,0,0,0.45));
+    animation: carSlideIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  @keyframes carSlideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: none; } }
+  .car-img-shimmer {
+    width: 100%; height: 100%; border-radius: 12px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.14) 50%, rgba(255,255,255,0.05) 75%);
+    background-size: 200% 100%; animation: shimmer 1.4s infinite;
+  }
+  @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+
+  /* ── Why toggle ── */
+  .why-toggle {
+    display: flex; align-items: center; gap: 8px;
+    width: 100%; padding: 12px 20px;
+    background: var(--panel); border: 1px solid rgba(0,0,0,0.07);
+    border-radius: 14px; margin-bottom: 12px;
+    cursor: pointer; font-family: inherit;
+    font-size: 0.85rem; font-weight: 600; color: var(--muted);
+    transition: color 0.15s, border-color 0.15s;
+    text-align: left;
+  }
+  .why-toggle:hover { color: var(--accent); border-color: var(--accent); }
+  .why-arrow { margin-left: auto; font-size: 0.75rem; transition: transform 0.25s ease; }
+  .why-toggle.open .why-arrow { transform: rotate(180deg); }
+
+  .why-panel {
+    max-height: 0; overflow: hidden;
+    transition: max-height 0.35s ease, opacity 0.3s ease;
+    opacity: 0;
+    margin-top: -20px; margin-bottom: 0;
+  }
+  .why-panel.open {
+    max-height: 300px; opacity: 1;
+    margin-bottom: 24px;
+  }
+  .why-panel-inner {
+    padding: 20px 24px;
+    background: var(--panel); border: 1px solid rgba(0,0,0,0.05);
+    border-radius: 14px;
+    font-size: 0.95rem; color: #334155; line-height: 1.7;
+  }
+
+  /* ── Merch section ── */
+  .merch-section {
+    margin-top: 28px;
+    padding-top: 24px;
+    border-top: 1px solid rgba(0,0,0,0.09);
+  }
+  .merch-section-header { margin-bottom: 24px; }
+  .merch-section-eyebrow {
+    font-size: 0.68rem; font-weight: 700; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--accent); margin-bottom: 6px;
+  }
+  .merch-section-title {
+    font-size: 1.35rem; font-weight: 700; letter-spacing: -0.02em; color: var(--ink);
+  }
+
+  /* ── Merch grid ── */
+  .merch-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 200px));
+    gap: 14px;
+    justify-content: center;
+  }
+  .merch-product-card {
+    background: var(--panel);
+    border: 1px solid rgba(0,0,0,0.07);
+    border-radius: 16px;
+    overflow: hidden;
+    display: flex; flex-direction: column;
+    cursor: pointer;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  }
+  .merch-product-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 28px rgba(0,0,0,0.09);
+    border-color: rgba(0,0,0,0.12);
+  }
+  .merch-product-img {
+    width: 100%; aspect-ratio: 1/1;
+    background: #f1f5f9;
+    display: grid; place-items: center;
+    overflow: hidden;
+  }
+  .merch-product-img img {
+    width: 100%; height: 100%; object-fit: contain; padding: 16px;
+    transition: transform 0.3s ease;
+  }
+  .merch-product-card:hover .merch-product-img img { transform: scale(1.06); }
+  .merch-product-img-fallback {
+    font-size: 1.4rem; font-weight: 800; color: var(--accent-dark);
+  }
+  .merch-product-body {
+    padding: 12px 14px 14px;
+    display: flex; flex-direction: column; gap: 10px; flex: 1;
+  }
+  .merch-product-name {
+    font-size: 0.88rem; font-weight: 700; color: var(--ink);
+    line-height: 1.3;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .merch-product-price {
+    font-size: 1rem; font-weight: 800; color: var(--accent);
+  }
+  .add-to-cart-btn {
+    width: 100%; padding: 9px 12px;
+    background: var(--accent); color: #fff; border: none;
+    border-radius: 10px; font-size: 0.8rem; font-weight: 700;
+    cursor: pointer; font-family: inherit;
+    transition: background 0.18s;
+    margin-top: auto;
+  }
+  .add-to-cart-btn:hover:not(:disabled) { background: var(--accent-dark); }
+  .add-to-cart-btn.added { background: #16a34a; cursor: default; }
+  .add-to-cart-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  @media (max-width: 640px) {
+    .ai-layout h1 { font-size: 2rem; }
+    .hero::after { width: 200px; height: 200px; top: -20px; right: -30px; }
+    .car-reveal { padding: 22px; }
+    .car-reveal-content { flex-direction: column-reverse; gap: 12px; }
+    .car-reveal-image-wrap { width: 100%; height: 180px; }
+    .car-reveal-model { font-size: 1.6rem; }
+    .merch-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .input-footer { flex-direction: column; align-items: stretch; }
+    .send-btn { width: 100%; text-align: center; }
+  }
+</style>
+
+<div class="ai-layout">
+  <div class="hero">
+    <h1>Dein BMW, auf dich abgestimmt.</h1>
+    <p class="subtitle">Beschreib deinen Alltag. Wir finden deinen BMW.</p>
+  </div>
+
+  <div class="input-card">
+    <textarea id="prompt" placeholder="Ich arbeite als Architekt, pendle täglich in die Stadt und fahre am Wochenende gern durch die Berge..."></textarea>
+    <div class="input-footer">
+      <button class="send-btn" id="sendBtn">Konfiguration finden</button>
+    </div>
+  </div>
+
+  <div class="error" id="errorMsg"></div>
+  <div class="spinner" id="spinner">Analysiere deinen Lifestyle ...</div>
+
+  <div class="result" id="result">
+    <div id="carReveal"></div>
+    <div class="ai-text-card" id="resultText"></div>
+    <div id="merchSection"></div>
+  </div>
+</div>
+
+<script>
+  const COLOR_DE    = { Black: "Schwarz", Blue: "Blau", White: "Weiß" };
+  const STORAGE_KEY = "bmw_ai_last_result";
+
+  const promptInput = document.getElementById("prompt");
+  const btn         = document.getElementById("sendBtn");
+  const spinner     = document.getElementById("spinner");
+  const result      = document.getElementById("result");
+  const error       = document.getElementById("errorMsg");
+
+  const escapeHtml = (v) => String(v ?? "")
+    .replaceAll("&", "&amp;").replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;");
+
+  function renderResults(data) {
+    // ── Car reveal ─────────────────────────────────────────────────
+    let carHtml = "";
+    let carModel = null;
+    let carColor = null;
+    let modelLabel = "Dein BMW";
+    if (data.carLink) {
+      carModel = data.carModel    || null;
+      carColor = data.carColor    || null;
+      const carWheels   = data.carWheels   || null;
+      const carInterior = data.carInterior || null;
+      if (!carModel) {
+        try {
+          const u = new URL(data.carLink, location.origin);
+          carModel = u.searchParams.get("model") || "";
+          carColor = u.searchParams.get("color") || "";
+        } catch {}
+      }
+      modelLabel = carModel ? `BMW ${escapeHtml(carModel)}` : "Dein BMW";
+      const colorLabel   = COLOR_DE[carColor] || escapeHtml(carColor || "");
+      const wheelsLine   = carWheels   ? `<div class="car-reveal-color">Felgen: ${escapeHtml(carWheels)}</div>`       : "";
+      const interiorLine = carInterior ? `<div class="car-reveal-color">Interieur: ${escapeHtml(carInterior)}</div>` : "";
+      carHtml = `
+        <div class="car-reveal">
+          <div class="car-reveal-content">
+            <div class="car-reveal-text">
+              <div class="car-reveal-eyebrow">Deine Empfehlung</div>
+              <div class="car-reveal-model">${modelLabel}</div>
+              ${colorLabel ? `<div class="car-reveal-color">Farbe: ${colorLabel}</div>` : ""}
+              ${wheelsLine}
+              ${interiorLine}
+              <a class="car-reveal-cta" href="${escapeHtml(data.carLink)}">
+                Konfiguration ansehen &nbsp;→
+              </a>
+            </div>
+            <div class="car-reveal-image-wrap" id="carImgWrap">
+              <div class="car-img-shimmer"></div>
+            </div>
+          </div>
+        </div>`;
+    }
+    document.getElementById("carReveal").innerHTML = carHtml;
+
+      // Async: load car image from configurator
+      if (carModel) {
+        fetch(`/api/configurator/configure?model=${encodeURIComponent(carModel)}&color=${encodeURIComponent(carColor)}`)
+          .then(r => r.ok ? r.json() : null)
+          .then(cfg => {
+            const wrap = document.getElementById("carImgWrap");
+            if (!wrap || !cfg?.imageUrl) return;
+            const img = new Image();
+            img.onload = () => { wrap.innerHTML = ""; wrap.appendChild(img); };
+            img.onerror = () => { wrap.innerHTML = ""; };
+            img.src = cfg.imageUrl;
+            img.alt = modelLabel;
+          })
+          .catch(() => {});
+      }
+
+    // ── Why toggle + collapsible AI text ───────────────────────────
+    const whyHtml = `
+      <button class="why-toggle" id="whyToggle" type="button">
+        <span>Warum passt das zu mir?</span>
+        <span class="why-arrow">▼</span>
+      </button>
+      <div class="why-panel" id="whyPanel">
+        <div class="why-panel-inner" id="whyText"></div>
+      </div>`;
+    document.getElementById("resultText").innerHTML = whyHtml;
+    document.getElementById("whyText").textContent = data.text;
+    document.getElementById("whyToggle").addEventListener("click", () => {
+      const toggle = document.getElementById("whyToggle");
+      const panel  = document.getElementById("whyPanel");
+      toggle.classList.toggle("open");
+      panel.classList.toggle("open");
+    });
+
+    // ── Merch grid ─────────────────────────────────────────────────
+    let merchHtml = "";
+    if (data.merchLinks?.length) {
+      merchHtml += `
+        <div class="merch-section">
+          <div class="merch-section-header">
+            <div class="merch-section-eyebrow">Lifestyle & Merch</div>
+            <div class="merch-section-title">Was ebenfalls zu dir passt</div>
+          </div>
+          <div class="merch-grid">`;
+      data.merchLinks.forEach((l) => {
+        const rawTitle = l.title || "Produkt";
+        const title    = escapeHtml(rawTitle);
+        const imageUrl = l.imageUrl ? escapeHtml(l.imageUrl) : "";
+        const fallback = escapeHtml(rawTitle.slice(0, 2).toUpperCase());
+        const price    = (l.price != null && !isNaN(Number(l.price))) ? Number(l.price) : 0;
+        const id       = Number(l.id);
+        const color    = escapeHtml(l.subtitle || "");
+
+        merchHtml += `
+          <div class="merch-product-card"
+               data-product-id="${id}"
+               data-title="${title}"
+               data-price="${price}"
+               data-image="${imageUrl}"
+               data-color="${color}"
+               onclick="window.location.href='/merch-shop'">
+            <div class="merch-product-img">
+              ${imageUrl
+                ? `<img src="${imageUrl}" alt="${title}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='grid';" /><span class="merch-product-img-fallback" style="display:none">${fallback}</span>`
+                : `<span class="merch-product-img-fallback">${fallback}</span>`}
+            </div>
+            <div class="merch-product-body">
+              <span class="merch-product-name">${title}</span>
+              ${price > 0 ? `<span class="merch-product-price">${price.toLocaleString("de-DE", { style: "currency", currency: "EUR" })}</span>` : ""}
+              <button class="add-to-cart-btn" type="button" onclick="event.stopPropagation()">In den Warenkorb</button>
+            </div>
+          </div>`;
+      });
+      merchHtml += `</div></div>`;
+    }
+    document.getElementById("merchSection").innerHTML = merchHtml;
+
+    // ── Cart button listeners ───────────────────────────────────────
+    document.querySelectorAll(".merch-product-card .add-to-cart-btn").forEach((cartBtn) => {
+      cartBtn.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        const card     = cartBtn.closest(".merch-product-card");
+        const name     = card.dataset.title;
+        const id       = parseInt(card.dataset.productId);
+        const imageUrl = card.dataset.image || null;
+
+        cartBtn.disabled = true;
+        cartBtn.textContent = "...";
+
+        // Always fetch price fresh at click time — bypasses stale AI response
+        let price = 0;
+        let found = null;
+        try {
+          const pr = await fetch("/api/merch/products");
+          if (pr.ok) {
+            const products = await pr.json();
+            found = products.find(p => p.id === id) || null;
+            price = parseFloat(found?.price) || 0;
+          }
+        } catch {}
+
+        try {
+          const r = await fetch("/api/cart/items", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              type: "merch",
+              name,
+              price,
+              imageUrl,
+              quantity: 1,
+              details: { productId: id, color: found?.color || card.dataset.color || '' },
+            }),
+          });
+          if (!r.ok) throw new Error();
+          cartBtn.textContent = "Hinzugefügt ✓";
+          cartBtn.classList.add("added");
+        } catch {
+          cartBtn.textContent = "Fehler — erneut versuchen";
+          cartBtn.disabled = false;
+          setTimeout(() => {
+            cartBtn.textContent = "In den Warenkorb";
+          }, 2500);
+        }
+      });
+    });
+  }
+
+  // ── Send ──────────────────────────────────────────────────────────
+  btn.addEventListener("click", async () => {
+    const text = promptInput.value.trim();
+    if (!text) return;
+
+    btn.disabled = true;
+    spinner.classList.add("visible");
+    result.classList.remove("visible");
+    error.textContent = "";
+
+    try {
+      const res  = await fetch("/api/ai/recommend", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: text }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Anfrage fehlgeschlagen");
+
+      try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ data, prompt: text })); } catch {}
+
+      renderResults(data);
+      spinner.classList.remove("visible");
+      result.classList.add("visible");
+      btn.disabled = false;
+    } catch (err) {
+      error.textContent = err.message;
+      btn.disabled = false;
+      spinner.classList.remove("visible");
+    }
+  });
+
+  // ── Restore previous result on page load ──────────────────────────
+  try {
+    const saved = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || "null");
+    if (saved?.data) {
+      promptInput.value = saved.prompt || "";
+      renderResults(saved.data);
+      result.classList.add("visible");
+    }
+  } catch {}
+</script>

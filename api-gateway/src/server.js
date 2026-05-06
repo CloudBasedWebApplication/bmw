@@ -1,24 +1,42 @@
 const path = require("path");
+const fs = require("fs");
 const express = require("express");
 const cookieParser = require("cookie-parser");
+const expressLayouts = require("express-ejs-layouts");
 
 const app = express();
 const port = process.env.PORT || 3000;
 
+function resolveRepoRoot() {
+  const candidates = [
+    process.env.REPO_ROOT,
+    path.resolve(__dirname, "..", ".."),
+    path.resolve(__dirname, ".."),
+    path.resolve(process.cwd(), ".."),
+    process.cwd(),
+  ].filter(Boolean);
+
+  return candidates.find((candidate) =>
+    fs.existsSync(path.join(candidate, "web", "views"))
+  );
+}
+
+const REPO_ROOT = resolveRepoRoot();
+
+if (!REPO_ROOT) {
+  throw new Error("Could not locate shared web/views directory");
+}
+
 app.set("view engine", "ejs");
+app.set("views", path.join(REPO_ROOT, "web", "views"));
+app.use(expressLayouts);
+app.set("layout", false); // opt-in per route via locals.layout
 app.disable("view cache");
 app.use(express.json());
 app.use(cookieParser());
 
-// Static assets for the customer home experience (e.g. BMW CI fonts)
-app.use(
-  "/home/static",
-  express.static(path.join(__dirname, "..", "services", "home", "public"))
-);
-app.use(
-  "/road-to-supercar/static",
-  express.static(path.join(__dirname, "..", "services", "home", "public"))
-);
+// Shared frontend assets (CI styles, fonts, images) served by the gateway
+app.use("/static", express.static(path.join(REPO_ROOT, "web", "public")));
 
 // Service base URLs (container-internal)
 const CONFIGURATOR = process.env.CONFIGURATOR_URL || "http://car-configurator:3001";
@@ -35,50 +53,12 @@ app.use((req, res, next) => {
 });
 
 const serviceCatalog = [
-  {
-    path: "/",
-    name: "Home",
-    description: "Kunden-Startseite mit BMW Journey, Modell-Einstieg und Routenplanung.",
-    views: "../services/home/views",
-    accent: "light",
-  },
-  {
-    path: "/car-configurator",
-    name: "Car Configurator",
-    description: "Fahrzeugkonfigurationen mit Variantenlogik, Bildausgabe und MinIO-Anbindung.",
-    views: "../services/car-configurator/views",
-    accent: "primary",
-  },
-  {
-    path: "/merch-shop",
-    name: "Merch Shop",
-    description: "BMW Merchandise aus MySQL inklusive Produktdaten und Bildreferenzen.",
-    views: "../services/merch-shop/views",
-    accent: "primary",
-  },
-  {
-    path: "/ai-feature",
-    name: "AI Feature",
-    description: "Empfehlungen und Shopping-Unterstuetzung als eigener Microservice.",
-    views: "../services/ai-feature/views",
-    accent: "light",
-  },
-  {
-    path: "/shopping-cart",
-    name: "Shopping Cart",
-    description: "Warenkorb fuer Merchandise und Fahrzeug-Snapshots.",
-    views: "../services/shopping-cart/views",
-    accent: "primary",
-  },
+  { path: "/",                  name: "Home" },
+  { path: "/car-configurator",  name: "Car Configurator" },
+  { path: "/merch-shop",        name: "Merch Shop" },
+  { path: "/ai-feature",        name: "AI Feature" },
+  { path: "/shopping-cart",     name: "Shopping Cart" },
 ];
-
-function renderServiceView(res, viewsDirectory, locals = {}) {
-  const viewsPath = path.join(__dirname, viewsDirectory);
-  res.render(path.join(viewsPath, "index"), locals, (err, html) => {
-    if (err) return res.status(500).send(err.message);
-    res.send(html);
-  });
-}
 
 function getConfiguratorInitialSelection(req) {
   const routeSelection = req.params.model
@@ -105,12 +85,20 @@ function getConfiguratorInitialSelection(req) {
 // ── Page routes ──────────────────────────────────────────────────────────────
 
 app.get(["/", "/index.html"], (_req, res) => {
-  renderServiceView(res, "../services/home/views", {
+  res.render("home", {
+    layout: "layouts/main",
+    title: "Bayerische Motoren Werke AG | Home",
+    activePage: "home",
+    navVariant: "transparent",
     mapsApiKey: process.env.GOOGLE_MAPS_API_KEY || "",
   });
 });
 
 app.get("/home", (_req, res) => {
+  res.redirect(301, "/");
+});
+
+app.get("/road-to-supercar", (_req, res) => {
   res.redirect(301, "/");
 });
 
@@ -123,36 +111,52 @@ app.get("/health", (_req, res) => {
   });
 });
 
-app.get("/car-configurator", (req, res) => {
-  renderServiceView(res, "../services/car-configurator/views", {
+function renderConfigurator(req, res) {
+  res.render("car-configurator", {
+    layout: "layouts/main",
+    title: "BMW Konfigurator",
+    activePage: "configurator",
+    navVariant: "solid",
     initialSelection: getConfiguratorInitialSelection(req),
   });
-});
+}
 
-app.get("/car-configurator/:model/:color/:interior/:wheels", (req, res) => {
-  renderServiceView(res, "../services/car-configurator/views", {
-    initialSelection: getConfiguratorInitialSelection(req),
-  });
-});
+app.get("/car-configurator", renderConfigurator);
+app.get("/car-configurator/:model/:color/:interior/:wheels", renderConfigurator);
 
 app.get("/merch-shop", async (_req, res) => {
   try {
     const response = await fetch(`${MERCH}/products`);
     const products = await response.json();
-    renderServiceView(res, "../services/merch-shop/views", { products });
+    res.render("merch-shop", {
+      layout: "layouts/main",
+      title: "BMW Merch Shop",
+      activePage: "merch",
+      navVariant: "solid",
+      products,
+    });
   } catch (err) {
     res.status(502).send("merch-shop service unavailable: " + err.message);
   }
 });
 
-app.get("/road-to-supercar", (_req, res) => {
-  res.redirect(301, "/");
+app.get("/ai-feature", (_req, res) => {
+  res.render("ai-feature", {
+    layout: "layouts/main",
+    title: "BMW KI Beratung",
+    activePage: "ai",
+    navVariant: "solid",
+  });
 });
 
-// Remaining service views load their data client-side
-for (const route of serviceCatalog.filter(({ path: p }) => !["/", "/car-configurator", "/merch-shop"].includes(p))) {
-  app.get(route.path, (_req, res) => renderServiceView(res, route.views));
-}
+app.get("/shopping-cart", (_req, res) => {
+  res.render("shopping-cart", {
+    layout: "layouts/main",
+    title: "BMW Warenkorb",
+    activePage: "cart",
+    navVariant: "solid",
+  });
+});
 
 // ── API proxy routes ─────────────────────────────────────────────────────────
 
