@@ -182,4 +182,12 @@ app.get("/shopping-cart", (_req, res) => {
   });
 });
 
+app.get("/impressum", (_req, res) => {
+  renderPage(res, "impressum", {
+    title: "BMW Impressum",
+    activePage: null,
+    navVariant: "solid",
+  });
+});
+
 app.listen(port, () => console.log(`web-app listening on port ${port}`));
