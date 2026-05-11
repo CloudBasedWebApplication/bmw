@@ -140,9 +140,11 @@ docker compose down
 ## MinIO Image Sync
 
 Images are imported from the project folders `assets/configurator/` and `assets/merch-shop/` into the MinIO bucket `MINIO_BUCKET`.
+The Home page assets from `web/public/images/` are also mirrored into `MINIO_BUCKET/home`.
 
 1. Put the car images into `assets/configurator/` and the merchandise images into `assets/merch-shop/`.
-2. Start the infrastructure:
+2. Put the Home page images into `web/public/images/`.
+3. Start the infrastructure:
 
 ```bash
 docker compose up -d mysql redis minio minio-init
@@ -150,7 +152,7 @@ docker compose up -d mysql redis minio minio-init
 
 The `minio-init` service waits until MinIO is healthy, creates the bucket automatically, and syncs the images once on startup.
 
-3. If you want to re-sync the images later after adding or changing files:
+4. If you want to re-sync the images later after adding or changing files:
 
 macOS:
 

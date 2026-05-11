@@ -268,4 +268,17 @@
       }
     });
   });
+
+  // Scroll to a specific product when arriving via hash link from the AI feature
+  if (location.hash) {
+    const target = document.querySelector(location.hash);
+    if (target) {
+      setTimeout(() => {
+        target.scrollIntoView({ behavior: "smooth", block: "center" });
+        target.style.transition = "box-shadow 0.3s";
+        target.style.boxShadow = "0 0 0 3px var(--accent)";
+        setTimeout(() => { target.style.boxShadow = ""; }, 1800);
+      }, 100);
+    }
+  }
 </script>
