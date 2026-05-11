@@ -1,8 +1,7 @@
 <%
-  const minioPublicBase = process.env.CODESPACE_NAME
-    ? `https://${process.env.CODESPACE_NAME}-9000.app.github.dev`
-    : (process.env.MINIO_PUBLIC_URL || `http://localhost:${process.env.MINIO_PORT || 9000}`);
+  const minioPublicBase = process.env.MINIO_PUBLIC_URL || "/minio";
   const minioBucket = process.env.MINIO_BUCKET || "configurator-images";
+  const homeImageBase = `${String(minioPublicBase).replace(/\/+$/, "")}/${minioBucket}/home`;
   const merchImageBase = `${String(minioPublicBase).replace(/\/+$/, "")}/${minioBucket}/merch-shop`;
 
   const merchPreviewProducts = [
@@ -838,19 +837,19 @@
     <div class="page-shell">
       <div class="service-rail" aria-label="Weitere Einstiege">
         <a class="service-link" href="/ai-feature">
-          <img class="service-image" src="/static/images/bmw_ai.png" alt="BMW KI Beratung" loading="lazy">
+          <img class="service-image" src="<%= homeImageBase %>/bmw_ai.png" alt="BMW KI Beratung" loading="lazy">
           <span class="service-number">02</span>
           <h3>KI Beratung</h3>
           <p>Aus einem Alltagssatz wird ein konkreter Vorschlag für Fahrzeug und Zubehör.</p>
         </a>
         <a class="service-link" href="/merch-shop">
-          <img class="service-image" src="/static/images/bmw_merch.png" alt="BMW Merchandise" loading="lazy">
+          <img class="service-image" src="<%= homeImageBase %>/bmw_merch.png" alt="BMW Merchandise" loading="lazy">
           <span class="service-number">03</span>
           <h3>Merchandise</h3>
           <p>Ausgewählte Begleiter für Fahrt, Reise und Alltag.</p>
         </a>
         <a class="service-link" href="#route-planner">
-          <img class="service-image" src="/static/images/bmw_world.png" alt="BMW Welt München" loading="lazy">
+          <img class="service-image" src="<%= homeImageBase %>/bmw_world.png" alt="BMW Welt München" loading="lazy">
           <span class="service-number">04</span>
           <h3>Route zur BMW Welt</h3>
           <p>Der Weg nach München bleibt Teil der Experience, aber ohne laute Oberfläche.</p>
@@ -858,13 +857,13 @@
       </div>
 
       <section class="vehicle-hero" aria-label="Modellbühne">
-        <img class="vehicle-backdrop" src="/static/images/bmw_duo_4k_uhd.png" alt="BMW 3er und BMW X5" loading="lazy">
+        <img class="vehicle-backdrop" src="<%= homeImageBase %>/bmw_duo_4k_uhd.png" alt="BMW 3er und BMW X5" loading="lazy">
         <span class="stage-index">Aktueller Fokus</span>
         <a class="vehicle-hotspot vehicle-hotspot--3er" href="/car-configurator?model=3er" aria-label="BMW 3er konfigurieren">
-          <img src="/static/images/bmw_3er_isolated.png" alt="" aria-hidden="true" loading="lazy">
+          <img src="<%= homeImageBase %>/bmw_3er_isolated.png" alt="" aria-hidden="true" loading="lazy">
         </a>
         <a class="vehicle-hotspot vehicle-hotspot--x5" href="/car-configurator?model=x5" aria-label="BMW X5 konfigurieren">
-          <img src="/static/images/bmw_x5_isolated.png" alt="" aria-hidden="true" loading="lazy">
+          <img src="<%= homeImageBase %>/bmw_x5_isolated.png" alt="" aria-hidden="true" loading="lazy">
         </a>
         <div class="stage-caption">
           <h4>Eine Bühne, zwei Charaktere.</h4>

@@ -18,20 +18,11 @@ function trimTrailingSlash(value) {
 }
 
 function resolveMinioPublicBaseUrl() {
-  // Auto-detect GitHub Codespace first (takes precedence)
-  if (process.env.CODESPACE_NAME) {
-    return `https://${process.env.CODESPACE_NAME}-9000.app.github.dev`;
-  }
-
   if (process.env.MINIO_PUBLIC_URL) {
     return trimTrailingSlash(process.env.MINIO_PUBLIC_URL);
   }
 
-  const protocol = process.env.MINIO_PUBLIC_PROTOCOL || "http";
-  const host = process.env.MINIO_PUBLIC_HOST || "localhost";
-  const port = process.env.MINIO_PUBLIC_PORT || process.env.MINIO_PORT || 9000;
-
-  return `${protocol}://${host}${port ? `:${port}` : ""}`;
+  return "/minio";
 }
 
 const minioBase = `${resolveMinioPublicBaseUrl()}/${process.env.MINIO_BUCKET || "configurator-images"}`;
