@@ -1,8 +1,8 @@
 <style>
   .product-page {
-    max-width: 1200px;
+    width: min(1180px, calc(100% - 40px));
     margin: 0 auto;
-    padding: 36px 20px 84px;
+    padding: 36px 0 84px;
   }
 
   .product-overview {
@@ -77,25 +77,22 @@
 
   .product-detail {
     display: grid;
-    grid-template-columns: minmax(0, 1.06fr) minmax(340px, 0.94fr);
+    grid-template-columns: 1fr 1fr;
     gap: 28px;
-    align-items: start;
+    align-items: stretch;
   }
 
   .product-media {
     border: 1px solid var(--line);
     border-radius: var(--radius);
     background: linear-gradient(180deg, #fff 0%, #f4f6f8 100%);
-    min-height: 520px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 42px;
+    overflow: hidden;
   }
 
   .product-media img {
     width: 100%;
-    max-height: 520px;
+    height: 100%;
+    display: block;
     object-fit: contain;
   }
 
@@ -119,22 +116,23 @@
   .product-panel h1 {
     margin: 0;
     color: var(--ink);
-    font-size: clamp(2rem, 4vw, 3.35rem);
-    font-weight: 700;
-    line-height: 1;
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
   }
 
   .product-price {
     margin: 18px 0 0;
     color: var(--ink);
-    font-size: 1.55rem;
-    font-weight: 700;
+    font-size: 1.3rem;
+    font-weight: 800;
   }
 
   .product-description {
     margin: 18px 0 0;
     color: var(--muted);
-    font-size: 1rem;
+    font-size: 0.9rem;
   }
 
   .product-meta {
@@ -297,25 +295,6 @@
       ].filter(Boolean).join(" / ");
       const overviewProducts = (products || []).filter((item) => item.id !== product.id);
     %>
-
-    <section class="product-overview" aria-label="Produktübersicht">
-      <div class="overview-header">
-        <h2 class="overview-title">Produktübersicht</h2>
-        <a class="overview-link" href="/merch-shop">Alle Produkte</a>
-      </div>
-      <div class="overview-rail">
-        <a class="overview-item active" href="/merch-shop/<%= product.slug || product.id %>">
-          <img src="<%= product.imageUrl %>" alt="<%= product.name %>" loading="lazy" />
-          <span><%= product.name %><% if (product.color) { %> / <%= product.color %><% } %></span>
-        </a>
-        <% overviewProducts.forEach(function(item) { %>
-          <a class="overview-item" href="/merch-shop/<%= item.slug || item.id %>">
-            <img src="<%= item.imageUrl %>" alt="<%= item.name %>" loading="lazy" />
-            <span><%= item.name %><% if (item.color) { %> / <%= item.color %><% } %></span>
-          </a>
-        <% }) %>
-      </div>
-    </section>
 
     <section class="product-detail">
       <div class="product-media">
