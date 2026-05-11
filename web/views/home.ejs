@@ -213,9 +213,8 @@
   .service-rail {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(20px, 3vw, 36px);
     margin-bottom: clamp(52px, 8vw, 96px);
-    border: 1px solid var(--line);
-    background: rgba(255, 255, 255, 0.72);
   }
 
   .service-link {
@@ -225,10 +224,11 @@
     grid-template-rows: auto auto auto 1fr;
     row-gap: 12px;
     padding: 18px;
-    border-right: 1px solid var(--line);
+    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.78);
     color: var(--ink);
     text-decoration: none;
-    transition: background 0.2s ease, transform 0.2s ease;
+    transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
   }
 
   .service-image {
@@ -238,12 +238,9 @@
     background: #e7ebf0;
   }
 
-  .service-link:last-child {
-    border-right: 0;
-  }
-
   .service-link:hover {
     background: #fff;
+    border-color: rgba(17, 24, 39, 0.24);
     transform: translateY(-2px);
   }
 
@@ -336,7 +333,8 @@
   .heritage-section {
     position: relative;
     overflow: hidden;
-    min-height: 600px;
+    min-height: 100vh;
+    min-height: 100svh;
     background: #070b10;
     color: #fff;
   }
@@ -397,11 +395,13 @@
   .heritage-content {
     position: relative;
     z-index: 1;
+    min-height: 100vh;
+    min-height: 100svh;
     display: grid;
     grid-template-columns: minmax(0, 0.76fr) minmax(170px, 0.24fr);
     gap: 42px;
-    align-items: end;
-    padding: clamp(86px, 10vw, 132px) 0;
+    align-items: center;
+    padding: clamp(112px, 12vw, 172px) 0;
   }
 
   .heritage-content .section-kicker {
@@ -771,7 +771,8 @@
     }
 
     .heritage-section {
-      min-height: 660px;
+      min-height: 100vh;
+      min-height: 100svh;
     }
 
     .heritage-video {
@@ -780,7 +781,7 @@
     }
 
     .heritage-content {
-      padding: 76px 0;
+      padding: 96px 0;
     }
 
     .ledger-item,
