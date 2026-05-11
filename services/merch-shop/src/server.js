@@ -36,19 +36,67 @@ function resolveMinioPublicBaseUrl() {
 
 const minioBase = `${resolveMinioPublicBaseUrl()}/${process.env.MINIO_BUCKET || "configurator-images"}`;
 
+function createProductSlug(product) {
+  return `${product.name || ""}-${product.color || ""}`
+    .replace(/ß/g, "ss")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/&/g, "und")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function normalizeProductKey(value) {
+  return String(value || "")
+    .replace(/ß/g, "ss")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "");
+}
+
+async function loadProducts() {
+  const conn = await mysql.createConnection(dbConfig);
+  const [rows] = await conn.query("SELECT * FROM merch_shop ORDER BY id");
+  await conn.end();
+
+  return rows.map((p) => ({
+    ...p,
+    price: parseFloat(p.price),
+    slug: createProductSlug(p),
+    imageUrl: `${minioBase}/${p.minioObject}`,
+  }));
+}
+
 app.get("/health", (_req, res) => res.json({ ok: true }));
 
 app.get("/products", async (_req, res) => {
   try {
-    const conn = await mysql.createConnection(dbConfig);
-    const [rows] = await conn.query("SELECT * FROM merch_shop ORDER BY id");
-    await conn.end();
-    const products = rows.map((p) => ({
-      ...p,
-      price: parseFloat(p.price),
-      imageUrl: `${minioBase}/${p.minioObject}`,
-    }));
+    const products = await loadProducts();
     res.json(products);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/products/:productId", async (req, res) => {
+  try {
+    const requestedId = String(req.params.productId).toLowerCase();
+    const requestedKey = normalizeProductKey(req.params.productId);
+    const products = await loadProducts();
+    const product = products.find((p) =>
+      String(p.id) === requestedId ||
+      String(p.slug).toLowerCase() === requestedId ||
+      normalizeProductKey(p.slug) === requestedKey ||
+      normalizeProductKey(p.slug).endsWith(requestedKey)
+    );
+
+    if (!product) {
+      return res.status(404).json({ error: "product not found" });
+    }
+
+    res.json(product);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

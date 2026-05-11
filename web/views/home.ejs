@@ -6,13 +6,13 @@
   const merchImageBase = `${String(minioPublicBase).replace(/\/+$/, "")}/${minioBucket}/merch-shop`;
 
   const merchPreviewProducts = [
-    { name: "BMW Poloshirt", variant: "Schwarz", category: "Clothes", price: "45,50 EUR", description: "Bequemes Poloshirt mit lockerer Passform.", image: "BMW_Merchandise_Schwarz.avif" },
-    { name: "BMW Poloshirt", variant: "Weiß", category: "Clothes", price: "45,50 EUR", description: "Bequemes Poloshirt mit lockerer Passform.", image: "BMW_Merchandise_weiss.avif" },
-    { name: "BMW Isolierte Jacke", variant: "Schwarz", category: "Clothes", price: "258,30 EUR", description: "Warme Jacke mit wasserabweisender Oberfläche.", image: "BMW_Merchandise_Schwarz_Pullover.avif" },
-    { name: "BMW Kapuzenjacke", variant: "Blau", category: "Clothes", price: "77,00 EUR", description: "Sportliche Kapuzenjacke mit hohem Tragekomfort.", image: "BMW_Merchandise_Blau_Pullover.avif" },
-    { name: "BMW Sweatshirt", variant: "Schwarz", category: "Clothes", price: "70,00 EUR", description: "Bequemes Sweatshirt mit weichem Material.", image: "BMW_Merchandise_Sweatshirt.avif" },
-    { name: "BMW Z1 Modellauto", variant: "Grün", category: "Accessoires", price: "139,00 EUR", description: "Detailgetreues Modellauto im Maßstab 1:18.", image: "BMW_Merchandise_Modellauto.avif" },
-    { name: "BMW Smartphone-Hülle", variant: "Blau", category: "Accessoires", price: "84,00 EUR", description: "Robuste Hülle mit Stoßschutz und MagSafe.", image: "BMW_Merchandise_Iphone_Huelle.avif" },
+    { name: "BMW Poloshirt", variant: "Schwarz", slug: "bmw-poloshirt-schwarz", category: "Clothes", price: "45,50 EUR", description: "Bequemes Poloshirt mit lockerer Passform.", image: "BMW_Merchandise_Schwarz.avif" },
+    { name: "BMW Poloshirt", variant: "Weiß", slug: "bmw-poloshirt-weiss", category: "Clothes", price: "45,50 EUR", description: "Bequemes Poloshirt mit lockerer Passform.", image: "BMW_Merchandise_weiss.avif" },
+    { name: "BMW Isolierte Jacke", variant: "Schwarz", slug: "bmw-isolierte-jacke-schwarz", category: "Clothes", price: "258,30 EUR", description: "Warme Jacke mit wasserabweisender Oberfläche.", image: "BMW_Merchandise_Schwarz_Pullover.avif" },
+    { name: "BMW Kapuzenjacke", variant: "Blau", slug: "bmw-kapuzenjacke-blau", category: "Clothes", price: "77,00 EUR", description: "Sportliche Kapuzenjacke mit hohem Tragekomfort.", image: "BMW_Merchandise_Blau_Pullover.avif" },
+    { name: "BMW Sweatshirt", variant: "Schwarz", slug: "bmw-sweatshirt-schwarz", category: "Clothes", price: "70,00 EUR", description: "Bequemes Sweatshirt mit weichem Material.", image: "BMW_Merchandise_Sweatshirt.avif" },
+    { name: "BMW Z1 Modellauto", variant: "Grün", slug: "bmw-z1-modellauto-grun", category: "Accessoires", price: "139,00 EUR", description: "Detailgetreues Modellauto.", image: "BMW_Merchandise_Modellauto.avif" },
+    { name: "BMW Smartphone-Hülle", variant: "Blau", slug: "bmw-smartphone-hulle-blau", category: "Accessoires", price: "84,00 EUR", description: "Robuste Hülle mit Stoßschutz und MagSafe.", image: "BMW_Merchandise_Iphone_Huelle.avif" },
   ];
 %>
 <style>
@@ -794,7 +794,7 @@
 
       <div class="merch-grid" data-merch-carousel>
         <% merchPreviewProducts.forEach(function(product) { %>
-          <a class="card card--product" href="/merch-shop">
+          <a class="card card--product" href="/merch-shop/<%= product.slug %>">
             <img class="card-image" src="<%= merchImageBase %>/<%= product.image %>" alt="<%= product.name %> <%= product.variant %>" loading="lazy">
             <div class="card-body">
               <span class="card-kicker"><%= product.category %> / <%= product.variant %></span>

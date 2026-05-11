@@ -1,5 +1,6 @@
 const path = require("path");
 const fs = require("fs");
+const crypto = require("crypto");
 const express = require("express");
 const cookieParser = require("cookie-parser");
 const expressLayouts = require("express-ejs-layouts");
@@ -133,6 +134,44 @@ app.get("/merch-shop", async (_req, res) => {
       title: "BMW Merch Shop",
       activePage: "merch",
       navVariant: "solid",
+      products,
+    });
+  } catch (err) {
+    res.status(502).send("merch-shop service unavailable: " + err.message);
+  }
+});
+
+app.get("/merch-shop/:productId", async (req, res) => {
+  try {
+    const [productResponse, productsResponse] = await Promise.all([
+      fetch(`${MERCH}/products/${encodeURIComponent(req.params.productId)}`),
+      fetch(`${MERCH}/products`),
+    ]);
+
+    if (productResponse.status === 404) {
+      return res.status(404).render("merch-product", {
+        layout: "layouts/main",
+        title: "Produkt nicht gefunden",
+        activePage: "merch",
+        navVariant: "solid",
+        product: null,
+        products: [],
+      });
+    }
+
+    const product = await productResponse.json();
+    const products = productsResponse.ok ? await productsResponse.json() : [];
+
+    if (!productResponse.ok) {
+      return res.status(productResponse.status).send(product.error || "merch-shop service unavailable");
+    }
+
+    res.render("merch-product", {
+      layout: "layouts/main",
+      title: `${product.name} | BMW Merch Shop`,
+      activePage: "merch",
+      navVariant: "solid",
+      product,
       products,
     });
   } catch (err) {
@@ -339,6 +378,15 @@ app.delete("/api/cart/items/:itemId", async (req, res) => {
 app.get("/api/merch/products", async (_req, res) => {
   try {
     const r = await fetch(`${MERCH}/products`);
+    res.status(r.status).json(await r.json());
+  } catch (err) {
+    res.status(502).json({ error: err.message });
+  }
+});
+
+app.get("/api/merch/products/:productId", async (req, res) => {
+  try {
+    const r = await fetch(`${MERCH}/products/${encodeURIComponent(req.params.productId)}`);
     res.status(r.status).json(await r.json());
   } catch (err) {
     res.status(502).json({ error: err.message });
