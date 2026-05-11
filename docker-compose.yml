@@ -18,7 +18,7 @@ services:
       - shopping-cart
       - ai-feature
     volumes:
-      - ./api-gateway/src:/app/src
+      - ./api-gateway/src:/app/api-gateway/src
 
   web-app:
     build:

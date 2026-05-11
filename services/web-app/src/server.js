@@ -1,24 +1,55 @@
 const path = require("path");
+const fs = require("fs");
+const ejs = require("ejs");
 const express = require("express");
 
 const app = express();
 const port = process.env.PORT || 3006;
 
-app.set("view engine", "ejs");
-app.disable("view cache");
+function resolveRepoRoot() {
+  const candidates = [
+    process.env.REPO_ROOT,
+    path.resolve(__dirname, "..", "..", ".."),
+    path.resolve(process.cwd(), "..", ".."),
+    path.resolve(process.cwd(), ".."),
+    process.cwd(),
+  ].filter(Boolean);
 
+  return candidates.find((candidate) =>
+    fs.existsSync(path.join(candidate, "web", "views"))
+  );
+}
+
+const REPO_ROOT = resolveRepoRoot();
+
+if (!REPO_ROOT) {
+  throw new Error("Could not locate shared web/views directory");
+}
+
+const WEB_ROOT = path.join(REPO_ROOT, "web");
+const VIEWS_ROOT = path.join(WEB_ROOT, "views");
 const API_GATEWAY = process.env.API_GATEWAY_URL || "http://api-gateway:3000";
 const MERCH = process.env.MERCH_URL || "http://merch-shop:3002";
 
-app.use("/home/static", express.static(path.join(__dirname, "..", "..", "home", "public")));
-app.use("/road-to-supercar/static", express.static(path.join(__dirname, "..", "..", "home", "public")));
+app.set("view engine", "ejs");
+app.set("views", VIEWS_ROOT);
+app.disable("view cache");
+app.use("/static", express.static(path.join(WEB_ROOT, "public")));
 app.use("/api", express.json());
 
-function renderServiceView(res, viewsDirectory, locals = {}) {
-  const viewsPath = path.join(__dirname, "..", "..", viewsDirectory);
-  res.render(path.join(viewsPath, "index"), locals, (err, html) => {
-    if (err) return res.status(500).send(err.message);
-    res.send(html);
+function renderPage(res, view, locals = {}) {
+  ejs.renderFile(path.join(VIEWS_ROOT, `${view}.ejs`), locals, {}, (viewErr, body) => {
+    if (viewErr) {
+      return res.status(500).send(viewErr.message);
+    }
+
+    res.render(path.join("layouts", "main"), { ...locals, body }, (layoutErr, html) => {
+      if (layoutErr) {
+        return res.status(500).send(layoutErr.message);
+      }
+
+      return res.send(html);
+    });
   });
 }
 
@@ -92,7 +123,10 @@ app.get("/health", (_req, res) => {
 });
 
 app.get(["/", "/index.html"], (_req, res) => {
-  renderServiceView(res, "home/views", {
+  renderPage(res, "home", {
+    title: "Bayerische Motoren Werke AG | Home",
+    activePage: "home",
+    navVariant: "transparent",
     mapsApiKey: process.env.GOOGLE_MAPS_API_KEY || "",
   });
 });
@@ -106,13 +140,19 @@ app.get("/road-to-supercar", (_req, res) => {
 });
 
 app.get("/car-configurator", (req, res) => {
-  renderServiceView(res, "car-configurator/views", {
+  renderPage(res, "car-configurator", {
+    title: "BMW Konfigurator",
+    activePage: "configurator",
+    navVariant: "solid",
     initialSelection: getConfiguratorInitialSelection(req),
   });
 });
 
 app.get("/car-configurator/:model/:color/:interior/:wheels", (req, res) => {
-  renderServiceView(res, "car-configurator/views", {
+  renderPage(res, "car-configurator", {
+    title: "BMW Konfigurator",
+    activePage: "configurator",
+    navVariant: "solid",
     initialSelection: getConfiguratorInitialSelection(req),
   });
 });
@@ -121,18 +161,31 @@ app.get("/merch-shop", async (_req, res) => {
   try {
     const response = await fetch(`${MERCH}/products`);
     const products = await response.json();
-    renderServiceView(res, "merch-shop/views", { products });
+    renderPage(res, "merch-shop", {
+      title: "BMW Merch Shop",
+      activePage: "merch",
+      navVariant: "solid",
+      products,
+    });
   } catch (err) {
     res.status(502).send("merch-shop service unavailable: " + err.message);
   }
 });
 
 app.get("/ai-feature", (_req, res) => {
-  renderServiceView(res, "ai-feature/views");
+  renderPage(res, "ai-feature", {
+    title: "BMW KI Beratung",
+    activePage: "ai",
+    navVariant: "solid",
+  });
 });
 
 app.get("/shopping-cart", (_req, res) => {
-  renderServiceView(res, "shopping-cart/views");
+  renderPage(res, "shopping-cart", {
+    title: "BMW Warenkorb",
+    activePage: "cart",
+    navVariant: "solid",
+  });
 });
 
 app.listen(port, () => console.log(`web-app listening on port ${port}`));
