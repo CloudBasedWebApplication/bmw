@@ -242,29 +242,29 @@
       <div class="form-row">
         <div class="form-group">
           <label>Vorname</label>
-          <input type="text" id="firstName" placeholder="Max" autocomplete="given-name" />
+          <input type="text" id="firstName" autocomplete="given-name" />
         </div>
         <div class="form-group">
           <label>Nachname</label>
-          <input type="text" id="lastName" placeholder="Mustermann" autocomplete="family-name" />
+          <input type="text" id="lastName" autocomplete="family-name" />
         </div>
       </div>
       <div class="form-group">
         <label>E-Mail-Adresse</label>
-        <input type="email" id="emailField" placeholder="max@example.de" autocomplete="email" />
+        <input type="email" id="emailField" autocomplete="email" />
       </div>
       <div class="form-group">
         <label>Straße und Hausnummer</label>
-        <input type="text" id="street" placeholder="Musterstraße 42" autocomplete="street-address" />
+        <input type="text" id="street" autocomplete="street-address" />
       </div>
       <div class="form-row">
         <div class="form-group">
           <label>Postleitzahl</label>
-          <input type="text" id="zip" placeholder="80809" autocomplete="postal-code" />
+          <input type="text" id="zip" autocomplete="postal-code" />
         </div>
         <div class="form-group">
           <label>Stadt</label>
-          <input type="text" id="city" placeholder="München" autocomplete="address-level2" />
+          <input type="text" id="city" autocomplete="address-level2" />
         </div>
       </div>
       <div class="form-group">
@@ -322,7 +322,6 @@
       <h2>Vielen Dank!</h2>
       <p class="conf-sub">Ihre Bestellung wurde erfolgreich aufgegeben.</p>
       <p class="conf-sub" id="confEmail"></p>
-      <p class="conf-order-nr" id="confOrderNr"></p>
       <div class="confirmation-actions">
         <a href="/" class="btn btn-primary">Zurück zur Startseite</a>
         <a href="/merch-shop" class="btn btn-ghost">Weiter einkaufen</a>
@@ -612,13 +611,8 @@
         throw new Error(`Failed to clear cart: ${res.status}`);
       }
 
-      const orderNr = "BMW-" + Date.now().toString(36).toUpperCase().slice(-6)
-        + Math.random().toString(36).slice(2,5).toUpperCase();
-
       document.getElementById("confEmail").textContent =
         `Eine Bestätigung wird an ${email} gesendet.`;
-      document.getElementById("confOrderNr").textContent =
-        `Bestellnummer: ${orderNr}`;
 
       document.getElementById("step2").classList.add("done");
       document.getElementById("step3").classList.add("active", "done");
