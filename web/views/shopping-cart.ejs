@@ -409,6 +409,13 @@
           itemInfoEl.appendChild(itemVariantEl);
         }
 
+        if (item.details?.size) {
+          const itemSizeEl = document.createElement("div");
+          itemSizeEl.className = "item-variant";
+          itemSizeEl.textContent = `Größe: ${normalizeText(item.details.size)}`;
+          itemInfoEl.appendChild(itemSizeEl);
+        }
+
         const qtyControlsEl = document.createElement("div");
         qtyControlsEl.className = "qty-controls";
 
@@ -514,7 +521,21 @@
     }
   }
 
-  loadCart();
+  async function initCartPage() {
+    await loadCart();
+
+    const params = new URLSearchParams(window.location.search);
+
+    if (params.get("kasse") === "1" || params.get("checkout") === "1") {
+      await showCheckout();
+
+      if (params.get("checkout") === "1") {
+        window.history.replaceState({}, "", "/shopping-cart?kasse=1");
+      }
+    }
+  }
+
+  initCartPage();
 
   document.getElementById("clearCartBtn").addEventListener("click", async () => {
     if (!confirm("Warenkorb wirklich leeren?")) return;

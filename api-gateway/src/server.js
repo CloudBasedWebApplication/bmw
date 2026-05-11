@@ -84,13 +84,25 @@ function getConfiguratorInitialSelection(req) {
 
 // ── Page routes ──────────────────────────────────────────────────────────────
 
-app.get(["/", "/index.html"], (_req, res) => {
+app.get(["/", "/index.html"], async (_req, res) => {
+  let merchProducts = [];
+
+  try {
+    const response = await fetch(`${MERCH}/products`);
+    if (response.ok) {
+      merchProducts = await response.json();
+    }
+  } catch {
+    merchProducts = [];
+  }
+
   res.render("home", {
     layout: "layouts/main",
     title: "Bayerische Motoren Werke AG | Home",
     activePage: "home",
     navVariant: "transparent",
     mapsApiKey: process.env.GOOGLE_MAPS_API_KEY || "",
+    merchProducts,
   });
 });
 
@@ -134,6 +146,38 @@ app.get("/merch-shop", async (_req, res) => {
       activePage: "merch",
       navVariant: "solid",
       products,
+    });
+  } catch (err) {
+    res.status(502).send("merch-shop service unavailable: " + err.message);
+  }
+});
+
+app.get("/merch-shop/:productId", async (req, res) => {
+  try {
+    const response = await fetch(`${MERCH}/products/${encodeURIComponent(req.params.productId)}`);
+
+    if (response.status === 404) {
+      return res.status(404).render("merch-product", {
+        layout: "layouts/main",
+        title: "Produkt nicht gefunden",
+        activePage: "merch",
+        navVariant: "solid",
+        product: null,
+      });
+    }
+
+    const product = await response.json();
+
+    if (!response.ok) {
+      return res.status(response.status).send(product.error || "merch-shop service unavailable");
+    }
+
+    res.render("merch-product", {
+      layout: "layouts/main",
+      title: `${product.name} | BMW Merch Shop`,
+      activePage: "merch",
+      navVariant: "solid",
+      product,
     });
   } catch (err) {
     res.status(502).send("merch-shop service unavailable: " + err.message);
@@ -339,6 +383,15 @@ app.delete("/api/cart/items/:itemId", async (req, res) => {
 app.get("/api/merch/products", async (_req, res) => {
   try {
     const r = await fetch(`${MERCH}/products`);
+    res.status(r.status).json(await r.json());
+  } catch (err) {
+    res.status(502).json({ error: err.message });
+  }
+});
+
+app.get("/api/merch/products/:productId", async (req, res) => {
+  try {
+    const r = await fetch(`${MERCH}/products/${encodeURIComponent(req.params.productId)}`);
     res.status(r.status).json(await r.json());
   } catch (err) {
     res.status(502).json({ error: err.message });

@@ -5,7 +5,7 @@
   const minioBucket = process.env.MINIO_BUCKET || "configurator-images";
   const merchImageBase = `${String(minioPublicBase).replace(/\/+$/, "")}/${minioBucket}/merch-shop`;
 
-  const merchPreviewProducts = [
+  let merchPreviewProducts = [
     { name: "BMW Poloshirt", variant: "Schwarz", category: "Clothes", price: "45,50 EUR", description: "Bequemes Poloshirt mit lockerer Passform.", image: "BMW_Merchandise_Schwarz.avif" },
     { name: "BMW Poloshirt", variant: "Weiß", category: "Clothes", price: "45,50 EUR", description: "Bequemes Poloshirt mit lockerer Passform.", image: "BMW_Merchandise_weiss.avif" },
     { name: "BMW Isolierte Jacke", variant: "Schwarz", category: "Clothes", price: "258,30 EUR", description: "Warme Jacke mit wasserabweisender Oberfläche.", image: "BMW_Merchandise_Schwarz_Pullover.avif" },
@@ -14,6 +14,13 @@
     { name: "BMW Z1 Modellauto", variant: "Grün", category: "Accessoires", price: "139,00 EUR", description: "Detailgetreues Modellauto im Maßstab 1:18.", image: "BMW_Merchandise_Modellauto.avif" },
     { name: "BMW Smartphone-Hülle", variant: "Blau", category: "Accessoires", price: "84,00 EUR", description: "Robuste Hülle mit Stoßschutz und MagSafe.", image: "BMW_Merchandise_Iphone_Huelle.avif" },
   ];
+  if (typeof merchProducts !== "undefined" && Array.isArray(merchProducts) && merchProducts.length) {
+    merchPreviewProducts = merchProducts;
+  }
+  const featuredMerchProduct = merchPreviewProducts[0] || null;
+  const featuredMerchHref = featuredMerchProduct && (featuredMerchProduct.slug || featuredMerchProduct.id)
+    ? `/merch-shop/${featuredMerchProduct.slug || featuredMerchProduct.id}`
+    : "/merch-shop";
 %>
 <style>
   /* Home-specific layouts only.
@@ -749,7 +756,7 @@
           <h3>KI Beratung</h3>
           <p>Aus einem Alltagssatz wird ein konkreter Vorschlag für Fahrzeug und Zubehör.</p>
         </a>
-        <a class="service-link" href="/merch-shop">
+        <a class="service-link" href="<%= featuredMerchHref %>">
           <img class="service-image" src="/static/images/bmw_merch.png" alt="BMW Merchandise" loading="lazy">
           <span class="service-number">03</span>
           <h3>Merchandise</h3>
@@ -783,7 +790,7 @@
         <div>
           <p class="section-kicker">Merchandise Highlights</p>
           <h2 class="section-title">Alle Produkte zum Durchswipen.</h2>
-          <p class="section-copy">Die komplette Auswahl aus dem Store. Ein Klick führt direkt zum Merchandise Shop.</p>
+          <p class="section-copy">Die komplette Auswahl aus dem Store. Ein Klick führt direkt zur passenden Produktseite.</p>
         </div>
         <div class="merch-preview-actions">
           <a class="btn btn-ghost" href="/merch-shop">Zum Shop</a>
@@ -793,14 +800,14 @@
       </div>
 
       <div class="merch-grid" data-merch-carousel>
-        <% merchPreviewProducts.forEach(function(product) { %>
-          <a class="card card--product" href="/merch-shop">
-            <img class="card-image" src="<%= merchImageBase %>/<%= product.image %>" alt="<%= product.name %> <%= product.variant %>" loading="lazy">
+        <% merchPreviewProducts.forEach(function(product) { const price = Number(product.price || 0); const detailHref = product.slug || product.id ? `/merch-shop/${product.slug || product.id}` : "/merch-shop"; %>
+          <a class="card card--product" href="<%= detailHref %>">
+            <img class="card-image" src="<%= product.imageUrl || `${merchImageBase}/${product.image || ''}` %>" alt="<%= product.name %> <%= product.color || product.variant || '' %>" loading="lazy">
             <div class="card-body">
-              <span class="card-kicker"><%= product.category %> / <%= product.variant %></span>
+              <span class="card-kicker"><%= product.category %><% if (product.color || product.variant) { %> / <%= product.color || product.variant %><% } %></span>
               <h3 class="card-title"><%= product.name %></h3>
               <p class="card-text"><%= product.description %></p>
-              <span class="card-price"><%= product.price %></span>
+              <span class="card-price"><%= price ? price.toLocaleString("de-DE", { style: "currency", currency: "EUR" }) : product.price %></span>
             </div>
           </a>
         <% }) %>

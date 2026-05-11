@@ -1,0 +1,346 @@
+<style>
+  .product-detail-layout {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 40px 20px 80px;
+  }
+
+  .product-back {
+    display: inline-flex;
+    margin-bottom: 28px;
+    color: var(--muted);
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .product-back:hover { color: var(--accent); }
+
+  .detail-grid {
+    display: grid;
+    grid-template-columns: minmax(280px, 1fr) minmax(320px, 460px);
+    gap: 48px;
+    align-items: start;
+  }
+
+  .detail-image {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: contain;
+    padding: 28px;
+    background: #f8fafc;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+  }
+
+  .detail-meta {
+    color: var(--accent);
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .detail-title {
+    color: var(--ink);
+    font-size: 2.4rem;
+    font-weight: 800;
+    line-height: 1.08;
+    margin: 0 0 12px;
+  }
+
+  .detail-price {
+    color: var(--ink);
+    font-size: 1.55rem;
+    font-weight: 800;
+    margin-bottom: 22px;
+  }
+
+  .detail-description {
+    color: var(--muted);
+    font-size: 1rem;
+    line-height: 1.65;
+    margin-bottom: 26px;
+  }
+
+  .product-meta-line {
+    color: var(--muted);
+    font-size: 0.88rem;
+    font-weight: 700;
+    margin: -12px 0 24px;
+  }
+
+  .stock-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 32px;
+    padding: 0 12px;
+    border: 1px solid rgba(22, 163, 74, 0.24);
+    border-radius: 999px;
+    background: #ecfdf5;
+    color: #15803d;
+    font-size: 0.84rem;
+    font-weight: 800;
+    margin: 0 0 22px;
+  }
+
+  .stock-status::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: #16a34a;
+    box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.12);
+  }
+
+  .option-row {
+    display: grid;
+    grid-template-columns: 1fr 120px;
+    gap: 14px;
+    margin-bottom: 16px;
+  }
+
+  .option-row--single {
+    grid-template-columns: minmax(120px, 160px);
+  }
+
+  .product-field {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .product-field label {
+    color: var(--muted);
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .product-field select,
+  .product-field input {
+    width: 100%;
+    min-height: 46px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #fff;
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 0.95rem;
+    padding: 10px 12px;
+  }
+
+  .detail-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 22px;
+  }
+
+  .status-line {
+    min-height: 22px;
+    color: #15803d;
+    font-size: 0.9rem;
+    font-weight: 700;
+    margin-top: 14px;
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  .confirmation-box {
+    display: none;
+    margin-top: 24px;
+    padding: 22px;
+    border-radius: 8px;
+    background: #ecfdf5;
+    color: #166534;
+    font-weight: 700;
+  }
+
+  .confirmation-box.active { display: block; }
+
+  .not-found {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 72px 20px;
+    text-align: center;
+  }
+
+  .not-found h1 { font-size: 2rem; margin-bottom: 12px; }
+  .not-found p { color: var(--muted); margin-bottom: 28px; }
+
+  @media (max-width: 780px) {
+    .detail-grid,
+    .option-row,
+    .form-row,
+    .detail-actions {
+      grid-template-columns: 1fr;
+    }
+
+    .detail-title { font-size: 2rem; }
+  }
+</style>
+
+<% if (!product) { %>
+  <div class="not-found">
+    <h1>Produkt nicht gefunden</h1>
+    <p>Dieses Merchandise-Produkt ist nicht mehr verfügbar oder wurde verschoben.</p>
+    <a class="btn btn-primary" href="/merch-shop">Zurück zum Shop</a>
+  </div>
+<% } else { %>
+  <%
+    const productData = {
+      id: product.id,
+      name: product.name,
+      category: product.category,
+      color: product.color,
+      price: Number(product.price || 0),
+      imageUrl: product.imageUrl,
+      slug: product.slug,
+    };
+    const sizes = Array.isArray(product.sizes) ? [...product.sizes] : [];
+    if (String(product.name || "").toLowerCase().includes("hülle")) {
+      [
+        "Samsung Galaxy S25",
+        "Samsung Galaxy S24",
+        "Google Pixel 9 Pro",
+        "Google Pixel 8",
+      ].forEach((model) => {
+        if (!sizes.includes(model)) sizes.push(model);
+      });
+    }
+    const productPrice = Number(product.price || 0);
+  %>
+  <div class="product-detail-layout">
+    <a class="product-back" href="/merch-shop">Zurück zum Shop</a>
+
+    <div class="detail-grid">
+      <img class="detail-image" src="<%= product.imageUrl %>" alt="<%= product.name %> <%= product.color || '' %>" />
+
+      <section>
+        <div class="detail-meta"><%= product.category %><% if (product.color) { %> / <%= product.color %><% } %></div>
+        <h1 class="detail-title"><%= product.name %></h1>
+        <div class="detail-price"><%= productPrice.toLocaleString("de-DE", { style: "currency", currency: "EUR" }) %></div>
+
+        <% if (product.description) { %>
+          <p class="detail-description"><%= product.description %></p>
+        <% } %>
+
+        <p class="product-meta-line">
+          Farbe: <%= product.color || "Standard" %><% if (product.gender) { %> · <%= product.gender %><% } %>
+        </p>
+        <div class="stock-status">Auf Lager</div>
+
+        <div class="option-row<%= sizes.length ? "" : " option-row--single" %>">
+          <% if (sizes.length) { %>
+            <div class="product-field">
+              <label for="sizeSelect">Größe / Modell</label>
+              <select id="sizeSelect">
+                <% sizes.forEach(function(size) { %>
+                  <option value="<%= size %>"><%= size %></option>
+                <% }) %>
+              </select>
+            </div>
+          <% } %>
+
+          <div class="product-field">
+            <label for="quantityInput">Anzahl</label>
+            <input id="quantityInput" type="number" min="1" value="1" />
+          </div>
+        </div>
+
+        <div class="detail-actions">
+          <button class="btn btn-primary" id="addToCartBtn">In den Warenkorb</button>
+          <button class="btn btn-ghost" id="quickBuyBtn">One-Klick-Kauf</button>
+        </div>
+        <div class="status-line" id="cartStatus" role="status"></div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const product = <%- JSON.stringify(productData) %>;
+    const sizeSelect = document.getElementById("sizeSelect");
+    const quantityInput = document.getElementById("quantityInput");
+    const cartStatus = document.getElementById("cartStatus");
+
+    function selectedQuantity() {
+      const quantity = Math.max(1, parseInt(quantityInput.value, 10) || 1);
+      quantityInput.value = quantity;
+      return quantity;
+    }
+
+    function selectedSize() {
+      return sizeSelect ? sizeSelect.value || null : null;
+    }
+
+    function cartPayload() {
+      return {
+        type: "merch",
+        name: product.name,
+        price: product.price,
+        imageUrl: product.imageUrl,
+        quantity: selectedQuantity(),
+        details: {
+          productId: product.id,
+          slug: product.slug,
+          color: product.color,
+          size: selectedSize(),
+        },
+      };
+    }
+
+    async function addSelectedProductToCart() {
+      const response = await fetch("/api/cart/items", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(cartPayload()),
+      });
+
+      if (!response.ok) {
+        throw new Error("cart request failed");
+      }
+    }
+
+    document.getElementById("addToCartBtn").addEventListener("click", async () => {
+      const button = document.getElementById("addToCartBtn");
+      button.disabled = true;
+      cartStatus.textContent = "";
+
+      try {
+        await addSelectedProductToCart();
+        cartStatus.textContent = `${selectedQuantity()} Artikel wurde in den Warenkorb gelegt.`;
+      } catch {
+        cartStatus.textContent = "Der Artikel konnte nicht hinzugefügt werden.";
+      } finally {
+        button.disabled = false;
+      }
+    });
+
+    document.getElementById("quickBuyBtn").addEventListener("click", async () => {
+      const button = document.getElementById("quickBuyBtn");
+      button.disabled = true;
+      cartStatus.textContent = "Auf Lager. Weiterleitung zur Kasse ...";
+
+      try {
+        await addSelectedProductToCart();
+        window.location.href = "/shopping-cart?kasse=1";
+      } catch {
+        button.disabled = false;
+        cartStatus.textContent = "Die Kasse konnte nicht geöffnet werden.";
+      }
+    });
+
+    window.addEventListener("pageshow", () => {
+      const quickBuyButton = document.getElementById("quickBuyBtn");
+      quickBuyButton.disabled = false;
+      cartStatus.textContent = "";
+    });
+  </script>
+<% } %>
