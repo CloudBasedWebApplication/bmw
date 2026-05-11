@@ -1,3 +1,5 @@
+const path = require("path");
+const fs = require("fs");
 const crypto = require("crypto");
 const express = require("express");
 const cookieParser = require("cookie-parser");
@@ -20,6 +22,152 @@ app.use((req, res, next) => {
   }
   next();
 });
+
+const serviceCatalog = [
+  { path: "/",                  name: "Home" },
+  { path: "/car-configurator",  name: "Car Configurator" },
+  { path: "/merch-shop",        name: "Merch Shop" },
+  { path: "/ai-feature",        name: "AI Feature" },
+  { path: "/shopping-cart",     name: "Shopping Cart" },
+];
+
+function getConfiguratorInitialSelection(req) {
+  const routeSelection = req.params.model
+    ? {
+        model: req.params.model,
+        color: req.params.color || null,
+        interior: req.params.interior || null,
+        wheels: req.params.wheels || null,
+      }
+    : null;
+
+  const legacyQuerySelection = req.query.model || req.query.color || req.query.interior || req.query.wheels
+    ? {
+        model: req.query.model || null,
+        color: req.query.color || null,
+        interior: req.query.interior || null,
+        wheels: req.query.wheels || null,
+      }
+    : null;
+
+  return routeSelection || legacyQuerySelection || null;
+}
+
+// ── Page routes ──────────────────────────────────────────────────────────────
+
+app.get(["/", "/index.html"], (_req, res) => {
+  res.render("home", {
+    layout: "layouts/main",
+    title: "Bayerische Motoren Werke AG | Home",
+    activePage: "home",
+    navVariant: "transparent",
+    mapsApiKey: process.env.GOOGLE_MAPS_API_KEY || "",
+  });
+});
+
+app.get("/home", (_req, res) => {
+  res.redirect(301, "/");
+});
+
+app.get("/road-to-supercar", (_req, res) => {
+  res.redirect(301, "/");
+});
+
+app.get("/health", (_req, res) => {
+  res.json({
+    ok: true,
+    service: "api-gateway",
+    timestamp: new Date().toISOString(),
+    routes: serviceCatalog.map(({ path: routePath, name }) => ({ path: routePath, name })),
+  });
+});
+
+function renderConfigurator(req, res) {
+  res.render("car-configurator", {
+    layout: "layouts/main",
+    title: "BMW Konfigurator",
+    activePage: "configurator",
+    navVariant: "solid",
+    initialSelection: getConfiguratorInitialSelection(req),
+  });
+}
+
+app.get("/car-configurator", renderConfigurator);
+app.get("/car-configurator/:model/:color/:interior/:wheels", renderConfigurator);
+
+app.get("/merch-shop", async (_req, res) => {
+  try {
+    const response = await fetch(`${MERCH}/products`);
+    const products = await response.json();
+    res.render("merch-shop", {
+      layout: "layouts/main",
+      title: "BMW Merch Shop",
+      activePage: "merch",
+      navVariant: "solid",
+      products,
+    });
+  } catch (err) {
+    res.status(502).send("merch-shop service unavailable: " + err.message);
+  }
+});
+
+app.get("/merch-shop/:productId", async (req, res) => {
+  try {
+    const [productResponse, productsResponse] = await Promise.all([
+      fetch(`${MERCH}/products/${encodeURIComponent(req.params.productId)}`),
+      fetch(`${MERCH}/products`),
+    ]);
+
+    if (productResponse.status === 404) {
+      return res.status(404).render("merch-product", {
+        layout: "layouts/main",
+        title: "Produkt nicht gefunden",
+        activePage: "merch",
+        navVariant: "solid",
+        product: null,
+        products: [],
+      });
+    }
+
+    const product = await productResponse.json();
+    const products = productsResponse.ok ? await productsResponse.json() : [];
+
+    if (!productResponse.ok) {
+      return res.status(productResponse.status).send(product.error || "merch-shop service unavailable");
+    }
+
+    res.render("merch-product", {
+      layout: "layouts/main",
+      title: `${product.name} | BMW Merch Shop`,
+      activePage: "merch",
+      navVariant: "solid",
+      product,
+      products,
+    });
+  } catch (err) {
+    res.status(502).send("merch-shop service unavailable: " + err.message);
+  }
+});
+
+app.get("/ai-feature", (_req, res) => {
+  res.render("ai-feature", {
+    layout: "layouts/main",
+    title: "BMW KI Beratung",
+    activePage: "ai",
+    navVariant: "solid",
+  });
+});
+
+app.get("/shopping-cart", (_req, res) => {
+  res.render("shopping-cart", {
+    layout: "layouts/main",
+    title: "BMW Warenkorb",
+    activePage: "cart",
+    navVariant: "solid",
+  });
+});
+
+// ── API proxy routes ─────────────────────────────────────────────────────────
 
 const DESTINATIONS = [
   {
@@ -162,6 +310,10 @@ app.delete("/api/cart/items/:itemId", (req, res) => {
 
 app.get("/api/merch/products", (_req, res) => {
   proxyJson(res, () => fetch(`${MERCH}/products`));
+});
+
+app.get("/api/merch/products/:productId", (req, res) => {
+  proxyJson(res, () => fetch(`${MERCH}/products/${encodeURIComponent(req.params.productId)}`));
 });
 
 app.post("/api/ai/recommend", (req, res) => {

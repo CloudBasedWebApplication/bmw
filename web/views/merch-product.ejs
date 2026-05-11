@@ -1,0 +1,456 @@
+<style>
+  .product-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 36px 20px 84px;
+  }
+
+  .product-overview {
+    margin-bottom: 28px;
+  }
+
+  .overview-header {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 14px;
+  }
+
+  .overview-title {
+    margin: 0;
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .overview-link {
+    color: var(--accent);
+    font-size: 0.86rem;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .overview-rail {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(150px, 1fr);
+    gap: 12px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+  }
+
+  .overview-item {
+    min-width: 150px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: #fff;
+    color: var(--ink);
+    text-decoration: none;
+    overflow: hidden;
+  }
+
+  .overview-item.active {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(28, 105, 212, 0.12);
+  }
+
+  .overview-item img {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    display: block;
+    object-fit: contain;
+    padding: 14px;
+    background: #f5f7f9;
+  }
+
+  .overview-item span {
+    display: block;
+    padding: 10px 12px 12px;
+    color: var(--muted);
+    font-size: 0.82rem;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .product-detail {
+    display: grid;
+    grid-template-columns: minmax(0, 1.06fr) minmax(340px, 0.94fr);
+    gap: 28px;
+    align-items: start;
+  }
+
+  .product-media {
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: linear-gradient(180deg, #fff 0%, #f4f6f8 100%);
+    min-height: 520px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 42px;
+  }
+
+  .product-media img {
+    width: 100%;
+    max-height: 520px;
+    object-fit: contain;
+  }
+
+  .product-panel {
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: #fff;
+    padding: 32px;
+    box-shadow: 0 18px 42px rgba(16, 24, 40, 0.08);
+  }
+
+  .product-kicker {
+    margin: 0 0 10px;
+    color: var(--accent);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  .product-panel h1 {
+    margin: 0;
+    color: var(--ink);
+    font-size: clamp(2rem, 4vw, 3.35rem);
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .product-price {
+    margin: 18px 0 0;
+    color: var(--ink);
+    font-size: 1.55rem;
+    font-weight: 700;
+  }
+
+  .product-description {
+    margin: 18px 0 0;
+    color: var(--muted);
+    font-size: 1rem;
+  }
+
+  .product-meta {
+    margin: 18px 0 0;
+    color: var(--ink-soft);
+    font-size: 0.94rem;
+    font-weight: 700;
+  }
+
+  .availability-box {
+    display: grid;
+    gap: 8px;
+    margin-top: 18px;
+    border: 1px solid rgba(21, 128, 61, 0.18);
+    border-radius: var(--radius);
+    background: #f0fdf4;
+    padding: 14px 16px;
+  }
+
+  .availability-state,
+  .delivery-state {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.94rem;
+    font-weight: 700;
+  }
+
+  .availability-state {
+    color: #15803d;
+  }
+
+  .delivery-state {
+    color: var(--ink-soft);
+  }
+
+  .availability-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    background: #16a34a;
+    box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.12);
+    flex: 0 0 auto;
+  }
+
+  .delivery-icon {
+    width: 18px;
+    height: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: #fff;
+    color: var(--accent);
+    font-size: 0.78rem;
+    flex: 0 0 auto;
+  }
+
+  .buy-form {
+    display: grid;
+    gap: 16px;
+    margin-top: 26px;
+  }
+
+  .control-grid {
+    display: grid;
+    grid-template-columns: 150px 1fr;
+    gap: 12px;
+  }
+
+  .size-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .size-option input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .size-option span {
+    min-width: 52px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(17, 24, 39, 0.16);
+    border-radius: var(--radius);
+    background: #fff;
+    color: var(--ink);
+    font-size: 0.92rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .size-option input:checked + span {
+    border-color: var(--ink);
+    background: var(--ink);
+    color: #fff;
+  }
+
+  .action-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .status-line {
+    min-height: 22px;
+    color: var(--muted);
+    font-size: 0.9rem;
+    font-weight: 700;
+  }
+
+  .not-found {
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: #fff;
+    padding: 36px;
+  }
+
+  @media (max-width: 860px) {
+    .product-detail,
+    .control-grid,
+    .action-row {
+      grid-template-columns: 1fr;
+    }
+
+    .product-media {
+      min-height: 360px;
+      padding: 24px;
+    }
+  }
+</style>
+
+<div class="product-page">
+  <% if (!product) { %>
+    <div class="not-found">
+      <p class="product-kicker">Merchandise</p>
+      <h1>Produkt nicht gefunden</h1>
+      <p class="product-description">Dieses Produkt ist nicht mehr verfügbar oder die Adresse ist falsch.</p>
+      <a class="btn btn-primary" href="/merch-shop" style="margin-top:22px;">Zur Produktübersicht</a>
+    </div>
+  <% } else { %>
+    <%
+      const isClothing = product.category === "clothes";
+      const sizes = isClothing && product.sizes
+        ? String(product.sizes).split(",").map((size) => size.trim()).filter(Boolean)
+        : [];
+      const displayDescription = product.description
+        ? String(product.description)
+            .replace(/\s*im Ma[ßÃŸ]+stab\s*1:18\.?/i, ".")
+            .replace(/\s+$/, "")
+        : "";
+      const productMeta = [
+        product.gender,
+        isClothing ? product.color : null,
+      ].filter(Boolean).join(" / ");
+      const overviewProducts = (products || []).filter((item) => item.id !== product.id);
+    %>
+
+    <section class="product-overview" aria-label="Produktübersicht">
+      <div class="overview-header">
+        <h2 class="overview-title">Produktübersicht</h2>
+        <a class="overview-link" href="/merch-shop">Alle Produkte</a>
+      </div>
+      <div class="overview-rail">
+        <a class="overview-item active" href="/merch-shop/<%= product.slug || product.id %>">
+          <img src="<%= product.imageUrl %>" alt="<%= product.name %>" loading="lazy" />
+          <span><%= product.name %><% if (product.color) { %> / <%= product.color %><% } %></span>
+        </a>
+        <% overviewProducts.forEach(function(item) { %>
+          <a class="overview-item" href="/merch-shop/<%= item.slug || item.id %>">
+            <img src="<%= item.imageUrl %>" alt="<%= item.name %>" loading="lazy" />
+            <span><%= item.name %><% if (item.color) { %> / <%= item.color %><% } %></span>
+          </a>
+        <% }) %>
+      </div>
+    </section>
+
+    <section class="product-detail">
+      <div class="product-media">
+        <img src="<%= product.imageUrl %>" alt="<%= product.name %><% if (product.color) { %> in <%= product.color %><% } %>" />
+      </div>
+
+      <div class="product-panel">
+        <p class="product-kicker"><%= product.category === "clothes" ? "Kleidung" : "Accessoire" %></p>
+        <h1><%= product.name %></h1>
+        <div class="product-price"><%= parseFloat(product.price).toLocaleString("de-DE", { style: "currency", currency: "EUR" }) %></div>
+        <% if (displayDescription) { %>
+          <p class="product-description"><%= displayDescription %></p>
+        <% } %>
+        <% if (productMeta) { %>
+          <p class="product-meta"><%= productMeta %></p>
+        <% } %>
+        <div class="availability-box" aria-label="Verfügbarkeit und Lieferung">
+          <div class="availability-state">
+            <span class="availability-dot" aria-hidden="true"></span>
+            <span>Auf Lager</span>
+          </div>
+          <div class="delivery-state">
+            <span class="delivery-icon" aria-hidden="true">↗</span>
+            <span>Voraussichtliche Lieferung in 3-5 Tagen</span>
+          </div>
+        </div>
+
+        <form class="buy-form" data-product-form>
+          <% if (sizes.length) { %>
+            <div class="field">
+              <span class="field-label">Größe</span>
+              <div class="size-options">
+                <% sizes.forEach(function(size, index) { %>
+                  <label class="size-option">
+                    <input type="radio" name="size" value="<%= size %>" <%= index === 0 ? "checked" : "" %> />
+                    <span><%= size %></span>
+                  </label>
+                <% }) %>
+              </div>
+            </div>
+          <% } %>
+
+          <div class="control-grid">
+            <label class="field">
+              <span class="field-label">Anzahl</span>
+              <input class="input" name="quantity" type="number" min="1" value="1" />
+            </label>
+          </div>
+
+          <div class="action-row">
+            <button class="btn btn-secondary" type="button" data-cart-button>In den Warenkorb</button>
+            <button class="btn btn-primary" type="button" data-buy-button>Direkt zur Kasse</button>
+          </div>
+          <div class="status-line" data-status aria-live="polite"></div>
+        </form>
+      </div>
+    </section>
+
+    <script>
+      const product = {
+        id: <%- JSON.stringify(product.id) %>,
+        name: <%- JSON.stringify(product.name) %>,
+        price: <%- JSON.stringify(product.price) %>,
+        imageUrl: <%- JSON.stringify(product.imageUrl) %>,
+        color: <%- JSON.stringify(product.color || null) %>,
+        category: <%- JSON.stringify(product.category) %>,
+      };
+
+      const form = document.querySelector("[data-product-form]");
+      const statusLine = document.querySelector("[data-status]");
+
+      window.addEventListener("pageshow", () => {
+        statusLine.textContent = "";
+      });
+
+      function getSelectedQuantity() {
+        const quantityInput = form.querySelector('[name="quantity"]');
+        const quantity = Math.max(1, parseInt(quantityInput.value, 10) || 1);
+        quantityInput.value = quantity;
+        return quantity;
+      }
+
+      function buildCartPayload() {
+        const sizeInput = form.querySelector('[name="size"]:checked');
+        const details = {
+          productId: product.id,
+          color: product.color,
+        };
+
+        if (sizeInput) {
+          details.size = sizeInput.value;
+        }
+
+        return {
+          type: "merch",
+          name: product.name,
+          price: parseFloat(product.price),
+          imageUrl: product.imageUrl,
+          quantity: getSelectedQuantity(),
+          details,
+        };
+      }
+
+      async function addToCart() {
+        const response = await fetch("/api/cart/items", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(buildCartPayload()),
+        });
+
+        if (!response.ok) {
+          throw new Error("cart request failed");
+        }
+
+        return response.json();
+      }
+
+      document.querySelector("[data-cart-button]").addEventListener("click", async () => {
+        statusLine.textContent = "Wird hinzugefügt...";
+        try {
+          await addToCart();
+          statusLine.textContent = "Produkt wurde in den Warenkorb gelegt.";
+        } catch (error) {
+          statusLine.textContent = "Der Warenkorb ist gerade nicht erreichbar.";
+        }
+      });
+
+      document.querySelector("[data-buy-button]").addEventListener("click", async () => {
+        try {
+          await addToCart();
+          window.location.href = "/shopping-cart?checkout=1";
+        } catch (error) {
+          statusLine.textContent = "Der Warenkorb ist gerade nicht erreichbar.";
+        }
+      });
+    </script>
+  <% } %>
+</div>
