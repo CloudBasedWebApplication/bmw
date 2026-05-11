@@ -185,8 +185,8 @@
   /* ── Merch grid ── */
   .merch-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 200px));
-    gap: 14px;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 260px));
+    gap: 16px;
     justify-content: center;
   }
   .merch-product-card {
@@ -230,16 +230,32 @@
   .merch-product-price {
     font-size: 1rem; font-weight: 800; color: var(--accent);
   }
+  .merch-product-link { display: block; text-decoration: none; color: inherit; }
+  .merch-product-name a { text-decoration: none; color: inherit; }
+  .merch-product-name a:hover { color: var(--accent); }
+
+  .merch-qty-row {
+    display: flex; align-items: center; gap: 8px; margin-top: auto;
+  }
+  .merch-qty-input {
+    width: 56px; padding: 9px 8px;
+    border: 1px solid #e2e8f0; border-radius: 8px;
+    font-size: 0.85rem; font-family: inherit;
+    text-align: center; color: var(--ink);
+    background: #fafbfc; outline: none;
+    transition: border-color 0.18s; flex-shrink: 0;
+  }
+  .merch-qty-input:focus { border-color: var(--accent); }
+
   .add-to-cart-btn {
-    width: 100%; padding: 9px 12px;
+    flex: 1; padding: 9px 12px;
     background: var(--accent); color: #fff; border: none;
     border-radius: 10px; font-size: 0.8rem; font-weight: 700;
     cursor: pointer; font-family: inherit;
     transition: background 0.18s;
-    margin-top: auto;
   }
   .add-to-cart-btn:hover:not(:disabled) { background: var(--accent-dark); }
-  .add-to-cart-btn.added { background: #16a34a; cursor: default; }
+  .add-to-cart-btn.added { background: #16a34a; }
   .add-to-cart-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
   @media (max-width: 640px) {
@@ -249,7 +265,7 @@
     .car-reveal-content { flex-direction: column-reverse; gap: 12px; }
     .car-reveal-image-wrap { width: 100%; height: 180px; }
     .car-reveal-model { font-size: 1.6rem; }
-    .merch-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .merch-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
     .input-footer { flex-direction: column; align-items: stretch; }
     .send-btn { width: 100%; text-align: center; }
   }
@@ -258,7 +274,7 @@
 <div class="ai-layout">
   <div class="hero">
     <h1>Dein BMW, auf dich abgestimmt.</h1>
-    <p class="subtitle">Beschreib deinen Alltag. Wir finden deinen BMW.</p>
+    <p class="subtitle">Beschreibe deinen Alltag. Wir finden deinen BMW.</p>
   </div>
 
   <div class="input-card">
@@ -388,23 +404,28 @@
         const id       = Number(l.id);
         const color    = escapeHtml(l.subtitle || "");
 
+        const productUrl = `/merch-shop#product-${id}`;
         merchHtml += `
           <div class="merch-product-card"
                data-product-id="${id}"
                data-title="${title}"
                data-price="${price}"
                data-image="${imageUrl}"
-               data-color="${color}"
-               onclick="window.location.href='/merch-shop'">
-            <div class="merch-product-img">
-              ${imageUrl
-                ? `<img src="${imageUrl}" alt="${title}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='grid';" /><span class="merch-product-img-fallback" style="display:none">${fallback}</span>`
-                : `<span class="merch-product-img-fallback">${fallback}</span>`}
-            </div>
+               data-color="${color}">
+            <a href="${productUrl}" class="merch-product-link">
+              <div class="merch-product-img">
+                ${imageUrl
+                  ? `<img src="${imageUrl}" alt="${title}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='grid';" /><span class="merch-product-img-fallback" style="display:none">${fallback}</span>`
+                  : `<span class="merch-product-img-fallback">${fallback}</span>`}
+              </div>
+            </a>
             <div class="merch-product-body">
-              <span class="merch-product-name">${title}</span>
+              <span class="merch-product-name"><a href="${productUrl}">${title}</a></span>
               ${price > 0 ? `<span class="merch-product-price">${price.toLocaleString("de-DE", { style: "currency", currency: "EUR" })}</span>` : ""}
-              <button class="add-to-cart-btn" type="button" onclick="event.stopPropagation()">In den Warenkorb</button>
+              <div class="merch-qty-row">
+                <input class="merch-qty-input" type="number" min="1" value="1" aria-label="Menge" />
+                <button class="add-to-cart-btn" type="button">In den Warenkorb</button>
+              </div>
             </div>
           </div>`;
       });
@@ -414,12 +435,13 @@
 
     // ── Cart button listeners ───────────────────────────────────────
     document.querySelectorAll(".merch-product-card .add-to-cart-btn").forEach((cartBtn) => {
-      cartBtn.addEventListener("click", async (e) => {
-        e.stopPropagation();
+      cartBtn.addEventListener("click", async () => {
         const card     = cartBtn.closest(".merch-product-card");
         const name     = card.dataset.title;
         const id       = parseInt(card.dataset.productId);
         const imageUrl = card.dataset.image || null;
+        const qtyInput = card.querySelector(".merch-qty-input");
+        const quantity = Math.max(1, parseInt(qtyInput?.value) || 1);
 
         cartBtn.disabled = true;
         cartBtn.textContent = "...";
@@ -445,13 +467,18 @@
               name,
               price,
               imageUrl,
-              quantity: 1,
+              quantity,
               details: { productId: id, color: found?.color || card.dataset.color || '' },
             }),
           });
           if (!r.ok) throw new Error();
           cartBtn.textContent = "Hinzugefügt ✓";
           cartBtn.classList.add("added");
+          setTimeout(() => {
+            cartBtn.textContent = "In den Warenkorb";
+            cartBtn.classList.remove("added");
+            cartBtn.disabled = false;
+          }, 2000);
         } catch {
           cartBtn.textContent = "Fehler — erneut versuchen";
           cartBtn.disabled = false;
