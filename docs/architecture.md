@@ -86,7 +86,7 @@ The `services/web-app` service provides the browser-facing presentation layer.
 Its responsibilities are:
 
 - render the EJS pages for Home, Configurator, Merch Shop, AI Feature, and Shopping Cart
-- serve static assets for the web experience, such as fonts and images under `/home/static`
+- serve static assets for the web experience, such as fonts and images under `/static`
 - keep the existing page routes stable for the browser
 - forward same-origin `/api/*` requests to the API gateway
 

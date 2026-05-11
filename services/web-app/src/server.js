@@ -1,22 +1,57 @@
 const path = require("path");
+const fs = require("fs");
+const ejs = require("ejs");
 const express = require("express");
-const expressLayouts = require("express-ejs-layouts");
 
 const app = express();
 const port = process.env.PORT || 3006;
 
-const REPO_ROOT = process.env.REPO_ROOT || path.resolve(__dirname, "..", "..", "..");
+function resolveRepoRoot() {
+  const candidates = [
+    process.env.REPO_ROOT,
+    path.resolve(__dirname, "..", "..", ".."),
+    path.resolve(process.cwd(), "..", ".."),
+    path.resolve(process.cwd(), ".."),
+    process.cwd(),
+  ].filter(Boolean);
+
+  return candidates.find((candidate) =>
+    fs.existsSync(path.join(candidate, "web", "views"))
+  );
+}
+
+const REPO_ROOT = resolveRepoRoot();
+
+if (!REPO_ROOT) {
+  throw new Error("Could not locate shared web/views directory");
+}
+
+const WEB_ROOT = path.join(REPO_ROOT, "web");
+const VIEWS_ROOT = path.join(WEB_ROOT, "views");
 const API_GATEWAY = process.env.API_GATEWAY_URL || "http://api-gateway:3000";
 const MERCH = process.env.MERCH_URL || "http://merch-shop:3002";
 
 app.set("view engine", "ejs");
-app.set("views", path.join(REPO_ROOT, "web", "views"));
-app.use(expressLayouts);
-app.set("layout", false);
+app.set("views", VIEWS_ROOT);
 app.disable("view cache");
-
-app.use("/static", express.static(path.join(REPO_ROOT, "web", "public")));
+app.use("/static", express.static(path.join(WEB_ROOT, "public")));
 app.use("/api", express.json());
+
+function renderPage(res, view, locals = {}) {
+  ejs.renderFile(path.join(VIEWS_ROOT, `${view}.ejs`), locals, {}, (viewErr, body) => {
+    if (viewErr) {
+      return res.status(500).send(viewErr.message);
+    }
+
+    res.render(path.join("layouts", "main"), { ...locals, body }, (layoutErr, html) => {
+      if (layoutErr) {
+        return res.status(500).send(layoutErr.message);
+      }
+
+      return res.send(html);
+    });
+  });
+}
 
 function getConfiguratorInitialSelection(req) {
   const routeSelection = req.params.model
@@ -88,8 +123,7 @@ app.get("/health", (_req, res) => {
 });
 
 app.get(["/", "/index.html"], (_req, res) => {
-  res.render("home", {
-    layout: "layouts/main",
+  renderPage(res, "home", {
     title: "Bayerische Motoren Werke AG | Home",
     activePage: "home",
     navVariant: "transparent",
@@ -106,8 +140,7 @@ app.get("/road-to-supercar", (_req, res) => {
 });
 
 function renderConfigurator(req, res) {
-  res.render("car-configurator", {
-    layout: "layouts/main",
+  renderPage(res, "car-configurator", {
     title: "BMW Konfigurator",
     activePage: "configurator",
     navVariant: "solid",
@@ -122,8 +155,7 @@ app.get("/merch-shop", async (_req, res) => {
   try {
     const response = await fetch(`${MERCH}/products`);
     const products = await response.json();
-    res.render("merch-shop", {
-      layout: "layouts/main",
+    renderPage(res, "merch-shop", {
       title: "BMW Merch Shop",
       activePage: "merch",
       navVariant: "solid",
@@ -135,8 +167,7 @@ app.get("/merch-shop", async (_req, res) => {
 });
 
 app.get("/ai-feature", (_req, res) => {
-  res.render("ai-feature", {
-    layout: "layouts/main",
+  renderPage(res, "ai-feature", {
     title: "BMW KI Beratung",
     activePage: "ai",
     navVariant: "solid",
@@ -144,8 +175,7 @@ app.get("/ai-feature", (_req, res) => {
 });
 
 app.get("/shopping-cart", (_req, res) => {
-  res.render("shopping-cart", {
-    layout: "layouts/main",
+  renderPage(res, "shopping-cart", {
     title: "BMW Warenkorb",
     activePage: "cart",
     navVariant: "solid",

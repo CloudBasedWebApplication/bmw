@@ -37,7 +37,6 @@ services:
       - api-gateway
       - merch-shop
     volumes:
-      - ./services/web-app/src:/app/services/web-app/src
       - ./web:/app/web
 
   car-configurator:
