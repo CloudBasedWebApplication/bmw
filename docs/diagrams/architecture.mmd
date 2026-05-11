@@ -1,6 +1,7 @@
 flowchart LR
     user["User"]
-    gateway["API Gateway / Web App"]
+    webapp["Web App\nEJS pages + static assets"]
+    gateway["API Gateway\nAPI proxying"]
 
     subgraph backend["Microservices"]
         configurator["Car Configurator Service"]
@@ -20,13 +21,15 @@ flowchart LR
         googlemaps["Google Maps API"]
     end
 
-    user --> gateway
+    user --> webapp
+    webapp --> gateway
 
     gateway --> configurator
     gateway --> merchandise
     gateway --> ai
     gateway --> cart
-    gateway --> googlemaps
+
+    user --> googlemaps
 
     configurator --> mysql
     configurator --> minio

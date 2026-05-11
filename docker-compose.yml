@@ -3,8 +3,8 @@ services:
     build:
       context: .
       dockerfile: api-gateway/Dockerfile
-    ports:
-      - "3000:3000"
+    expose:
+      - "3000"
     env_file: .env
     environment:
       PORT: 3000
@@ -19,6 +19,24 @@ services:
       - ai-feature
     volumes:
       - ./api-gateway/src:/app/api-gateway/src
+
+  web-app:
+    build:
+      context: .
+      dockerfile: services/web-app/Dockerfile
+    ports:
+      - "3000:3006"
+    env_file: .env
+    environment:
+      PORT: 3006
+      API_GATEWAY_URL: http://api-gateway:3000
+      MERCH_URL: http://merch-shop:3002
+      CODESPACE_NAME: ${CODESPACE_NAME:-}
+      MINIO_PUBLIC_URL: ${MINIO_PUBLIC_URL:-}
+    depends_on:
+      - api-gateway
+      - merch-shop
+    volumes:
       - ./web:/app/web
 
   car-configurator:
