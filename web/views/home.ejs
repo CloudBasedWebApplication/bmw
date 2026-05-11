@@ -109,9 +109,10 @@
     color: #fff;
   }
 
-  .vehicle-hero img {
+  .vehicle-backdrop {
     position: absolute;
     inset: 0;
+    z-index: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -126,13 +127,60 @@
     background:
       linear-gradient(180deg, rgba(6, 10, 16, 0.12) 0%, rgba(6, 10, 16, 0.22) 48%, rgba(6, 10, 16, 0.76) 100%),
       linear-gradient(90deg, rgba(6, 10, 16, 0.46) 0%, rgba(6, 10, 16, 0.08) 52%, rgba(6, 10, 16, 0.24) 100%);
+    pointer-events: none;
+  }
+
+  .vehicle-hotspot {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: block;
+    outline: none;
+  }
+
+  .vehicle-hotspot--3er {
+    clip-path: polygon(1% 41%, 62% 40%, 76% 53%, 77% 77%, 3% 82%, 0 65%);
+  }
+
+  .vehicle-hotspot--x5 {
+    clip-path: polygon(42% 31%, 100% 31%, 100% 82%, 47% 84%, 39% 68%);
+  }
+
+  .vehicle-hotspot img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    opacity: 0.96;
+    filter: brightness(0.58) saturate(0.92) contrast(1.03);
+    transform: scale(1);
+    transition: transform 0.28s ease, filter 0.28s ease, opacity 0.28s ease;
+    pointer-events: none;
+    will-change: transform, filter;
+  }
+
+  .vehicle-hotspot--3er img {
+    transform-origin: 35% 64%;
+  }
+
+  .vehicle-hotspot--x5 img {
+    transform-origin: 83% 61%;
+  }
+
+  .vehicle-hotspot:hover img,
+  .vehicle-hotspot:focus-visible img {
+    opacity: 1;
+    filter: brightness(1.08) saturate(1.08) contrast(1.04) drop-shadow(0 18px 26px rgba(0, 0, 0, 0.38));
+    transform: scale(1.026);
   }
 
   .stage-index {
     position: absolute;
     top: 28px;
     left: 28px;
-    z-index: 2;
+    z-index: 3;
     color: rgba(255, 255, 255, 0.72);
     font-size: 0.74rem;
     font-weight: 700;
@@ -140,49 +188,25 @@
     text-transform: uppercase;
   }
 
-  .model-picks {
-    position: absolute;
-    top: 24px;
-    right: 24px;
-    z-index: 2;
-    display: grid;
-    gap: 8px;
-  }
-
-  .model-picks a {
-    min-width: 116px;
-    padding: 9px 11px;
-    border: 1px solid rgba(255, 255, 255, 0.32);
-    background: rgba(8, 12, 18, 0.42);
-    color: #fff;
-    text-decoration: none;
-    font-size: 0.74rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    backdrop-filter: blur(12px);
-  }
-
-  .model-picks a:hover {
-    background: rgba(255, 255, 255, 0.16);
-  }
-
   .stage-caption {
     position: absolute;
-    left: clamp(24px, 4vw, 48px);
-    right: clamp(24px, 4vw, 48px);
+    left: 50%;
     bottom: clamp(24px, 4vw, 46px);
-    z-index: 2;
+    z-index: 3;
+    width: min(92vw, 1240px);
+    transform: translateX(-50%);
+    text-align: center;
+    pointer-events: none;
   }
 
   .stage-caption h4 {
     margin: 0;
-    max-width: 760px;
     color: #fff;
-    font-size: clamp(2.4rem, 5.6vw, 5.9rem);
+    font-size: 5rem;
     font-weight: 700;
     letter-spacing: 0;
     line-height: 0.96;
+    white-space: nowrap;
     text-shadow: 0 18px 46px rgba(0, 0, 0, 0.45);
   }
 
@@ -325,6 +349,40 @@
     height: 100%;
     object-fit: cover;
     opacity: 0.46;
+  }
+
+  .heritage-yt {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    margin: 1.5rem 0;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .heritage-yt iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+  }
+
+  .yt-stage-section {
+    background: #000;
+    padding: clamp(48px, 7vw, 96px) 0;
+  }
+
+  .yt-stage-section .yt-stage-header {
+    margin-bottom: 2rem;
+  }
+
+  .yt-stage-section .section-title {
+    color: #fff;
+  }
+
+  .yt-stage-section .section-copy {
+    color: rgba(255, 255, 255, 0.55);
   }
 
   .heritage-section::after {
@@ -622,7 +680,17 @@
     color: var(--accent-dark);
   }
 
+  @media (max-width: 1180px) {
+    .stage-caption h4 {
+      font-size: 4rem;
+    }
+  }
+
   @media (max-width: 980px) {
+    .stage-caption h4 {
+      font-size: 3.6rem;
+    }
+
     .route-layout {
       grid-template-columns: 1fr;
     }
@@ -634,6 +702,18 @@
     .heritage-mark {
       justify-self: start;
       text-align: left;
+    }
+  }
+
+  @media (max-width: 880px) {
+    .stage-caption h4 {
+      font-size: 3.1rem;
+    }
+  }
+
+  @media (max-width: 780px) {
+    .stage-caption h4 {
+      font-size: 2.7rem;
     }
   }
 
@@ -678,9 +758,16 @@
       left: 18px;
     }
 
-    .model-picks {
-      top: 18px;
-      right: 18px;
+    .stage-caption h4 {
+      font-size: 1.75rem;
+    }
+
+    .vehicle-hotspot--3er {
+      clip-path: polygon(0 42%, 67% 42%, 76% 78%, 0 84%);
+    }
+
+    .vehicle-hotspot--x5 {
+      clip-path: polygon(38% 31%, 100% 31%, 100% 82%, 42% 84%, 35% 68%);
     }
 
     .heritage-section {
@@ -724,6 +811,12 @@
       height: 430px;
     }
   }
+
+  @media (max-width: 420px) {
+    .stage-caption h4 {
+      font-size: 1.28rem;
+    }
+  }
 </style>
 
 <section class="hero">
@@ -764,16 +857,36 @@
       </div>
 
       <section class="vehicle-hero" aria-label="Modellbühne">
-        <img src="/static/images/bmw_duo_4k_uhd.png" alt="BMW 3er und BMW X5" loading="lazy">
+        <img class="vehicle-backdrop" src="/static/images/bmw_duo_4k_uhd.png" alt="BMW 3er und BMW X5" loading="lazy">
         <span class="stage-index">Aktueller Fokus</span>
-        <div class="model-picks" aria-label="Schnelle Modellwahl">
-          <a href="/car-configurator?model=3er">3er Linie</a>
-          <a href="/car-configurator?model=x5">X5 Linie</a>
-        </div>
+        <a class="vehicle-hotspot vehicle-hotspot--3er" href="/car-configurator?model=3er" aria-label="BMW 3er konfigurieren">
+          <img src="/static/images/bmw_3er_isolated.png" alt="" aria-hidden="true" loading="lazy">
+        </a>
+        <a class="vehicle-hotspot vehicle-hotspot--x5" href="/car-configurator?model=x5" aria-label="BMW X5 konfigurieren">
+          <img src="/static/images/bmw_x5_isolated.png" alt="" aria-hidden="true" loading="lazy">
+        </a>
         <div class="stage-caption">
           <h4>Eine Bühne, zwei Charaktere.</h4>
         </div>
       </section>
+    </div>
+  </section>
+
+  <section class="yt-stage-section">
+    <div class="page-shell">
+      <div class="yt-stage-header">
+        <p class="section-kicker">BMW in Bewegung</p>
+        <h2 class="section-title">Erlebe BMW in Bewegung.</h2>
+        <p class="section-copy">Präzision, die man spürt – bevor man das Lenkrad berührt. Ein Blick hinter die Kulissen dessen, was BMW ausmacht.</p>
+      </div>
+      <div class="heritage-yt">
+        <iframe
+          src="https://www.youtube.com/embed/YA9RF1AsawI"
+          title="BMW – Nicht nostalgisch. Verwurzelt."
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowfullscreen
+        ></iframe>
+      </div>
     </div>
   </section>
 
@@ -816,6 +929,7 @@
       <div>
         <p class="section-kicker">Archiv und Zukunft</p>
         <h2 class="heritage-title">Nicht nostalgisch. Verwurzelt.</h2>
+
         <p class="heritage-copy">Bayerische Motoren Werke AG steht hier nicht als Retro-Geste, sondern als Herkunft für moderne Entscheidungen: klare Linien, technische Ruhe, sichtbare Präzision.</p>
 
         <div class="heritage-ledger">

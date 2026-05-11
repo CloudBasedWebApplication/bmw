@@ -36,6 +36,8 @@ services:
     depends_on:
       - api-gateway
       - merch-shop
+    volumes:
+      - ./web:/app/web
 
   car-configurator:
     build:
