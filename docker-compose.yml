@@ -157,6 +157,7 @@ services:
     volumes:
       - ./assets/configurator:/seed/configurator:ro
       - ./assets/merch-shop:/seed/merch-shop:ro
+      - ./web/public/images:/seed/home-images:ro
     entrypoint: >
       /bin/sh -c "
       until mc alias set local http://minio:${MINIO_PORT} ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD}; do
@@ -166,6 +167,7 @@ services:
       mc anonymous set download local/${MINIO_BUCKET};
       mc mirror --overwrite /seed/configurator local/${MINIO_BUCKET}/configurator;
       mc mirror --overwrite /seed/merch-shop local/${MINIO_BUCKET}/merch-shop;
+      mc mirror --overwrite /seed/home-images local/${MINIO_BUCKET}/home;
       echo 'Done.';
       "
 

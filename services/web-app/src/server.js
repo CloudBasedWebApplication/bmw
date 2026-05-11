@@ -35,6 +35,30 @@ app.set("view engine", "ejs");
 app.set("views", VIEWS_ROOT);
 app.disable("view cache");
 app.use("/static", express.static(path.join(WEB_ROOT, "public")));
+app.use("/minio", async (req, res) => {
+  try {
+    const upstreamBase = `http://${process.env.MINIO_ENDPOINT || "minio"}:${process.env.MINIO_PORT || 9000}`;
+    const upstreamUrl = `${upstreamBase}${req.originalUrl.replace(/^\/minio/, "")}`;
+    const upstreamResponse = await fetch(upstreamUrl, { method: req.method });
+
+    res.status(upstreamResponse.status);
+
+    const contentType = upstreamResponse.headers.get("content-type");
+    if (contentType) {
+      res.setHeader("content-type", contentType);
+    }
+
+    const cacheControl = upstreamResponse.headers.get("cache-control");
+    if (cacheControl) {
+      res.setHeader("cache-control", cacheControl);
+    }
+
+    const body = Buffer.from(await upstreamResponse.arrayBuffer());
+    res.send(body);
+  } catch (err) {
+    res.status(502).send(`minio proxy unavailable: ${err.message}`);
+  }
+});
 app.use("/api", express.json());
 
 function renderPage(res, view, locals = {}) {

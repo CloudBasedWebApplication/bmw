@@ -8,6 +8,7 @@ const port = process.env.PORT || 3000;
 app.use(express.json());
 app.use(cookieParser());
 
+// Service base URLs (container-internal)
 const CONFIGURATOR = process.env.CONFIGURATOR_URL || "http://car-configurator:3001";
 const MERCH = process.env.MERCH_URL || "http://merch-shop:3002";
 const CART = process.env.CART_URL || "http://shopping-cart:3005";
