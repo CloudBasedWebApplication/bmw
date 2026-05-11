@@ -190,6 +190,43 @@ app.get("/merch-shop", async (_req, res) => {
   }
 });
 
+app.get("/merch-shop/:productId", async (req, res) => {
+  try {
+    const [productResponse, productsResponse] = await Promise.all([
+      fetch(`${MERCH}/products/${encodeURIComponent(req.params.productId)}`),
+      fetch(`${MERCH}/products`),
+    ]);
+
+    if (productResponse.status === 404) {
+      return renderPage(res, "merch-product", {
+        title: "Produkt nicht gefunden",
+        activePage: "merch",
+        navVariant: "solid",
+        product: null,
+        products: [],
+      });
+    }
+
+    if (!productResponse.ok) {
+      const body = await productResponse.json().catch(() => ({}));
+      return res.status(productResponse.status).send(body.error || "merch-shop service unavailable");
+    }
+
+    const product = await productResponse.json();
+    const products = productsResponse.ok ? await productsResponse.json() : [];
+
+    renderPage(res, "merch-product", {
+      title: `${product.name} | BMW Merch Shop`,
+      activePage: "merch",
+      navVariant: "solid",
+      product,
+      products,
+    });
+  } catch (err) {
+    res.status(502).send("merch-shop service unavailable: " + err.message);
+  }
+});
+
 app.get("/ai-feature", (_req, res) => {
   renderPage(res, "ai-feature", {
     title: "BMW KI Beratung",
