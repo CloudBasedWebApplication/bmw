@@ -18,7 +18,7 @@ services:
       - shopping-cart
       - ai-feature
     volumes:
-      - ./api-gateway/src:/app/src
+      - ./api-gateway/src:/app/api-gateway/src
 
   web-app:
     build:
@@ -36,6 +36,9 @@ services:
     depends_on:
       - api-gateway
       - merch-shop
+    volumes:
+      - ./services/web-app/src:/app/services/web-app/src
+      - ./web:/app/web
 
   car-configurator:
     build:

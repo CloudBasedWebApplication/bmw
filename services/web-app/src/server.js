@@ -1,26 +1,22 @@
 const path = require("path");
 const express = require("express");
+const expressLayouts = require("express-ejs-layouts");
 
 const app = express();
 const port = process.env.PORT || 3006;
 
-app.set("view engine", "ejs");
-app.disable("view cache");
-
+const REPO_ROOT = process.env.REPO_ROOT || path.resolve(__dirname, "..", "..", "..");
 const API_GATEWAY = process.env.API_GATEWAY_URL || "http://api-gateway:3000";
 const MERCH = process.env.MERCH_URL || "http://merch-shop:3002";
 
-app.use("/home/static", express.static(path.join(__dirname, "..", "..", "home", "public")));
-app.use("/road-to-supercar/static", express.static(path.join(__dirname, "..", "..", "home", "public")));
-app.use("/api", express.json());
+app.set("view engine", "ejs");
+app.set("views", path.join(REPO_ROOT, "web", "views"));
+app.use(expressLayouts);
+app.set("layout", false);
+app.disable("view cache");
 
-function renderServiceView(res, viewsDirectory, locals = {}) {
-  const viewsPath = path.join(__dirname, "..", "..", viewsDirectory);
-  res.render(path.join(viewsPath, "index"), locals, (err, html) => {
-    if (err) return res.status(500).send(err.message);
-    res.send(html);
-  });
-}
+app.use("/static", express.static(path.join(REPO_ROOT, "web", "public")));
+app.use("/api", express.json());
 
 function getConfiguratorInitialSelection(req) {
   const routeSelection = req.params.model
@@ -92,7 +88,11 @@ app.get("/health", (_req, res) => {
 });
 
 app.get(["/", "/index.html"], (_req, res) => {
-  renderServiceView(res, "home/views", {
+  res.render("home", {
+    layout: "layouts/main",
+    title: "Bayerische Motoren Werke AG | Home",
+    activePage: "home",
+    navVariant: "transparent",
     mapsApiKey: process.env.GOOGLE_MAPS_API_KEY || "",
   });
 });
@@ -105,34 +105,51 @@ app.get("/road-to-supercar", (_req, res) => {
   res.redirect(301, "/");
 });
 
-app.get("/car-configurator", (req, res) => {
-  renderServiceView(res, "car-configurator/views", {
+function renderConfigurator(req, res) {
+  res.render("car-configurator", {
+    layout: "layouts/main",
+    title: "BMW Konfigurator",
+    activePage: "configurator",
+    navVariant: "solid",
     initialSelection: getConfiguratorInitialSelection(req),
   });
-});
+}
 
-app.get("/car-configurator/:model/:color/:interior/:wheels", (req, res) => {
-  renderServiceView(res, "car-configurator/views", {
-    initialSelection: getConfiguratorInitialSelection(req),
-  });
-});
+app.get("/car-configurator", renderConfigurator);
+app.get("/car-configurator/:model/:color/:interior/:wheels", renderConfigurator);
 
 app.get("/merch-shop", async (_req, res) => {
   try {
     const response = await fetch(`${MERCH}/products`);
     const products = await response.json();
-    renderServiceView(res, "merch-shop/views", { products });
+    res.render("merch-shop", {
+      layout: "layouts/main",
+      title: "BMW Merch Shop",
+      activePage: "merch",
+      navVariant: "solid",
+      products,
+    });
   } catch (err) {
     res.status(502).send("merch-shop service unavailable: " + err.message);
   }
 });
 
 app.get("/ai-feature", (_req, res) => {
-  renderServiceView(res, "ai-feature/views");
+  res.render("ai-feature", {
+    layout: "layouts/main",
+    title: "BMW KI Beratung",
+    activePage: "ai",
+    navVariant: "solid",
+  });
 });
 
 app.get("/shopping-cart", (_req, res) => {
-  renderServiceView(res, "shopping-cart/views");
+  res.render("shopping-cart", {
+    layout: "layouts/main",
+    title: "BMW Warenkorb",
+    activePage: "cart",
+    navVariant: "solid",
+  });
 });
 
 app.listen(port, () => console.log(`web-app listening on port ${port}`));
