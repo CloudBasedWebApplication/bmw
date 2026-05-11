@@ -377,6 +377,7 @@
 
   function normalizeText(value) {
     return String(value || "")
+      .replace(/ä/gi, "ae").replace(/ö/gi, "oe").replace(/ü/gi, "ue")
       .normalize("NFKD")
       .replace(/[̀-ͯ]/g, "")
       .replace(/ß/g, "ss")
@@ -420,7 +421,8 @@
   function getWheelsSlug(wheels) { return inferWheelsSlug(wheels ? wheels.name : ""); }
 
   function matchesSlug(actualSlug, expectedSlug) {
-    return normalizeText(actualSlug).toLowerCase() === normalizeText(expectedSlug).toLowerCase();
+    const norm = (s) => normalizeText(s).toLowerCase().replace(/\s+/g, "");
+    return norm(actualSlug) === norm(expectedSlug);
   }
 
   function colorFromName(name) {
@@ -458,7 +460,11 @@
 
   function findOptionBySlug(options, expectedSlug, getSlug) {
     if (!expectedSlug) return null;
-    return options.find((option) => matchesSlug(getSlug(option), expectedSlug)) || null;
+    const norm = (s) => normalizeText(s).toLowerCase().replace(/\s+/g, "");
+    const normExpected = norm(expectedSlug);
+    return options.find((option) =>
+      norm(getSlug(option)) === normExpected || norm(option.name) === normExpected
+    ) || null;
   }
 
   function getCurrentSelectionSlugs() {
