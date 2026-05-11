@@ -6,7 +6,6 @@ COPY api-gateway/package.json ./
 RUN npm install
 
 COPY api-gateway/src ./src
-COPY services ./services
 
 EXPOSE 3000
 
