@@ -327,6 +327,23 @@
     opacity: 0.46;
   }
 
+  .heritage-yt {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    margin: 1.5rem 0;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .heritage-yt iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+  }
+
   .heritage-section::after {
     content: "";
     position: absolute;
@@ -816,6 +833,16 @@
       <div>
         <p class="section-kicker">Archiv und Zukunft</p>
         <h2 class="heritage-title">Nicht nostalgisch. Verwurzelt.</h2>
+
+        <div class="heritage-yt">
+          <iframe
+            src="https://www.youtube.com/embed/YA9RF1AsawI"
+            title="BMW – Nicht nostalgisch. Verwurzelt."
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowfullscreen
+          ></iframe>
+        </div>
+
         <p class="heritage-copy">Bayerische Motoren Werke AG steht hier nicht als Retro-Geste, sondern als Herkunft für moderne Entscheidungen: klare Linien, technische Ruhe, sichtbare Präzision.</p>
 
         <div class="heritage-ledger">
