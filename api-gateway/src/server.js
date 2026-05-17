@@ -44,6 +44,65 @@ async function proxyJson(res, request) {
   }
 }
 
+async function proxyBinary(res, request) {
+  try {
+    const upstream = await request();
+    res.status(upstream.status);
+
+    const contentType = upstream.headers.get("content-type");
+    if (contentType) {
+      res.setHeader("content-type", contentType);
+    }
+
+    const cacheControl = upstream.headers.get("cache-control");
+    if (cacheControl) {
+      res.setHeader("cache-control", cacheControl);
+    }
+
+    res.send(Buffer.from(await upstream.arrayBuffer()));
+  } catch (err) {
+    res.status(502).json({ error: err.message });
+  }
+}
+
+function normalizeAssetPathFromRequest(req, publicPrefix) {
+  const rawPath = String(req.originalUrl || "").split("?")[0];
+
+  if (!rawPath.startsWith(`${publicPrefix}/`)) {
+    return null;
+  }
+
+  const rawSegments = rawPath.slice(publicPrefix.length + 1).split("/");
+  const encodedSegments = [];
+
+  for (const rawSegment of rawSegments) {
+    if (!rawSegment || rawSegment === "." || rawSegment === "..") {
+      return null;
+    }
+
+    let decodedSegment;
+    try {
+      decodedSegment = decodeURIComponent(rawSegment);
+    } catch (_err) {
+      return null;
+    }
+
+    if (
+      !decodedSegment ||
+      decodedSegment === "." ||
+      decodedSegment === ".." ||
+      decodedSegment.includes("/") ||
+      decodedSegment.includes("\\")
+    ) {
+      return null;
+    }
+
+    encodedSegments.push(encodeURIComponent(decodedSegment));
+  }
+
+  return encodedSegments.join("/");
+}
+
 app.get("/health", (_req, res) => {
   res.json({
     ok: true,
@@ -58,6 +117,16 @@ app.get("/api/destinations", (_req, res) => {
 
 app.get("/api/configurator/models", (_req, res) => {
   proxyJson(res, () => fetch(`${CONFIGURATOR}/models`));
+});
+
+app.get("/api/configurator/assets/*", (req, res) => {
+  const assetPath = normalizeAssetPathFromRequest(req, "/api/configurator/assets");
+
+  if (!assetPath) {
+    return res.status(400).json({ error: "invalid asset key" });
+  }
+
+  proxyBinary(res, () => fetch(`${CONFIGURATOR}/assets/${assetPath}`));
 });
 
 app.get("/api/configurator/options/colors", (req, res) => {
@@ -164,6 +233,16 @@ app.delete("/api/cart/items/:itemId", (req, res) => {
 
 app.get("/api/merch/products", (_req, res) => {
   proxyJson(res, () => fetch(`${MERCH}/products`));
+});
+
+app.get("/api/merch/assets/*", (req, res) => {
+  const assetPath = normalizeAssetPathFromRequest(req, "/api/merch/assets");
+
+  if (!assetPath) {
+    return res.status(400).json({ error: "invalid asset key" });
+  }
+
+  proxyBinary(res, () => fetch(`${MERCH}/assets/${assetPath}`));
 });
 
 app.get("/api/merch/products/:productId", (req, res) => {

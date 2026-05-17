@@ -20,35 +20,46 @@ services:
     volumes:
       - ./api-gateway/src:/app/api-gateway/src
 
-  web-app:
+  web-shop-frontend:
     build:
       context: .
-      dockerfile: services/web-app/Dockerfile
+      dockerfile: services/web-shop-frontend/Dockerfile
     ports:
-      - "3000:3006"
+      - "3000:3000"
+    env_file: .env
+    environment:
+      PORT: 3000
+      WEB_SHOP_BACKEND_URL: http://web-shop-backend:3006
+    depends_on:
+      - web-shop-backend
+    volumes:
+      - ./web:/app/web
+
+  web-shop-backend:
+    build:
+      context: .
+      dockerfile: services/web-shop-backend/Dockerfile
+    expose:
+      - "3006"
     env_file: .env
     environment:
       PORT: 3006
       API_GATEWAY_URL: http://api-gateway:3000
-      MERCH_URL: http://merch-shop:3002
       CODESPACE_NAME: ${CODESPACE_NAME:-}
-      MINIO_PUBLIC_URL: ${MINIO_PUBLIC_URL:-}
     depends_on:
       - api-gateway
-      - merch-shop
     volumes:
       - ./web:/app/web
 
   car-configurator:
     build:
       context: ./services/car-configurator
-    ports:
-      - "3001:3001"
+    expose:
+      - "3001"
     env_file: .env
     environment:
       PORT: 3001
       CODESPACE_NAME: ${CODESPACE_NAME:-}
-      MINIO_PUBLIC_URL: ${MINIO_PUBLIC_URL:-}
     depends_on:
       mysql-seed:
         condition: service_completed_successfully
@@ -56,13 +67,12 @@ services:
   merch-shop:
     build:
       context: ./services/merch-shop
-    ports:
-      - "3002:3002"
+    expose:
+      - "3002"
     env_file: .env
     environment:
       PORT: 3002
       CODESPACE_NAME: ${CODESPACE_NAME:-}
-      MINIO_PUBLIC_URL: ${MINIO_PUBLIC_URL:-}
     depends_on:
       mysql-seed:
         condition: service_completed_successfully
@@ -70,8 +80,8 @@ services:
   shopping-cart:
     build:
       context: ./services/shopping-cart
-    ports:
-      - "3005:3005"
+    expose:
+      - "3005"
     env_file: .env
     environment:
       PORT: 3005
@@ -81,8 +91,8 @@ services:
   ai-feature:
     build:
       context: ./services/ai-feature
-    ports:
-      - "3004:3004"
+    expose:
+      - "3004"
     env_file: .env
     environment:
       PORT: 3004
@@ -137,7 +147,6 @@ services:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
     ports:
-      - "${MINIO_PORT:-9000}:9000"
       - "9001:9001"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
