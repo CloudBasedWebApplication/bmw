@@ -1,8 +1,11 @@
 <%
-  const minioPublicBase = process.env.MINIO_PUBLIC_URL || "/minio";
+  const configuredMinioPublicBase = String(process.env.MINIO_PUBLIC_URL || "/minio").replace(/\/+$/, "");
+  const minioPublicBase = /^https?:\/\//i.test(configuredMinioPublicBase) || configuredMinioPublicBase.startsWith("/")
+    ? configuredMinioPublicBase
+    : `/${configuredMinioPublicBase}`;
   const minioBucket = process.env.MINIO_BUCKET || "configurator-images";
-  const homeImageBase = `${String(minioPublicBase).replace(/\/+$/, "")}/${minioBucket}/home`;
-  const merchImageBase = `${String(minioPublicBase).replace(/\/+$/, "")}/${minioBucket}/merch-shop`;
+  const homeImageBase = `${minioPublicBase}/${minioBucket}/home`;
+  const merchImageBase = `${minioPublicBase}/${minioBucket}/merch-shop`;
 
   const merchPreviewProducts = [
     { name: "BMW Poloshirt", variant: "Schwarz", slug: "bmw-poloshirt-schwarz", category: "Clothes", price: "45,50 EUR", description: "Bequemes Poloshirt mit lockerer Passform.", image: "BMW_Merchandise_Schwarz.avif" },
