@@ -60,7 +60,7 @@ None specific to the gateway at this time.
 
 #### Confirmed Gaps
 
-The browser-facing product-detail route exists in `web-app`, and `api-gateway` still keeps a compatible `/merch-shop/:productId` route. The remaining gap is narrower: AI-generated merch recommendation links still use the listing-style query URL instead of the canonical product-detail route.
+No page-rendering gaps remain after issue #88. Browser-facing routes are owned by `services/web-app`; gateway changes should stay limited to API, session, and support endpoint behavior.
 
 ---
 
@@ -366,3 +366,4 @@ Append-only. When an issue is resolved, change Status to `Resolved` — do not d
 | 5 | No checkout / order submission | shopping-cart | §3 (out of scope) | Out of Scope | Cart has no payment or order flow; confirmed not in v1 scope | Out of Scope |
 | 6 | AI merch links use listing query URL | ai-feature, web-app | §6.2, §6.4 | Medium | Product details exist, but AI recommendations still target `/merch-shop?product=<id>` instead of `/merch-shop/:productId` | Open |
 | 7 | AI car recommendation not officially resolved before response | ai-feature, car-configurator | §6.4 | Medium | AI returns a configurator link from structured options; strict official-result semantics would require a final configurator API validation step | Open |
+| 8 | Gateway still contains page-rendering routes | web-app, api-gateway | §5, architecture §4.1-4.2 | Medium | Responsibility split is documented but gateway still duplicated EJS browser routes | Resolved |

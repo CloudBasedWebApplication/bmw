@@ -52,7 +52,7 @@ Aktuell akzeptierte Vereinfachungen bleiben bestehen:
 | API / Contract | `Abgeschlossen` | `★★` | Configurator-, Merch-, Cart- und AI-APIs proxien. | — | Frontend-Flows bleiben same-origin und serviceunabhaengig. |
 | API / Contract | `Abgeschlossen` | `★` | `/api/destinations` bereitstellen. | — | Route Planning konsumiert Backend-gelieferte Ziel-Daten. |
 | Session | `Abgeschlossen` | `★` | Cart-Session-Cookie fuer anonyme Warenkoerbe setzen. | — | Cart-Zustand ist pro Browser-Session getrennt. |
-| Maintenance | `Spaetere Bereinigung` | `★` | Alte page-rendering Routen im Gateway pruefen und ggf. entfernen, falls nicht mehr noetig. | Sicherstellen, dass web-app alle Browser-Routen abdeckt. | Gateway bleibt klar API-fokussiert. |
+| Maintenance | `Abgeschlossen` | `★` | Alte page-rendering Routen im Gateway entfernt. | services/web-app deckt alle Browser-Routen ab. | Gateway bleibt klar API-fokussiert. |
 
 ### 3.3 `car-configurator`
 
