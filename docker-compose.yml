@@ -50,8 +50,8 @@ services:
       CODESPACE_NAME: ${CODESPACE_NAME:-}
       MINIO_PUBLIC_URL: ${MINIO_PUBLIC_URL:-}
     depends_on:
-      mysql:
-        condition: service_healthy
+      mysql-seed:
+        condition: service_completed_successfully
 
   merch-shop:
     build:
@@ -64,8 +64,8 @@ services:
       CODESPACE_NAME: ${CODESPACE_NAME:-}
       MINIO_PUBLIC_URL: ${MINIO_PUBLIC_URL:-}
     depends_on:
-      mysql:
-        condition: service_healthy
+      mysql-seed:
+        condition: service_completed_successfully
 
   shopping-cart:
     build:
@@ -98,7 +98,6 @@ services:
     image: mysql:8.4.8
     env_file: .env
     environment:
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
@@ -122,8 +121,9 @@ services:
       - ./infrastructure/mysql/init:/seed:ro
     entrypoint: >
       /bin/sh -c "
-      mysql -h mysql -u root -p${MYSQL_ROOT_PASSWORD} ${MYSQL_DATABASE} < /seed/01_merch_shop.sql &&
-      mysql -h mysql -u root -p${MYSQL_ROOT_PASSWORD} ${MYSQL_DATABASE} < /seed/02_car_configurator.sql
+      mysql -h mysql -u root -p${MYSQL_ROOT_PASSWORD} < /seed/01_merch_shop.sql &&
+      mysql -h mysql -u root -p${MYSQL_ROOT_PASSWORD} < /seed/02_car_configurator.sql &&
+      mysql -h mysql -u root -p${MYSQL_ROOT_PASSWORD} -e \"CREATE USER IF NOT EXISTS '${MYSQL_USER}'@'%' IDENTIFIED BY '${MYSQL_PASSWORD}'; GRANT ALL PRIVILEGES ON bmw_merch_shop.* TO '${MYSQL_USER}'@'%'; GRANT ALL PRIVILEGES ON bmw_car_configurator.* TO '${MYSQL_USER}'@'%'; FLUSH PRIVILEGES;\"
       "
 
   redis:

@@ -9,7 +9,7 @@ const dbConfig = {
   port: process.env.MYSQL_PORT || 3306,
   user: process.env.MYSQL_USER || "bmw_user",
   password: process.env.MYSQL_PASSWORD || "change_me",
-  database: process.env.MYSQL_DATABASE || "bmw_app",
+  database: "bmw_merch_shop",
   charset: "utf8mb4",
 };
 

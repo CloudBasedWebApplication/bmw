@@ -1,4 +1,5 @@
-USE bmw_app;
+CREATE DATABASE IF NOT EXISTS bmw_car_configurator CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE bmw_car_configurator;
 
 SET NAMES utf8mb4;
 
