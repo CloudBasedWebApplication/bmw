@@ -41,6 +41,14 @@
     box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
+    transition: opacity 0.24s ease, transform 0.24s ease, visibility 0.24s ease;
+  }
+
+  body.summary-nav-collapsed .site-nav--solid {
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, -14px);
+    visibility: hidden;
   }
 
   .config-background {
@@ -160,7 +168,7 @@
     pointer-events: none;
     visibility: hidden;
     transform: translateY(100%);
-    transition: transform 0.62s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.42s ease;
+    transition: transform 0.68s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.5s ease;
   }
 
   .config-options-panel.active {
@@ -190,12 +198,12 @@
 
   .config-options-panel.exit-to-top {
     opacity: 0;
-    transform: translateY(-100%);
+    transform: translateY(-72%);
   }
 
   .config-options-panel.exit-to-bottom {
     opacity: 0;
-    transform: translateY(100%);
+    transform: translateY(72%);
   }
 
   .config-spacer {
@@ -302,7 +310,7 @@
 
   .summary-grid {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 0;
   }
 
@@ -313,12 +321,31 @@
     justify-content: center;
     gap: 4px;
     padding: 0 18px;
+    border-top: 0;
+    border-left: 0;
     border-right: 1px solid var(--summary-panel-divider);
     border-bottom: 0;
+    appearance: none;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    font: inherit;
+    text-align: left;
+    transition: background 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .summary-row:hover {
+    background: rgba(28, 105, 212, 0.08);
   }
 
   .summary-row:last-child {
     border-right: none;
+  }
+
+  .summary-row.active {
+    background: rgba(17, 24, 39, 0.14);
+    border-radius: var(--radius-md);
+    box-shadow: inset 0 0 0 1px rgba(17, 24, 39, 0.12);
   }
 
   .summary-key {
@@ -397,7 +424,12 @@
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 24px;
     align-items: center;
-    transition: background 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+    transition: top 0.24s ease, background 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+  }
+
+  body.summary-nav-collapsed .summary-panel {
+    top: var(--config-nav-top);
+    z-index: 10;
   }
 
   .summary-panel[data-contrast="dark"] {
@@ -496,22 +528,26 @@
 
 <div class="panel summary-panel">
   <div class="summary-grid">
-    <div class="summary-row">
+    <button class="summary-row" type="button" data-summary-section="model">
+      <div class="summary-key">Modell</div>
+      <div class="summary-value" id="selectedModel"></div>
+    </button>
+    <button class="summary-row" type="button" data-summary-section="exterior">
       <div class="summary-key">Exterieur</div>
-      <div class="summary-value" id="selectedColor">-</div>
-    </div>
-    <div class="summary-row">
+      <div class="summary-value" id="selectedColor"></div>
+    </button>
+    <button class="summary-row" type="button" data-summary-section="interior">
       <div class="summary-key">Interieur</div>
-      <div class="summary-value" id="selectedInterior">-</div>
-    </div>
-    <div class="summary-row">
+      <div class="summary-value" id="selectedInterior"></div>
+    </button>
+    <button class="summary-row" type="button" data-summary-section="wheels">
       <div class="summary-key">Felgen</div>
-      <div class="summary-value" id="selectedWheels">-</div>
-    </div>
+      <div class="summary-value" id="selectedWheels"></div>
+    </button>
   </div>
 
   <div class="price-tag">
-    <span id="modelNameDisplay">Modell laden...</span>
+    <span>Preis</span>
     <div class="price-main" id="price">0,00 EUR</div>
   </div>
 </div>
@@ -520,27 +556,27 @@
   <div class="config-spacer"></div>
   <div class="config-column">
     <div class="config-panel-stack" id="configPanelStack" aria-label="Konfigurationsschritte">
-      <section class="panel config-options-panel" data-view="front">
+      <section class="panel config-options-panel" data-view="front" data-summary-target="model">
         <h1>Modell</h1>
         <div class="config-btn-group" id="modelBtns"></div>
       </section>
 
-      <section class="panel config-options-panel" data-view="front">
+      <section class="panel config-options-panel" data-view="front" data-summary-target="exterior">
         <h1>Exterieur-Farbe</h1>
         <div class="color-group" id="colorBtns"></div>
       </section>
 
-      <section class="panel config-options-panel" data-view="interior">
+      <section class="panel config-options-panel" data-view="interior" data-summary-target="interior">
         <h1>Interieur</h1>
         <div class="option-group" id="interiorBtns"></div>
       </section>
 
-      <section class="panel config-options-panel" data-view="wheels">
+      <section class="panel config-options-panel" data-view="wheels" data-summary-target="wheels">
         <h1>Felgen</h1>
         <div class="option-group" id="wheelsBtns"></div>
       </section>
 
-      <section class="panel config-options-panel completion-panel" data-view="wheels">
+      <section class="panel config-options-panel completion-panel" data-view="wheels" data-summary-target="">
         <h1>Konfiguration abschließen</h1>
         <button class="add-btn" type="button" data-add-config disabled>Konfiguration abschließen</button>
         <div class="completion-status" data-add-status></div>
@@ -565,6 +601,12 @@
       wheelsId: null,
       view: "front"
     },
+    summaryTouched: {
+      model: true,
+      exterior: false,
+      interior: false,
+      wheels: false
+    },
     config: null
   };
 
@@ -575,6 +617,11 @@
     interior: urlParams.get("interior"),
     wheels: urlParams.get("wheels")
   };
+
+  function markSummarySelection(key) {
+    if (!Object.prototype.hasOwnProperty.call(state.summaryTouched, key)) return;
+    state.summaryTouched[key] = true;
+  }
 
   function formatPrice(value) {
     return Number(value || 0).toLocaleString("de-DE", {
@@ -814,6 +861,17 @@
     updateImage();
   }
 
+  function updateActiveSummarySection(panel) {
+    const target = panel ? panel.dataset.summaryTarget : "";
+    document.querySelectorAll("[data-summary-section]").forEach((row) => {
+      row.classList.toggle("active", Boolean(target) && row.dataset.summarySection === target);
+    });
+  }
+
+  function setSummaryNavCollapsed(collapsed) {
+    document.body.classList.toggle("summary-nav-collapsed", collapsed);
+  }
+
   function initializeConfigPanelScroll() {
     const stack = document.getElementById("configPanelStack");
     const panels = Array.from(document.querySelectorAll(".config-options-panel"));
@@ -823,6 +881,8 @@
     let lastSwitchAt = 0;
     let touchStartY = null;
     let isAnimating = false;
+    let wheelDeltaBuffer = 0;
+    let wheelResetTimer = 0;
 
     function setStackHeight(panel) {
       stack.style.setProperty("--config-panel-stack-height", `${panel.offsetHeight}px`);
@@ -847,6 +907,7 @@
         nextPanel.classList.add("active");
         activeIndex = nextIndex;
         setStackHeight(nextPanel);
+        updateActiveSummarySection(nextPanel);
         setActiveView(nextPanel.dataset.view || "front");
         return;
       }
@@ -859,6 +920,7 @@
         "is-transitioning",
         direction > 0 ? "enter-from-bottom" : "enter-from-top"
       );
+      updateActiveSummarySection(nextPanel);
       setActiveView(nextPanel.dataset.view || "front");
 
       window.requestAnimationFrame(() => {
@@ -878,9 +940,25 @@
       const now = Date.now();
       if (now - lastSwitchAt < 720) return;
       const nextIndex = activeIndex + direction;
-      if (nextIndex < 0 || nextIndex >= panels.length) return;
+      if (nextIndex < 0) {
+        setSummaryNavCollapsed(false);
+        return;
+      }
+      if (nextIndex >= panels.length) return;
+      if (direction > 0) {
+        setSummaryNavCollapsed(true);
+      }
       lastSwitchAt = now;
       activatePanel(nextIndex, direction);
+    }
+
+    function jumpToSummaryPanel(target) {
+      if (!target || isAnimating) return;
+      const nextIndex = panels.findIndex((panel) => panel.dataset.summaryTarget === target);
+      if (nextIndex < 0 || nextIndex === activeIndex) return;
+      setSummaryNavCollapsed(true);
+      lastSwitchAt = Date.now();
+      activatePanel(nextIndex, nextIndex > activeIndex ? 1 : -1);
     }
 
     function refreshActivePanelHeight() {
@@ -890,32 +968,56 @@
 
     window.addEventListener("resize", refreshActivePanelHeight);
 
-    function cleanupPanelScroll() {
-      window.removeEventListener("resize", refreshActivePanelHeight);
+    function handlePageWheel(event) {
+      event.preventDefault();
+      wheelDeltaBuffer += event.deltaY;
+      window.clearTimeout(wheelResetTimer);
+      wheelResetTimer = window.setTimeout(() => {
+        wheelDeltaBuffer = 0;
+      }, 140);
+
+      if (Math.abs(wheelDeltaBuffer) < 80) return;
+
+      const direction = wheelDeltaBuffer > 0 ? 1 : -1;
+      wheelDeltaBuffer = 0;
+      switchPanel(direction);
     }
 
-    stack.addEventListener("panel-scroll-cleanup", cleanupPanelScroll, { once: true });
-
-    stack.addEventListener("wheel", (event) => {
-      if (Math.abs(event.deltaY) < 20) return;
-      event.preventDefault();
-      switchPanel(event.deltaY > 0 ? 1 : -1);
-    }, { passive: false });
-
-    stack.addEventListener("touchstart", (event) => {
+    function handlePageTouchStart(event) {
       touchStartY = event.touches[0] ? event.touches[0].clientY : null;
-    }, { passive: true });
+    }
 
-    stack.addEventListener("touchend", (event) => {
+    function handlePageTouchEnd(event) {
       if (touchStartY === null) return;
       const touchEndY = event.changedTouches[0] ? event.changedTouches[0].clientY : touchStartY;
       const deltaY = touchStartY - touchEndY;
       touchStartY = null;
       if (Math.abs(deltaY) < 30) return;
       switchPanel(deltaY > 0 ? 1 : -1);
-    }, { passive: true });
+    }
+
+    function cleanupPanelScroll() {
+      window.removeEventListener("resize", refreshActivePanelHeight);
+      window.removeEventListener("wheel", handlePageWheel);
+      window.removeEventListener("touchstart", handlePageTouchStart);
+      window.removeEventListener("touchend", handlePageTouchEnd);
+      window.clearTimeout(wheelResetTimer);
+    }
+
+    stack.addEventListener("panel-scroll-cleanup", cleanupPanelScroll, { once: true });
+
+    document.querySelectorAll("[data-summary-section]").forEach((row) => {
+      row.addEventListener("click", () => {
+        jumpToSummaryPanel(row.dataset.summarySection);
+      });
+    });
+
+    window.addEventListener("wheel", handlePageWheel, { passive: false });
+    window.addEventListener("touchstart", handlePageTouchStart, { passive: true });
+    window.addEventListener("touchend", handlePageTouchEnd, { passive: true });
 
     activatePanel(activeIndex);
+    setSummaryNavCollapsed(true);
   }
 
   async function fetchOptionsForModel(modelId) {
@@ -957,7 +1059,7 @@
     } catch (err) {
       console.error(err);
       document.getElementById("placeholder").textContent = "Fehler beim Laden";
-      document.getElementById("modelNameDisplay").textContent = "Nicht verfügbar";
+      document.getElementById("selectedModel").textContent = "";
       document.getElementById("price").textContent = "Nicht verfügbar";
     }
   }
@@ -1038,7 +1140,11 @@
       btn.className = "config-btn" + (state.selection.modelId === model.id ? " active" : "");
       btn.textContent = displayText(model.name);
       btn.addEventListener("click", async () => {
-        if (state.selection.modelId === model.id) return;
+        markSummarySelection("model");
+        if (state.selection.modelId === model.id) {
+          updateUI();
+          return;
+        }
         await navigateToModel(model);
       });
       container.appendChild(btn);
@@ -1056,7 +1162,11 @@
         <span class="swatch-label">${displayColorName(color.name)}</span>
       `;
       wrapper.addEventListener("click", () => {
-        if (state.selection.colorId === color.id) return;
+        markSummarySelection("exterior");
+        if (state.selection.colorId === color.id) {
+          updateUI();
+          return;
+        }
         state.selection.colorId = color.id;
         renderColorButtons();
         setActiveView("front");
@@ -1075,7 +1185,11 @@
       btn.className = "option-btn" + (state.selection.interiorId === interior.id ? " active" : "");
       btn.textContent = `${displayText(interior.name)} (+${formatPrice(interior.price)})`;
       btn.addEventListener("click", () => {
-        if (state.selection.interiorId === interior.id) return;
+        markSummarySelection("interior");
+        if (state.selection.interiorId === interior.id) {
+          updateUI();
+          return;
+        }
         state.selection.interiorId = interior.id;
         renderInteriorButtons();
         setActiveView("interior");
@@ -1094,7 +1208,11 @@
       btn.className = "option-btn" + (state.selection.wheelsId === wheel.id ? " active" : "");
       btn.textContent = `${displayText(wheel.name)} (+${formatPrice(wheel.price)})`;
       btn.addEventListener("click", () => {
-        if (state.selection.wheelsId === wheel.id) return;
+        markSummarySelection("wheels");
+        if (state.selection.wheelsId === wheel.id) {
+          updateUI();
+          return;
+        }
         state.selection.wheelsId = wheel.id;
         renderWheelsButtons();
         setActiveView("wheels");
@@ -1133,11 +1251,11 @@
     const addButtons = document.querySelectorAll("[data-add-config]");
 
     if (!cfg) {
-      document.getElementById("modelNameDisplay").textContent = "Nicht verfügbar";
+      document.getElementById("selectedModel").textContent = "";
       document.getElementById("price").textContent = "Nicht verfügbar";
-      document.getElementById("selectedColor").textContent = "-";
-      document.getElementById("selectedInterior").textContent = "-";
-      document.getElementById("selectedWheels").textContent = "-";
+      document.getElementById("selectedColor").textContent = "";
+      document.getElementById("selectedInterior").textContent = "";
+      document.getElementById("selectedWheels").textContent = "";
       addButtons.forEach((button) => { button.disabled = true; });
       img.style.display = "none";
       placeholder.style.display = "block";
@@ -1146,11 +1264,14 @@
       return;
     }
 
-    document.getElementById("modelNameDisplay").textContent = displayText(cfg.model.name);
+    document.getElementById("selectedModel").textContent = state.summaryTouched.model ? displayText(cfg.model.name) : "";
     document.getElementById("price").textContent = formatPrice(cfg.totalPrice);
-    document.getElementById("selectedColor").textContent = cfg.color ? displayColorName(cfg.color.name) : "-";
-    document.getElementById("selectedInterior").textContent = cfg.interior ? displayText(cfg.interior.name) : "-";
-    document.getElementById("selectedWheels").textContent = cfg.wheels ? displayText(cfg.wheels.name) : "-";
+    document.getElementById("selectedColor").textContent =
+      state.summaryTouched.exterior && cfg.color ? displayColorName(cfg.color.name) : "";
+    document.getElementById("selectedInterior").textContent =
+      state.summaryTouched.interior && cfg.interior ? displayText(cfg.interior.name) : "";
+    document.getElementById("selectedWheels").textContent =
+      state.summaryTouched.wheels && cfg.wheels ? displayText(cfg.wheels.name) : "";
 
     addButtons.forEach((button) => { button.disabled = false; });
     updateSummaryContrast(cfg);
@@ -1230,5 +1351,6 @@
     button.addEventListener("click", addConfigurationToCart);
   });
 
+  setSummaryNavCollapsed(true);
   loadInitialData();
 </script>
