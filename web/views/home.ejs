@@ -1329,25 +1329,135 @@
     const merchCarousel = document.querySelector('[data-merch-carousel]');
     const merchPrev = document.querySelector('[data-merch-prev]');
     const merchNext = document.querySelector('[data-merch-next]');
+    const merchAutoScrollDelay = 5000;
+    const merchAutoScrollCount = 5;
     let snapping = false;
+    let merchAutoScrollTimer = 0;
 
-    function scrollMerchCarousel(direction) {
+    function setupInfiniteMerchCarousel() {
+      if (!merchCarousel) return;
+
+      const originalCards = Array.from(merchCarousel.children);
+      if (originalCards.length < 2) return;
+
+      const beforeCards = document.createDocumentFragment();
+      const afterCards = document.createDocumentFragment();
+
+      originalCards.forEach(function (card) {
+        const beforeClone = card.cloneNode(true);
+        const afterClone = card.cloneNode(true);
+
+        [beforeClone, afterClone].forEach(function (clone) {
+          clone.setAttribute('aria-hidden', 'true');
+          clone.tabIndex = -1;
+          clone.dataset.merchClone = 'true';
+        });
+
+        beforeCards.appendChild(beforeClone);
+        afterCards.appendChild(afterClone);
+      });
+
+      merchCarousel.insertBefore(beforeCards, merchCarousel.firstChild);
+      merchCarousel.appendChild(afterCards);
+
+      let originalStart = 0;
+      let setWidth = 0;
+      let scrollFrame = 0;
+      let isJumping = false;
+
+      function measureCarousel() {
+        const cards = merchCarousel.children;
+        const firstOriginal = cards[originalCards.length];
+        const firstAfterOriginals = cards[originalCards.length * 2];
+
+        if (!firstOriginal || !firstAfterOriginals) return;
+
+        originalStart = firstOriginal.offsetLeft - merchCarousel.offsetLeft;
+        setWidth = firstAfterOriginals.offsetLeft - firstOriginal.offsetLeft;
+      }
+
+      function jumpTo(left) {
+        isJumping = true;
+        merchCarousel.scrollTo({ left, behavior: 'auto' });
+        requestAnimationFrame(function () {
+          isJumping = false;
+        });
+      }
+
+      function normalizeScrollPosition() {
+        scrollFrame = 0;
+        if (isJumping || !setWidth) return;
+
+        const left = merchCarousel.scrollLeft;
+        const loopStart = originalStart - setWidth;
+        const loopEnd = originalStart + setWidth;
+
+        if (left <= loopStart + 1) {
+          jumpTo(left + setWidth);
+        } else if (left >= loopEnd - 1) {
+          jumpTo(left - setWidth);
+        }
+      }
+
+      function scheduleNormalize() {
+        if (scrollFrame) return;
+        scrollFrame = requestAnimationFrame(normalizeScrollPosition);
+      }
+
+      measureCarousel();
+      jumpTo(originalStart);
+      merchCarousel.addEventListener('scroll', scheduleNormalize, { passive: true });
+
+      window.addEventListener('resize', function () {
+        const progress = setWidth ? (merchCarousel.scrollLeft - originalStart) / setWidth : 0;
+        measureCarousel();
+        jumpTo(originalStart + ((progress % 1 + 1) % 1) * setWidth);
+      });
+    }
+
+    function getMerchCardStep() {
+      if (!merchCarousel) return 280;
+
+      const firstCard = merchCarousel.querySelector('.card');
+      if (!firstCard) return Math.max(280, merchCarousel.clientWidth * 0.82);
+
+      const styles = window.getComputedStyle(merchCarousel);
+      const gap = Number.parseFloat(styles.columnGap || styles.gap) || 0;
+
+      return firstCard.getBoundingClientRect().width + gap;
+    }
+
+    function scrollMerchCarousel(direction, itemCount) {
       if (!merchCarousel) return;
       merchCarousel.scrollBy({
-        left: direction * Math.max(280, merchCarousel.clientWidth * 0.82),
+        left: direction * getMerchCardStep() * (itemCount || 1),
         behavior: 'smooth',
       });
     }
 
+    function startMerchAutoScroll() {
+      if (!merchCarousel) return;
+
+      window.clearInterval(merchAutoScrollTimer);
+      merchAutoScrollTimer = window.setInterval(function () {
+        scrollMerchCarousel(1, merchAutoScrollCount);
+      }, merchAutoScrollDelay);
+    }
+
+    setupInfiniteMerchCarousel();
+    startMerchAutoScroll();
+
     if (merchPrev) {
       merchPrev.addEventListener('click', function () {
         scrollMerchCarousel(-1);
+        startMerchAutoScroll();
       });
     }
 
     if (merchNext) {
       merchNext.addEventListener('click', function () {
         scrollMerchCarousel(1);
+        startMerchAutoScroll();
       });
     }
 
