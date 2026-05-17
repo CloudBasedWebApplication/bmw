@@ -13,6 +13,12 @@
     --config-nav-height: 64px;
     --config-summary-top: calc(var(--config-nav-top) + var(--config-nav-height) + 16px);
     --summary-bar-height: 96px;
+    --summary-panel-bg: rgba(255, 255, 255, 0.28);
+    --summary-panel-border: rgba(17, 24, 39, 0.12);
+    --summary-panel-text: #111827;
+    --summary-panel-muted: #4b5563;
+    --summary-panel-divider: rgba(17, 24, 39, 0.12);
+    --summary-panel-text-shadow: 0 1px 12px rgba(255, 255, 255, 0.42);
   }
 
   body {
@@ -69,10 +75,11 @@
   .config-layout {
     position: relative;
     z-index: 1;
-    max-width: 1440px;
+    width: min(1180px, calc(100% - 40px));
+    max-width: none;
     margin: 0 auto;
     min-height: calc(100vh - var(--config-summary-top));
-    padding: calc(var(--config-summary-top) + var(--summary-bar-height) + 36px) 32px 40px;
+    padding: calc(var(--config-summary-top) + var(--summary-bar-height) + 36px) 0 40px;
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(390px, 448px);
     gap: 40px;
@@ -81,7 +88,10 @@
 
   @media (max-width: 980px) {
     .config-layout { grid-template-columns: 1fr; }
-    .config-layout { padding: calc(var(--config-summary-top) + var(--summary-bar-height) + 36px) 16px 28px; }
+    .config-layout {
+      width: min(1180px, calc(100% - 32px));
+      padding: calc(var(--config-summary-top) + var(--summary-bar-height) + 36px) 0 28px;
+    }
     .config-spacer { min-height: 40vh; }
     .config-column,
     .config-spacer { grid-column: 1; }
@@ -120,7 +130,6 @@
     min-height: 295px;
     margin-top: 189px;
     overflow: hidden;
-    transform: translateX(38px);
     transition: height 0.42s cubic-bezier(0.22, 1, 0.36, 1);
   }
 
@@ -214,17 +223,18 @@
   .config-btn-group,
   .option-group {
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
     gap: 10px;
   }
 
   .config-btn-group {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: 1fr;
   }
 
   .config-btn,
   .option-btn {
+    width: 100%;
     min-height: 48px;
     padding: 12px 14px;
     border: 1px solid rgba(17, 24, 39, 0.14);
@@ -252,7 +262,7 @@
 
   .color-group {
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
     gap: 12px;
   }
 
@@ -260,6 +270,8 @@
     display: flex;
     align-items: center;
     gap: 10px;
+    width: 100%;
+    box-sizing: border-box;
     min-height: 44px;
     padding: 7px 12px 7px 7px;
     border: 1px solid rgba(17, 24, 39, 0.14);
@@ -301,7 +313,7 @@
     justify-content: center;
     gap: 4px;
     padding: 0 18px;
-    border-right: 1px solid rgba(17, 24, 39, 0.12);
+    border-right: 1px solid var(--summary-panel-divider);
     border-bottom: 0;
   }
 
@@ -310,13 +322,16 @@
   }
 
   .summary-key {
-    color: #4b5563;
+    color: var(--summary-panel-muted);
     font-weight: 600;
+    text-shadow: var(--summary-panel-text-shadow);
   }
 
   .summary-value {
+    color: var(--summary-panel-text);
     font-weight: 700;
     text-align: left;
+    text-shadow: var(--summary-panel-text-shadow);
   }
 
   .price-tag {
@@ -324,22 +339,26 @@
     flex-direction: column;
     min-width: 170px;
     padding-left: 24px;
-    border-left: 1px solid rgba(17, 24, 39, 0.12);
+    border-left: 1px solid var(--summary-panel-divider);
     text-align: right;
+    gap: 4px;
   }
 
   .price-tag span {
-    font-size: 0.82rem;
-    color: #4b5563;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
+    font-size: 1rem;
+    color: var(--summary-panel-muted);
+    font-weight: 600;
+    letter-spacing: 0;
+    text-transform: none;
+    text-shadow: var(--summary-panel-text-shadow);
   }
 
   .price-main {
-    font-size: 2rem;
+    color: var(--summary-panel-text);
+    font-size: 1rem;
     font-weight: 700;
-    line-height: 1.1;
+    line-height: 1.35;
+    text-shadow: var(--summary-panel-text-shadow);
   }
 
   .add-btn {
@@ -363,36 +382,61 @@
     top: var(--config-summary-top);
     left: 50%;
     z-index: 9;
-    width: 100%;
+    width: min(1180px, calc(100% - 40px));
     min-height: var(--summary-bar-height);
     margin: 0;
     padding: 14px 32px;
-    background: rgba(255, 255, 255, 0.28);
+    background: var(--summary-panel-bg);
+    color: var(--summary-panel-text);
     transform: translateX(-50%);
-    border-width: 0 0 1px;
-    border-color: rgba(255, 255, 255, 0.26);
-    border-radius: 0;
+    border-width: 1px;
+    border-color: var(--summary-panel-border);
+    border-radius: var(--radius);
     box-shadow: 0 18px 60px rgba(15, 23, 42, 0.08);
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto minmax(210px, 280px);
+    grid-template-columns: minmax(0, 1fr) auto;
     gap: 24px;
     align-items: center;
+    transition: background 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+  }
+
+  .summary-panel[data-contrast="dark"] {
+    --summary-panel-bg: rgba(11, 18, 32, 0.34);
+    --summary-panel-border: rgba(255, 255, 255, 0.2);
+    --summary-panel-text: #ffffff;
+    --summary-panel-muted: rgba(255, 255, 255, 0.72);
+    --summary-panel-divider: rgba(255, 255, 255, 0.18);
+    --summary-panel-text-shadow: 0 1px 14px rgba(0, 0, 0, 0.72);
+  }
+
+  .summary-panel[data-contrast="light"] {
+    --summary-panel-bg: rgba(255, 255, 255, 0.3);
+    --summary-panel-border: rgba(17, 24, 39, 0.14);
+    --summary-panel-text: #111827;
+    --summary-panel-muted: #4b5563;
+    --summary-panel-divider: rgba(17, 24, 39, 0.12);
+    --summary-panel-text-shadow: 0 1px 12px rgba(255, 255, 255, 0.54);
   }
 
   .summary-panel .summary-grid {
     min-width: 0;
   }
 
-  .summary-panel .add-btn {
+  .completion-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .completion-panel .add-btn {
     margin-top: 0;
   }
 
-  .summary-action {
-    min-width: 0;
-    align-self: center;
-    position: relative;
-    display: flex;
-    align-items: center;
+  .completion-status {
+    min-height: 20px;
+    color: #10b981;
+    font-weight: 700;
+    text-align: center;
   }
 
   @media (max-width: 760px) {
@@ -412,12 +456,8 @@
       padding-left: 0;
       padding-bottom: 10px;
       border-left: 0;
-      border-bottom: 1px solid rgba(17, 24, 39, 0.1);
+      border-bottom: 1px solid var(--summary-panel-divider);
       text-align: left;
-    }
-
-    .price-main {
-      font-size: 1.55rem;
     }
 
     .summary-grid {
@@ -428,16 +468,13 @@
       min-height: 24px;
       padding: 3px 0;
       border-right: 0;
-      border-bottom: 1px solid rgba(17, 24, 39, 0.1);
+      border-bottom: 1px solid var(--summary-panel-divider);
     }
 
     .summary-row:last-child {
       border-bottom: none;
     }
 
-    .summary-panel .add-btn {
-      min-height: 44px;
-    }
   }
 
   .add-btn:hover:not(:disabled) {
@@ -450,18 +487,6 @@
     cursor: not-allowed;
   }
 
-  #status {
-    position: absolute;
-    top: calc(100% + 6px);
-    left: 0;
-    right: 0;
-    margin-top: 0;
-    min-height: 0;
-    text-align: center;
-    font-weight: 600;
-    font-size: 0.9rem;
-    color: #10b981;
-  }
 </style>
 
 <div class="config-background" aria-hidden="true">
@@ -489,11 +514,6 @@
     <span id="modelNameDisplay">Modell laden...</span>
     <div class="price-main" id="price">0,00 EUR</div>
   </div>
-
-  <div class="summary-action">
-    <button class="add-btn" id="addBtn" disabled>Konfiguration abschließen</button>
-    <div id="status"></div>
-  </div>
 </div>
 
 <div class="config-layout">
@@ -518,6 +538,12 @@
       <section class="panel config-options-panel" data-view="wheels">
         <h1>Felgen</h1>
         <div class="option-group" id="wheelsBtns"></div>
+      </section>
+
+      <section class="panel config-options-panel completion-panel" data-view="wheels">
+        <h1>Konfiguration abschließen</h1>
+        <button class="add-btn" type="button" data-add-config disabled>Konfiguration abschließen</button>
+        <div class="completion-status" data-add-status></div>
       </section>
     </div>
 
@@ -590,6 +616,17 @@
       .replace(/Moeglich/g, "Möglich");
   }
 
+  function displayColorName(value) {
+    const key = normalizeText(value).toLowerCase();
+    if (key === "black" || key === "schwarz") return "Schwarz";
+    if (key === "blue" || key === "blau") return "Blau";
+    if (key === "white" || key === "weiss") return "Weiß";
+    if (key === "grey" || key === "gray" || key === "grau") return "Grau";
+    if (key === "red" || key === "rot") return "Rot";
+    if (key === "silver" || key === "silber") return "Silber";
+    return displayText(value);
+  }
+
   function normalizeText(value) {
     return String(value || "")
       .replace(/ä/gi, "ae").replace(/ö/gi, "oe").replace(/ü/gi, "ue")
@@ -649,6 +686,42 @@
     if (key.includes("red") || key.includes("rot")) return "#b91c1c";
     if (key.includes("silver") || key.includes("silber")) return "#cbd5e1";
     return "#d1d5db";
+  }
+
+  function interiorColorFromName(name) {
+    const key = String(name || "").toLowerCase();
+    if (key.includes("black") || key.includes("schwarz")) return "#151515";
+    if (key.includes("coffee") || key.includes("braun") || key.includes("brown")) return "#4a3325";
+    if (key.includes("cognac")) return "#8a5634";
+    if (key.includes("oyster") || key.includes("white") || key.includes("weiss") || key.includes("weiß")) return "#e8e1d6";
+    if (key.includes("grey") || key.includes("gray") || key.includes("grau")) return "#737373";
+    return "#d1d5db";
+  }
+
+  function relativeLuminance(hexColor) {
+    const hex = String(hexColor || "").replace("#", "");
+    if (!/^[0-9a-f]{6}$/i.test(hex)) return 0.8;
+
+    const channels = [0, 2, 4].map((offset) => {
+      const value = parseInt(hex.slice(offset, offset + 2), 16) / 255;
+      return value <= 0.03928 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+    });
+
+    return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2];
+  }
+
+  function updateSummaryContrast(cfg) {
+    const summaryPanel = document.querySelector(".summary-panel");
+    if (!summaryPanel) return;
+
+    if (state.selection.view !== "interior") {
+      summaryPanel.dataset.contrast = "light";
+      return;
+    }
+
+    const referenceColor = interiorColorFromName(cfg && cfg.interior ? cfg.interior.name : "");
+
+    summaryPanel.dataset.contrast = relativeLuminance(referenceColor) > 0.45 ? "dark" : "light";
   }
 
   function colorSortRank(name) {
@@ -737,6 +810,7 @@
     if (state.selection.modelId) {
       window.history.replaceState(null, "", `${window.location.pathname}#${view}`);
     }
+    updateSummaryContrast(state.config);
     updateImage();
   }
 
@@ -979,7 +1053,7 @@
       wrapper.className = "swatch-wrapper" + (state.selection.colorId === color.id ? " active" : "");
       wrapper.innerHTML = `
         <span class="swatch" style="background:${colorFromName(color.name)}"></span>
-        <span class="swatch-label">${displayText(color.name)}</span>
+        <span class="swatch-label">${displayColorName(color.name)}</span>
       `;
       wrapper.addEventListener("click", () => {
         if (state.selection.colorId === color.id) return;
@@ -1056,7 +1130,7 @@
     const cfg = state.config;
     const img = document.getElementById("carImg");
     const placeholder = document.getElementById("placeholder");
-    const addBtn = document.getElementById("addBtn");
+    const addButtons = document.querySelectorAll("[data-add-config]");
 
     if (!cfg) {
       document.getElementById("modelNameDisplay").textContent = "Nicht verfügbar";
@@ -1064,21 +1138,22 @@
       document.getElementById("selectedColor").textContent = "-";
       document.getElementById("selectedInterior").textContent = "-";
       document.getElementById("selectedWheels").textContent = "-";
-      addBtn.disabled = true;
+      addButtons.forEach((button) => { button.disabled = true; });
       img.style.display = "none";
       placeholder.style.display = "block";
       placeholder.textContent = "Keine Vorschau verfügbar";
+      updateSummaryContrast(null);
       return;
     }
 
-    document.getElementById("modelNameDisplay").textContent =
-      displayText(`${cfg.model.name} ${cfg.model.packageName || ""}`.trim());
+    document.getElementById("modelNameDisplay").textContent = displayText(cfg.model.name);
     document.getElementById("price").textContent = formatPrice(cfg.totalPrice);
-    document.getElementById("selectedColor").textContent = cfg.color ? displayText(cfg.color.name) : "-";
+    document.getElementById("selectedColor").textContent = cfg.color ? displayColorName(cfg.color.name) : "-";
     document.getElementById("selectedInterior").textContent = cfg.interior ? displayText(cfg.interior.name) : "-";
     document.getElementById("selectedWheels").textContent = cfg.wheels ? displayText(cfg.wheels.name) : "-";
 
-    addBtn.disabled = false;
+    addButtons.forEach((button) => { button.disabled = false; });
+    updateSummaryContrast(cfg);
     updateImage();
   }
 
@@ -1109,15 +1184,18 @@
     img.onload = () => { img.style.opacity = "1"; };
   }
 
-  document.getElementById("addBtn").addEventListener("click", async () => {
+  async function addConfigurationToCart() {
     const cfg = state.config;
-    const btn = document.getElementById("addBtn");
-    const status = document.getElementById("status");
+    const addButtons = document.querySelectorAll("[data-add-config]");
+    const statusMessages = document.querySelectorAll("[data-add-status]");
+    const setStatus = (message) => {
+      statusMessages.forEach((status) => { status.textContent = message; });
+    };
 
     if (!cfg) return;
 
-    btn.disabled = true;
-    status.textContent = "Speichere...";
+    addButtons.forEach((button) => { button.disabled = true; });
+    setStatus("Speichere...");
 
     try {
       const res = await fetch("/api/cart/items", {
@@ -1125,27 +1203,31 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           type: "car",
-          name: displayText(`${cfg.model.name} ${cfg.model.packageName || ""}`.trim()),
+          name: displayText(cfg.model.name),
           price: cfg.totalPrice,
           imageUrl: cfg.previewImages.front,
           quantity: 1,
           details: {
             modelId: cfg.model.id,
-            color: cfg.color ? displayText(cfg.color.name) : null,
+            color: cfg.color ? displayColorName(cfg.color.name) : null,
             interior: cfg.interior ? displayText(cfg.interior.name) : null,
             wheels: cfg.wheels ? displayText(cfg.wheels.name) : null
           }
         })
       });
 
-      status.textContent = res.ok ? "Erfolgreich hinzugefügt" : "Fehler beim Hinzufügen";
+      setStatus(res.ok ? "Erfolgreich hinzugefügt" : "Fehler beim Hinzufügen");
     } catch (err) {
       console.error(err);
-      status.textContent = "Fehler beim Hinzufügen";
+      setStatus("Fehler beim Hinzufügen");
     } finally {
-      btn.disabled = false;
-      setTimeout(() => { status.textContent = ""; }, 3000);
+      addButtons.forEach((button) => { button.disabled = false; });
+      setTimeout(() => { setStatus(""); }, 3000);
     }
+  }
+
+  document.querySelectorAll("[data-add-config]").forEach((button) => {
+    button.addEventListener("click", addConfigurationToCart);
   });
 
   loadInitialData();
