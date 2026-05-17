@@ -16,7 +16,8 @@ Priorisierte Datenbasis: `docs/project-status.md` -> `docs/PRD.md` -> `docs/arch
 
 Das Projekt hat jetzt eine getrennte Browser- und API-Schicht:
 
-- `services/web-app` rendert die EJS-Seiten, serviert statische Assets und leitet `/api/*` same-origin an `api-gateway` weiter.
+- `services/web-shop-frontend` ist der einzige host-exponierte App-Container, serviert `/static` und leitet alle anderen Browser-Requests an `web-shop-backend` weiter.
+- `services/web-shop-backend` rendert die EJS-Seiten, leitet `/api/*` same-origin an `api-gateway` weiter und behaelt `/minio` als dokumentierte Phase-1-Ausnahme.
 - `api-gateway` proxyt APIs, setzt die Cart-Session-Cookie und stellt produktnahe Support-Endpunkte wie `/api/destinations` bereit.
 - `car-configurator`, `merch-shop`, `ai-feature` und `shopping-cart` bilden die Backend-Dienste.
 - MySQL, Redis und MinIO sind ueber Docker Compose integriert.
@@ -37,12 +38,15 @@ Aktuell akzeptierte Vereinfachungen bleiben bestehen:
 
 ## 3. Modul-Aufteilung
 
-### 3.1 `web-app`
+### 3.1 `web-shop-frontend` / `web-shop-backend`
 
 | Catalog | Status | Komplexitaet | Aufgabe | Abhaengigkeit | Sichtbares Ergebnis |
 |---|---|---|---|---|---|
-| Page / UI | `Abgeschlossen` | `★` | EJS-Seiten fuer Home, Configurator, Merch, Merch Detail, AI, Cart und Impressum rendern. | — | Nutzer erreichen alle Hauptseiten ueber den Browser-Einstieg. |
-| API / Contract | `Abgeschlossen` | `★★` | Same-origin `/api/*` an `api-gateway` weiterleiten. | — | Client-Code nutzt keine container-internen URLs. |
+| Page / UI | `Abgeschlossen` | `★` | EJS-Seiten fuer Home, Configurator, Merch, Merch Detail, AI, Cart und Impressum in `web-shop-backend` rendern. | — | Nutzer erreichen alle Hauptseiten ueber den Browser-Einstieg. |
+| Static / Proxy | `Abgeschlossen` | `★` | `/static` und Host-Port 3000 in `web-shop-frontend` bereitstellen; sonst an `web-shop-backend` proxien. | — | Nur der Frontend-Container ist als App am Host exponiert. |
+| API / Contract | `Abgeschlossen` | `★★` | Same-origin `/api/*` ueber `web-shop-backend` an `api-gateway` weiterleiten. | — | Client-Code nutzt keine container-internen URLs. |
+| Integration / Connectivity | `Abgeschlossen` | `★★` | Merch-SSR-Daten ueber Gateway `/api/merch/products` und `/api/merch/products/:productId` laden. | api-gateway Merch-Routen. | Die Praesentationsschicht ruft `merch-shop` nicht direkt auf. |
+| Integration / Connectivity | `Phase-1-Ausnahme` | `★` | `/minio` temporaer im `web-shop-backend` proxien. | Phase 2 Service-owned Image Endpoints. | Bestehende Bild-URLs funktionieren bis zur naechsten Architekturphase. |
 | Integration / Connectivity | `Offen` | `★★` | AI-Merch-Links auf die kanonische Detailroute `/merch-shop/:productId` oder Slug ausrichten. | AI URL-Builder anpassen. | AI-Empfehlungen oeffnen direkt die passende Produktdetailseite. |
 
 ### 3.2 `api-gateway`
@@ -52,7 +56,7 @@ Aktuell akzeptierte Vereinfachungen bleiben bestehen:
 | API / Contract | `Abgeschlossen` | `★★` | Configurator-, Merch-, Cart- und AI-APIs proxien. | — | Frontend-Flows bleiben same-origin und serviceunabhaengig. |
 | API / Contract | `Abgeschlossen` | `★` | `/api/destinations` bereitstellen. | — | Route Planning konsumiert Backend-gelieferte Ziel-Daten. |
 | Session | `Abgeschlossen` | `★` | Cart-Session-Cookie fuer anonyme Warenkoerbe setzen. | — | Cart-Zustand ist pro Browser-Session getrennt. |
-| Maintenance | `Abgeschlossen` | `★` | Alte page-rendering Routen im Gateway entfernt. | services/web-app deckt alle Browser-Routen ab. | Gateway bleibt klar API-fokussiert. |
+| Maintenance | `Abgeschlossen` | `★` | Alte page-rendering Routen im Gateway entfernt. | `web-shop-backend` deckt alle Browser-Routen ab. | Gateway bleibt klar API-fokussiert. |
 
 ### 3.3 `car-configurator`
 
@@ -67,7 +71,7 @@ Aktuell akzeptierte Vereinfachungen bleiben bestehen:
 | Catalog | Status | Komplexitaet | Aufgabe | Abhaengigkeit | Sichtbares Ergebnis |
 |---|---|---|---|---|---|
 | API / Contract | `Abgeschlossen` | `★★` | Produktliste und Produktdetails ueber stabile IDs/Slugs liefern. | — | Listen- und Detailseiten nutzen dieselbe Produktquelle. |
-| Page / UI | `Abgeschlossen` | `★★` | Produktdetail-Erlebnis ueber `web-app` bereitstellen. | — | Nutzer koennen einzelne Produkte direkt oeffnen. |
+| Page / UI | `Abgeschlossen` | `★★` | Produktdetail-Erlebnis ueber `web-shop-backend` bereitstellen. | — | Nutzer koennen einzelne Produkte direkt oeffnen. |
 | Integration / Connectivity | `Offen` | `★★` | AI-Empfehlungslinks auf die bestehende Detailroute abstimmen. | AI URL-Builder. | Empfehlungen landen nicht mehr auf der generischen Liste. |
 
 ### 3.5 `shopping-cart`
@@ -92,9 +96,9 @@ Aktuell akzeptierte Vereinfachungen bleiben bestehen:
 | Vertragsthema | Status | Komplexitaet | Warum moduluebergreifend | Sichtbares Ergebnis |
 |---|---|---|---|---|
 | AI no-DB boundary | `Abgeschlossen` | `★★★` | Betrifft Architektur, AI, Configurator und Merch. | AI nutzt Service-APIs statt SQL oder fremder Tabellen. |
-| Merch recommendation URL contract | `Offen` | `★★` | Betrifft `ai-feature`, `web-app` und `merch-shop`. | AI kennt ein stabiles Produktziel und die Web-App kann es direkt rendern. |
+| Merch recommendation URL contract | `Offen` | `★★` | Betrifft `ai-feature`, `web-shop-backend` und `merch-shop`. | AI kennt ein stabiles Produktziel und der Web-Shop kann es direkt rendern. |
 | AI car official resolution | `Offen` | `★★` | Betrifft `ai-feature` und `car-configurator`. | Car-Empfehlungen koennen vor der Antwort gegen Configurator-Daten validiert werden. |
-| Web/API responsibility split | `Abgeschlossen` | `★★` | Betrifft `web-app`, `api-gateway`, Docker Compose und Doku. | Browser-Praesentation und API-Proxying sind klar getrennt. |
+| Web/API responsibility split | `Abgeschlossen` | `★★` | Betrifft `web-shop-frontend`, `web-shop-backend`, `api-gateway`, Docker Compose und Doku. | Browser-Praesentation, SSR und API-Proxying sind klar getrennt. |
 
 ## 5. Current Key Path
 

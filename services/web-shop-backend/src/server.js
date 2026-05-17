@@ -29,12 +29,10 @@ if (!REPO_ROOT) {
 const WEB_ROOT = path.join(REPO_ROOT, "web");
 const VIEWS_ROOT = path.join(WEB_ROOT, "views");
 const API_GATEWAY = process.env.API_GATEWAY_URL || "http://api-gateway:3000";
-const MERCH = process.env.MERCH_URL || "http://merch-shop:3002";
 
 app.set("view engine", "ejs");
 app.set("views", VIEWS_ROOT);
 app.disable("view cache");
-app.use("/static", express.static(path.join(WEB_ROOT, "public")));
 app.use("/minio", async (req, res) => {
   try {
     const upstreamBase = `http://${process.env.MINIO_ENDPOINT || "minio"}:${process.env.MINIO_PORT || 9000}`;
@@ -99,6 +97,22 @@ function getConfiguratorInitialSelection(req) {
   return routeSelection || legacyQuerySelection || null;
 }
 
+function readSetCookieHeaders(headers) {
+  if (typeof headers.getSetCookie === "function") {
+    return headers.getSetCookie();
+  }
+
+  const setCookie = headers.get("set-cookie");
+  return setCookie ? [setCookie] : [];
+}
+
+function forwardSetCookieHeaders(upstream, res) {
+  const cookies = readSetCookieHeaders(upstream.headers);
+  if (cookies.length > 0) {
+    res.setHeader("set-cookie", cookies);
+  }
+}
+
 async function forwardToApiGateway(req, res) {
   try {
     const upstreamUrl = new URL(req.originalUrl, API_GATEWAY);
@@ -119,11 +133,7 @@ async function forwardToApiGateway(req, res) {
     });
 
     res.status(upstream.status);
-
-    const setCookie = upstream.headers.get("set-cookie");
-    if (setCookie) {
-      res.setHeader("set-cookie", setCookie);
-    }
+    forwardSetCookieHeaders(upstream, res);
 
     const contentType = upstream.headers.get("content-type");
     if (contentType) {
@@ -141,7 +151,7 @@ app.all("/api/*", forwardToApiGateway);
 app.get("/health", (_req, res) => {
   res.json({
     ok: true,
-    service: "web-app",
+    service: "web-shop-backend",
     timestamp: new Date().toISOString(),
   });
 });
@@ -177,7 +187,7 @@ app.get("/car-configurator/:model/:color/:interior/:wheels", renderConfigurator)
 
 app.get("/merch-shop", async (_req, res) => {
   try {
-    const response = await fetch(`${MERCH}/products`);
+    const response = await fetch(new URL("/api/merch/products", API_GATEWAY));
     const products = await response.json();
     renderPage(res, "merch-shop", {
       title: "BMW Merch Shop",
@@ -193,8 +203,8 @@ app.get("/merch-shop", async (_req, res) => {
 app.get("/merch-shop/:productId", async (req, res) => {
   try {
     const [productResponse, productsResponse] = await Promise.all([
-      fetch(`${MERCH}/products/${encodeURIComponent(req.params.productId)}`),
-      fetch(`${MERCH}/products`),
+      fetch(new URL(`/api/merch/products/${encodeURIComponent(req.params.productId)}`, API_GATEWAY)),
+      fetch(new URL("/api/merch/products", API_GATEWAY)),
     ]);
 
     if (productResponse.status === 404) {
@@ -251,4 +261,4 @@ app.get("/impressum", (_req, res) => {
   });
 });
 
-app.listen(port, () => console.log(`web-app listening on port ${port}`));
+app.listen(port, () => console.log(`web-shop-backend listening on port ${port}`));

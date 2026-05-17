@@ -21,24 +21,26 @@ Update this document in the same PR that changes the code it describes.
 
 This is a course project for a cloud web application, built around an automotive platform. The core purpose is to demonstrate service decomposition, containerized local development, and integration with external infrastructure — database, object storage, cache, an AI API, and a map API. The product has one browser-facing web app, one API gateway, four backend microservices, and three infrastructure services, all orchestrated locally with Docker Compose.
 
-The current implementation has a complete working skeleton. All major pages are reachable through `services/web-app`, browser API calls are forwarded through `api-gateway`, the main user journeys work end to end, and the infrastructure layer (MySQL, Redis, MinIO) is integrated. Several design choices were deliberately simplified: the shared MySQL database and the reduced configurator parameter depth are phase-scoped decisions that keep the implementation tractable without blocking the principal architecture demonstration. The AI service now returns structured recommendation links instead of a free-form string.
+The current implementation has a complete working skeleton. All major pages are reachable through `services/web-shop-frontend`, which forwards page/API requests to `services/web-shop-backend`; browser API calls then flow through `api-gateway`. The main user journeys work end to end, and the infrastructure layer (MySQL, Redis, MinIO) is integrated. Several design choices were deliberately simplified: the shared MySQL database, the reduced configurator parameter depth, and the temporary Phase 1 `/minio` proxy are phase-scoped decisions that keep the implementation tractable without blocking the principal architecture demonstration. The AI service now returns structured recommendation links instead of a free-form string.
 
 
 ---
 
 ## 3. Module Status
 
-### 3.1 web-app
+### 3.1 web-shop-frontend and web-shop-backend
 
 #### What Is Working
 
-The web app is the browser-facing entry point. It registers page routes for Home, Configurator, Merch Shop, Merch Product Detail, AI Feature, Shopping Cart, and Impressum, renders EJS templates server-side, serves static assets under `/static`, and proxies same-origin `/api/*` requests to `api-gateway`.
+The web-shop presentation layer is split into two services. `web-shop-frontend` is the only browser-facing application container; it serves shared static assets under `/static`, returns `{ ok: true, service: "web-shop-frontend" }` from `/health`, and forwards every other request to `web-shop-backend`.
 
-The home page injects the Google Maps API key server-side and fetches destination data through `/api/destinations`. The merch pages fetch product data from `merch-shop` for both listing and direct product detail routes. The cart and AI pages consume the same-origin API surface exposed through the gateway.
+`web-shop-backend` registers page routes for Home, Configurator, Merch Shop, Merch Product Detail, AI Feature, Shopping Cart, and Impressum, renders EJS templates server-side, and proxies same-origin `/api/*` requests to `api-gateway`. The merch pages fetch product data through the gateway at `/api/merch/products` and `/api/merch/products/:productId`; the backend no longer has a direct `MERCH_URL` dependency.
+
+The home page injects the Google Maps API key server-side and fetches destination data through `/api/destinations`. The cart and AI pages consume the same-origin API surface exposed through the gateway.
 
 #### Accepted Simplifications
 
-None specific to the web app at this time.
+`/minio` remains in `web-shop-backend` as a temporary Phase 1 exception so existing browser image URLs continue to resolve. Phase 2 should replace this with service-owned image endpoints.
 
 #### Confirmed Gaps
 
@@ -52,7 +54,7 @@ None that block the current user journeys.
 
 The gateway is the API-facing entry point for browser requests. It manages the session cookie that identifies each user's cart and proxies cart, configurator, merch, and AI requests to the appropriate backend services, keeping container-internal URLs out of client-side code. The `PATCH /api/cart/items/:id` and `DELETE /api/cart` proxies support cart quantity changes and clear-cart behavior.
 
-`GET /health` reports only gateway service status. Route and page discovery belongs to `services/web-app` documentation or route definitions rather than gateway health.
+`GET /health` reports only gateway service status. Route and page discovery belongs to `services/web-shop-backend` documentation or route definitions rather than gateway health.
 
 `GET /api/destinations` returns the list of BMW route targets as JSON. This endpoint makes destination data backend-owned product data: the route-planning page fetches it at runtime and no longer embeds the list in the EJS template. Future additions or changes to destinations require only a server-side update.
 
@@ -62,7 +64,7 @@ None specific to the gateway at this time.
 
 #### Confirmed Gaps
 
-No page-rendering gaps remain after local issue 8. Browser-facing routes are owned by `services/web-app`; gateway changes should stay limited to API, session, and support endpoint behavior.
+No page-rendering gaps remain after local issue 8. Browser-facing routes are mediated by `services/web-shop-frontend` and rendered by `services/web-shop-backend`; gateway changes should stay limited to API, session, and support endpoint behavior.
 
 ---
 
@@ -178,23 +180,28 @@ The full stack runs locally via Docker Compose with `docker compose up --build`.
 
 | Container | Image / Build | Port (host) | Role |
 |---|---|---|---|
-| `web-app` | build: `./services/web-app` | 3000 | Browser-facing EJS app, static assets, same-origin API forwarding |
+| `web-shop-frontend` | build: `./services/web-shop-frontend` | 3000 | Browser-facing static asset server and request proxy |
+| `web-shop-backend` | build: `./services/web-shop-backend` | internal 3006 | EJS rendering, same-origin API forwarding, temporary `/minio` proxy |
 | `api-gateway` | build: `./api-gateway` | internal 3000 | API proxy, session cookie, support endpoints |
-| `car-configurator` | build: `./services/car-configurator` | 3001 | Config logic, MinIO image, price |
-| `merch-shop` | build: `./services/merch-shop` | 3002 | Product catalog |
-| `ai-feature` | build: `./services/ai-feature` | 3004 | Gemini integration |
-| `shopping-cart` | build: `./services/shopping-cart` | 3005 | Cart state (Redis) |
+| `car-configurator` | build: `./services/car-configurator` | internal 3001 | Config logic, MinIO image, price |
+| `merch-shop` | build: `./services/merch-shop` | internal 3002 | Product catalog and MinIO-backed merchandise image URLs |
+| `ai-feature` | build: `./services/ai-feature` | internal 3004 | Gemini integration |
+| `shopping-cart` | build: `./services/shopping-cart` | internal 3005 | Cart state (Redis) |
 | `mysql` | `mysql:8.4.8` | 3306 | Persistent domain data |
 | `mysql-seed` | build inline | — | One-shot seed runner, exits after seeding |
 | `redis` | `redis:7.4.2` | 6379 | Cart session storage |
-| `minio` | `minio/minio` | 9000 / 9001 | Object storage (images); console at 9001 |
+| `minio` | `minio/minio` | internal 9000 / debug 9001 | Object storage (images); console at 9001 |
 | `minio-init` | `minio/mc` | — | One-shot bucket creator + image sync |
 
 **MySQL.** All service tables currently live in the shared `bmw_app` database (see Decision Log entry 5). The PRD target schema (§7.1) specifies `configurator_db` (owned by `car-configurator`) and `merchandise_db` (owned by `merch-shop`). Cross-schema queries are not permitted even in the shared setup.
 
 **Redis.** Cart state is stored at `cart:{sessionId}` as a JSON-serialized array of item objects. TTL is 24 hours. Session ID is assigned by the gateway as a cookie on first API request.
 
-**MinIO.** The `configurator-images` bucket holds all product images. Configurator images are uploaded under the `configurator/` prefix; merch images under `merch-shop/`; home/static support images are mirrored under `home/`. Images are pre-uploaded using `minio-init` on stack start, or manually re-synced with `docker compose run --rm minio-init`. Use ASCII-only filenames for merch assets to keep object keys stable across encodings.
+**MinIO.** The `configurator-images` bucket holds all product images. Configurator images are uploaded under the `configurator/` prefix; merch images under `merch-shop/`; home/static support images are mirrored under `home/`. Images are pre-uploaded using `minio-init` on stack start, or manually re-synced with `docker compose run --rm minio-init`. Use ASCII-only filenames for merch assets to keep object keys stable across encodings. `/minio` is currently proxied by `web-shop-backend` as a temporary Phase 1 browser exception.
+
+**Phase 2 image boundary decision.** Images remain stored in MinIO, but browser-visible image delivery must be owned by the service that owns the image reference. Configurator images should be exposed through `GET /api/configurator/assets/*`; merchandise images should be exposed through `GET /api/merch/assets/*`. The request path must be `Browser -> web-shop-frontend -> web-shop-backend -> api-gateway -> owning service -> MinIO`. The legacy `/minio/*` browser URL should be deleted without a compatibility redirect. MinIO API port `9000` should no longer be host-exposed; only console port `9001` may remain exposed for local infrastructure/debug use.
+
+Phase 2 validation must prove that no runtime browser path still uses `/minio/*`, that image responses preserve binary bodies and `content-type`, that configurator, merch, AI, cart, and home pages render images through the new same-origin API paths, and that `docker compose config` no longer exposes MinIO API port `9000` on the host.
 
 **Persistence note.** Running `docker compose down -v` destroys all data volumes. MySQL seed and MinIO sync run automatically on the next `docker compose up`.
 
@@ -204,7 +211,7 @@ The full stack runs locally via Docker Compose with `docker compose up --build`.
 
 ### Cart item shape — Implemented
 
-**Parties:** `shopping-cart` (producer) ↔ `api-gateway` (proxy/session) ↔ `web-app` cart page (consumer)
+**Parties:** `shopping-cart` (producer) ↔ `api-gateway` (proxy/session) ↔ `web-shop-backend` cart page (consumer)
 
 **Defined fields:**
 ```json
@@ -239,7 +246,7 @@ The full stack runs locally via Docker Compose with `docker compose up --build`.
 
 ### AI prompt/template + output schema — Implemented
 
-**Parties:** `ai-feature` (producer) → `api-gateway` (proxy) → `web-app` AI page (consumer)
+**Parties:** `ai-feature` (producer) → `api-gateway` (proxy) → `web-shop-backend` AI page (consumer)
 
 **Current state:** Gemini output is constrained with a response schema and normalized by `ai-feature`. The frontend receives structured fields such as `text`, `carLink`, `merchLinks`, and the selected car option fields. Merch items include product title, image URL, price, and reason metadata.
 
@@ -249,7 +256,7 @@ The full stack runs locally via Docker Compose with `docker compose up --build`.
 
 ### Merch product-detail route — Implemented
 
-**Parties:** `merch-shop` (product data) → `web-app` (route/view)
+**Parties:** `merch-shop` (product data) → `api-gateway` (proxy) → `web-shop-backend` (route/view)
 
 **Current state:** `merch-shop` exposes product detail data via `GET /products/:productId`, and the web app exposes `/merch-shop/:productId` using the `web/views/merch-product.ejs` view.
 
@@ -257,7 +264,7 @@ The full stack runs locally via Docker Compose with `docker compose up --build`.
 
 ### AI merch recommendation landing URL — Open
 
-**Parties:** `ai-feature` (link generator) → `web-app` merch detail route (route target)
+**Parties:** `ai-feature` (link generator) → `web-shop-backend` merch detail route (route target)
 
 **Current state:** AI links still use `/merch-shop?product=<id>`, while the canonical product-detail route is `/merch-shop/:productId` or a product slug.
 
@@ -267,13 +274,13 @@ The full stack runs locally via Docker Compose with `docker compose up --build`.
 
 ## 6. Design Decision Log
 
-### 1. Browser-facing web app plus API gateway
+### 1. Browser-facing web shop frontend/backend plus API gateway
 
 **Date:** Project start
 **Context:** The project needed one coherent user-facing application spanning all five service capabilities.
-**Decision:** Pages are rendered through `services/web-app` using EJS templates and shared static assets. Browser API calls stay same-origin under `/api/*` and are forwarded to `api-gateway`, which handles API proxying and session-oriented support endpoints.
+**Decision:** Static assets and host exposure live in `services/web-shop-frontend`; EJS pages are rendered through `services/web-shop-backend` using shared templates. Browser API calls stay same-origin under `/api/*` and are forwarded through `web-shop-backend` to `api-gateway`, which handles API proxying and session-oriented support endpoints.
 **Rationale:** Keeps the web layer simple (no SPA framework), avoids CORS complexity, and separates browser presentation from API routing concerns.
-**Consequences:** Page-level changes usually touch `services/web-app` or `web/views`; API routing and session behavior remain in `api-gateway`.
+**Consequences:** Page-level SSR changes usually touch `services/web-shop-backend` or `web/views`; static/proxy entry changes touch `services/web-shop-frontend`; API routing and session behavior remain in `api-gateway`.
 **Status:** Standing.
 
 ---
@@ -368,6 +375,6 @@ Append-only. When an issue is resolved, change Status to `Resolved` — do not d
 | 3 | Cart quantity update | shopping-cart, api-gateway | §6.5 | Medium | Users had no way to change item quantities without removing and re-adding | Resolved |
 | 4 | Destinations hardcoded in frontend | home, api-gateway | §6.3 | Medium | Destination data was embedded in the EJS template rather than served from the gateway | Resolved |
 | 5 | No checkout / order submission | shopping-cart | §3 (out of scope) | Out of Scope | Cart has no payment or order flow; confirmed not in v1 scope | Out of Scope |
-| 6 | AI merch links use listing query URL | ai-feature, web-app | §6.2, §6.4 | Medium | Product details exist, but AI recommendations still target `/merch-shop?product=<id>` instead of `/merch-shop/:productId` | Open |
+| 6 | AI merch links use listing query URL | ai-feature, web-shop-backend | §6.2, §6.4 | Medium | Product details exist, but AI recommendations still target `/merch-shop?product=<id>` instead of `/merch-shop/:productId` | Open |
 | 7 | AI car recommendation not officially resolved before response | ai-feature, car-configurator | §6.4 | Medium | AI returns a configurator link from structured options; strict official-result semantics would require a final configurator API validation step | Open |
-| 8 | Gateway still contains page-rendering routes | web-app, api-gateway | §5, architecture §4.1-4.2 | Medium | Responsibility split is documented but gateway still duplicated EJS browser routes | Resolved |
+| 8 | Gateway still contains page-rendering routes | web-shop-backend, api-gateway | §5, architecture §4.1-4.2 | Medium | Responsibility split is documented but gateway still duplicated EJS browser routes | Resolved |
