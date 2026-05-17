@@ -146,7 +146,7 @@ function buildRecommendationResponse(recommendation, products = []) {
         imageUrl,
         price: product?.price ?? null,
         reason,
-        url: `/merch-shop?product=${item.id}`,
+        url: `/merch-shop/${item.id}`,
       };
     });
   }

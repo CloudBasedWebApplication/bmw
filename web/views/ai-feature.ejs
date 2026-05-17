@@ -46,58 +46,55 @@
   }
   .ai-hero-content {
     position: relative; z-index: 2;
-    max-width: 1060px;
-    width: 100%;
+    width: min(1180px, calc(100% - 40px));
     margin: 0 auto;
-    padding: 80px 24px 60px;
+    padding: 80px 0 60px;
   }
 
   /* ── Hero text ── */
-  .hero { text-align: center; margin-bottom: 72px; }
+  .hero { text-align: center; margin-bottom: 48px; }
   .ai-hero-section h1 {
-    font-size: 2.8rem;
-    font-weight: 800;
-    letter-spacing: -0.035em;
-    line-height: 1.12;
-    margin: 0 0 16px;
+    font-size: clamp(2.7rem, 7vw, 6.4rem);
+    font-weight: 700;
+    letter-spacing: 0;
+    line-height: 1.02;
+    margin: 0 0 18px;
     color: #fff;
-    text-shadow: 0 4px 28px rgba(0,0,0,0.45);
+    text-shadow: 0 8px 30px rgba(0,0,0,0.45);
   }
   .subtitle {
-    color: rgba(255,255,255,0.70);
-    font-size: 1.05rem;
-    max-width: 460px;
-    margin: 0 auto;
+    color: rgba(255,255,255,0.86);
+    font-size: clamp(1rem, 1.5vw, 1.25rem);
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin: 0;
   }
 
-  /* ── Input card: frosted glass on dark image ── */
+  /* ── Input card ── */
   .input-card {
-    background: rgba(255,255,255,0.10);
+    background: var(--paper);
     border-radius: 20px;
-    box-shadow: 0 8px 48px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.14);
-    border: 1px solid rgba(255,255,255,0.18);
+    box-shadow: 0 12px 56px rgba(0,0,0,0.50);
+    border: none;
     overflow: hidden;
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
   }
   .input-card:focus-within {
-    border-color: rgba(28,105,212,0.75);
-    box-shadow: 0 0 0 2px rgba(28,105,212,0.28), 0 8px 48px rgba(0,0,0,0.45);
+    box-shadow: 0 0 0 2px rgba(28,105,212,0.40), 0 12px 56px rgba(0,0,0,0.50);
   }
   textarea {
     width: 100%; padding: 24px 24px 16px; border: none;
     font-size: 1.05rem; font-family: inherit; resize: none;
     min-height: 150px; outline: none; line-height: 1.65;
     background: transparent;
-    color: #fff;
-    caret-color: #fff;
+    color: var(--ink);
+    caret-color: var(--ink);
   }
-  textarea::placeholder { color: rgba(255,255,255,0.36); }
+  textarea::placeholder { color: rgba(0,0,0,0.38); }
   .input-footer {
     display: flex; justify-content: flex-end; align-items: center;
     padding: 12px 20px 16px;
-    border-top: 1px solid rgba(255,255,255,0.10);
+    border-top: 1px solid rgba(0,0,0,0.10);
   }
   .send-btn {
     padding: 11px 26px; border: none; border-radius: var(--radius);
@@ -122,138 +119,142 @@
     position: relative; z-index: 2;
   }
 
-  /* ── Results area: continues hero dark tone, fades to light ── */
-  .ai-results {
-    max-width: none;
-    margin: -2px 0 0;
-    padding: 0;
-    background: linear-gradient(to bottom,
-      #000 0px,
-      #0f172a 200px,
-      #0f172a 600px,
-      #f0f4f8 800px
-    );
-  }
+  /* ── Results area ── */
+  .ai-results { max-width: none; margin: 0; padding: 0; background: transparent; }
 
   /* ── Result wrapper ── */
-  .result { display: none; max-width: 1060px; margin: 0 auto; padding: 0 20px 80px; }
+  .result { display: none; }
   .result.visible { display: block; animation: fadeUp 0.5s ease both; }
   @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
 
-  /* ── Car reveal: full-viewport, editorial — car is the centrepiece ── */
+  /* ── Car reveal: car fills full screen, content overlays right side ── */
   .car-reveal {
-    display: flex; flex-direction: column;
-    height: calc(100vh - 80px); min-height: 520px;
-    text-align: center; color: #fff;
+    position: relative;
+    height: 100vh; min-height: 520px;
+    overflow: visible; color: #fff;
+    width: 100vw;
+    left: 50%;
+    transform: translateX(-50%);
   }
-  .car-reveal-header { padding: 14px 0 12px; flex-shrink: 0; }
-  .car-reveal-eyebrow {
-    font-size: 0.65rem; font-weight: 700; letter-spacing: 0.18em;
-    text-transform: uppercase; opacity: 0.45; margin-bottom: 10px;
-  }
-  .car-reveal-model {
-    font-size: 4.8rem; font-weight: 800; letter-spacing: -0.04em;
-    line-height: 1; margin-bottom: 16px;
-  }
-  .car-reveal-specs {
-    display: grid; grid-template-columns: 1fr 1fr 1fr;
-    width: 100%; max-width: 700px;
-    margin: 0 auto;
-  }
-  .car-reveal-spec {
-    display: flex; flex-direction: column; align-items: center; gap: 5px;
-    padding: 0 16px;
-    border-right: 1px solid rgba(255,255,255,0.12);
-  }
-  .car-reveal-spec:last-child { border-right: none; }
-  .car-reveal-spec-label {
-    font-size: 0.62rem; letter-spacing: 0.12em;
-    text-transform: uppercase; opacity: 0.48;
-  }
-  .car-reveal-spec-value {
-    font-size: 0.9rem; font-weight: 600; color: #fff;
-    text-align: center; word-break: break-word;
-  }
-
-  /* full-width cream image — the car dominates the screen */
-  .car-reveal-image-wrap {
-    width: calc(100% + 40px); flex: 1; min-height: 180px;
+  .car-reveal-bg {
+    position: absolute; inset: 0; z-index: 0;
     background: #eee9e2;
-    border-radius: 0;
-    display: flex; align-items: center; justify-content: center;
-    position: relative; overflow: hidden;
-    margin: 0 -20px 0;
+    overflow: hidden;
   }
-  .car-reveal-image-wrap img {
-    width: 100%; height: 100%; object-fit: cover; object-position: center 40%;
-    animation: carRevealIn 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+  .car-reveal-bg img {
+    width: 100%; height: 100%;
+    object-fit: cover; object-position: center center;
+    animation: carRevealIn 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
   }
   @keyframes carRevealIn {
-    from { opacity: 0; transform: scale(0.96); }
+    from { opacity: 0; transform: scale(1.04); }
     to   { opacity: 1; transform: none; }
   }
   .car-img-shimmer {
-    width: 60%; height: 60%;
+    position: absolute; inset: 0;
     background: linear-gradient(90deg, #e2ddd6 25%, #f0ece6 50%, #e2ddd6 75%);
     background-size: 200% 100%; animation: shimmer 1.4s infinite;
-    border-radius: 8px;
   }
   @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
 
-  .car-reveal-footer { flex-shrink: 0; padding: 18px 0 22px; }
-  .car-reveal-btns {
-    display: flex; flex-direction: column; align-items: center; gap: 14px;
+  /* dark gradient on the right for text legibility */
+  .car-reveal::after {
+    content: "";
+    position: absolute; inset: 0; z-index: 1;
+    background: linear-gradient(to left, rgba(5,10,18,0.82) 0%, rgba(5,10,18,0.55) 45%, rgba(5,10,18,0.0) 75%);
+    pointer-events: none;
   }
-  /* merch trigger: subtle text link, sits on the light gradient zone */
-  .car-reveal .merch-trigger-btn {
-    background: none; border: none;
-    color: rgba(15, 23, 42, 0.45);
-    font-size: 0.75rem; font-weight: 600;
-    letter-spacing: 0.06em; text-transform: uppercase;
-    cursor: pointer; font-family: inherit;
-    padding: 4px 0;
-    display: inline-flex; align-items: center; gap: 6px;
-    transition: color 0.2s;
+  .car-reveal-panel {
+    position: absolute; z-index: 2;
+    right: 0; top: 0; bottom: 0;
+    width: clamp(340px, 38vw, 500px);
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 56px 48px 56px 16px;
   }
-  .car-reveal .merch-trigger-btn:hover {
-    color: rgba(15, 23, 42, 0.75);
+  .car-reveal-eyebrow {
+    font-size: 0.76rem; font-weight: 700; letter-spacing: 0.18em;
+    text-transform: uppercase; color: rgba(255,255,255,0.65); margin-bottom: 14px;
   }
+  .car-reveal-model {
+    font-size: clamp(2.05rem, 4vw, 4.15rem); font-weight: 700; letter-spacing: 0;
+    line-height: 1.02; margin-bottom: 32px;
+    text-shadow: 0 2px 16px rgba(0,0,0,0.5);
+  }
+  .car-reveal-specs {
+    display: flex; flex-direction: column; gap: 16px;
+    border-top: 1px solid rgba(255,255,255,0.18);
+    padding-top: 24px; margin-bottom: 36px;
+  }
+  .car-reveal-spec { display: flex; flex-direction: column; gap: 3px; }
+  .car-reveal-spec-label {
+    font-size: 0.76rem; letter-spacing: 0.18em;
+    text-transform: uppercase; color: rgba(255,255,255,0.65);
+  }
+  .car-reveal-spec-value {
+    font-size: clamp(1rem, 1.55vw, 1.14rem); font-weight: 700; color: rgba(255,255,255,0.92);
+    word-break: break-word;
+  }
+  .car-reveal-btns { display: flex; flex-direction: column; gap: 12px; }
   .car-reveal-cta {
-    display: inline-flex; align-items: center; gap: 10px;
-    padding: 15px 44px;
+    display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+    padding: 15px 32px;
     background: var(--accent); border: none;
     border-radius: var(--radius); color: #fff; text-decoration: none;
-    font-weight: 700; font-size: 0.9rem;
+    font-weight: 700; font-size: 0.88rem;
     letter-spacing: 0.07em; text-transform: uppercase;
     transition: background 0.2s ease, transform 0.2s ease;
   }
   .car-reveal-cta:hover { background: var(--accent-dark); transform: translateY(-2px); }
-
-  /* ── Why toggle ── */
-  .why-toggle {
-    display: flex; align-items: center; gap: 8px;
-    width: 100%; padding: 12px 20px;
-    background: var(--panel); border: 1px solid rgba(0,0,0,0.07);
-    border-radius: 14px; margin-bottom: 12px;
+  .car-reveal .merch-trigger-btn {
+    background: none; border: 1px solid rgba(255,255,255,0.28);
+    color: rgba(255,255,255,0.72); border-radius: var(--radius);
+    font-size: 0.78rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
     cursor: pointer; font-family: inherit;
-    font-size: 0.85rem; font-weight: 600; color: var(--muted);
-    transition: color 0.15s, border-color 0.15s;
-    text-align: left;
+    padding: 12px 32px; text-align: center;
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    transition: all 0.2s;
   }
-  .why-toggle:hover { color: var(--accent); border-color: var(--accent); }
+  .car-reveal .merch-trigger-btn:hover { border-color: rgba(255,255,255,0.6); color: #fff; }
+
+  /* ── Why bar: overlaid bottom-left of car reveal ── */
+  /* ── Why bar: overlaid bottom-left of car image ── */
+  .car-reveal-why-bar {
+    position: absolute; z-index: 3;
+    bottom: 0; left: 0;
+    right: clamp(340px, 38vw, 500px);
+    padding: 0 48px;
+    display: flex; flex-direction: column;
+  }
+  .why-toggle {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 10px 18px;
+    margin-bottom: 16px;
+    background: rgba(5,10,18,0.72);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 999px;
+    cursor: pointer; font-family: inherit;
+    font-size: 0.78rem; font-weight: 700; color: rgba(255,255,255,0.88);
+    letter-spacing: 0.06em; text-transform: uppercase;
+    transition: background 0.2s, color 0.2s; text-align: left;
+  }
+  .why-toggle:hover { background: rgba(5,10,18,0.90); color: #fff; }
   .why-arrow { margin-left: auto; font-size: 0.75rem; transition: transform 0.25s ease; }
   .why-toggle.open .why-arrow { transform: rotate(180deg); }
   .why-panel {
     max-height: 0; overflow: hidden;
-    transition: max-height 0.35s ease, opacity 0.3s ease;
-    opacity: 0; margin-top: -20px; margin-bottom: 0;
+    transition: max-height 0.45s ease, opacity 0.3s ease;
+    opacity: 0;
   }
-  .why-panel.open { max-height: 300px; opacity: 1; margin-bottom: 24px; }
+  .why-panel.open { max-height: 400px; opacity: 1; }
   .why-panel-inner {
     padding: 20px 24px;
-    background: var(--panel); border: 1px solid rgba(0,0,0,0.05);
-    border-radius: 14px;
-    font-size: 0.95rem; color: #334155; line-height: 1.7;
+    background: rgba(5,10,18,0.90);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-radius: var(--radius) var(--radius) 0 0;
+    font-size: 0.9rem; color: rgba(255,255,255,0.85); line-height: 1.8;
   }
 
   /* ── Merch trigger button ── */
@@ -284,21 +285,29 @@
     max-height: 0;
     overflow: hidden;
     opacity: 0;
-    transition: max-height 0.7s ease, opacity 0.5s ease;
-    margin-top: 28px; padding-top: 24px;
-    border-top: 1px solid rgba(0,0,0,0.09);
+    transition: opacity 0.5s ease;
   }
   .merch-section.expanded {
-    max-height: 4000px;
+    max-height: none;
+    overflow: visible;
     opacity: 1;
   }
-  .merch-section-header { margin-bottom: 24px; }
+  .merch-section-inner {
+    width: min(1180px, calc(100% - 40px));
+    margin: 0 auto;
+    padding: 80px 0 96px;
+  }
+  .merch-section-header {
+    text-align: center;
+    margin-bottom: 56px;
+  }
   .merch-section-eyebrow {
-    font-size: 0.68rem; font-weight: 700; letter-spacing: 0.16em;
-    text-transform: uppercase; color: var(--accent); margin-bottom: 6px;
+    font-size: 0.76rem; font-weight: 700; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--accent); margin: 0 0 12px;
   }
   .merch-section-title {
-    font-size: 1.35rem; font-weight: 700; letter-spacing: -0.02em; color: var(--ink);
+    font-size: clamp(2.05rem, 4vw, 4.15rem); font-weight: 700;
+    letter-spacing: 0; line-height: 1.02; color: var(--ink); margin: 0;
   }
 
   /* ── Merch grid ── */
@@ -440,7 +449,8 @@
           carColor = u.searchParams.get("color") || "";
         } catch {}
       }
-      modelLabel = carModel ? `BMW ${escapeHtml(carModel)}` : "Dein BMW";
+      const formatModel = (m) => /^\d+$/.test(m) ? `${m}er` : m;
+      modelLabel = carModel ? `BMW ${escapeHtml(formatModel(carModel))}` : "Dein BMW";
       const colorLabel   = COLOR_DE[carColor] || escapeHtml(carColor || "");
       const specsHtml = [
         colorLabel ? `<span class="car-reveal-spec"><span class="car-reveal-spec-label">Farbe</span><span class="car-reveal-spec-value">${colorLabel}</span></span>` : "",
@@ -449,24 +459,31 @@
       ].filter(Boolean).join('');
       carHtml = `
         <div class="car-reveal">
-          <div class="car-reveal-header">
+          <div class="car-reveal-bg" id="carImgWrap">
+            <div class="car-img-shimmer"></div>
+          </div>
+          <div class="car-reveal-panel">
             <div class="car-reveal-eyebrow">Deine Empfehlung</div>
             <div class="car-reveal-model">${modelLabel}</div>
             ${specsHtml ? `<div class="car-reveal-specs">${specsHtml}</div>` : ""}
-          </div>
-          <div class="car-reveal-image-wrap" id="carImgWrap">
-            <div class="car-img-shimmer"></div>
-          </div>
-          <div class="car-reveal-footer">
             <div class="car-reveal-btns">
               <a class="car-reveal-cta" href="${escapeHtml(data.carLink)}">
-                Jetzt konfigurieren &nbsp;→
+                Konfiguration ansehen &nbsp;→
               </a>
               <button class="merch-trigger-btn" id="merchRevealBtn" type="button">
                 Lifestyle &amp; Merch entdecken
                 <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
               </button>
             </div>
+          </div>
+          <div class="car-reveal-why-bar">
+            <div class="why-panel" id="whyPanel">
+              <div class="why-panel-inner" id="whyText"></div>
+            </div>
+            <button class="why-toggle" id="whyToggle" type="button">
+              <span>Warum passt das zu mir?</span>
+              <span class="why-arrow">▲</span>
+            </button>
           </div>
         </div>`;
     }
@@ -476,7 +493,7 @@
       const section = document.querySelector(".merch-section");
       if (section) {
         section.classList.add("expanded");
-        setTimeout(() => section.scrollIntoView({ behavior: "smooth", block: "start" }), 80);
+        section.scrollIntoView({ behavior: "smooth", block: "start" });
       }
     });
 
@@ -496,23 +513,12 @@
           .catch(() => {});
       }
 
-    // ── Why toggle + collapsible AI text ───────────────────────────
-    const whyHtml = `
-      <button class="why-toggle" id="whyToggle" type="button">
-        <span>Warum passt das zu mir?</span>
-        <span class="why-arrow">▼</span>
-      </button>
-      <div class="why-panel" id="whyPanel">
-        <div class="why-panel-inner" id="whyText"></div>
-      </div>
-      `;
-    document.getElementById("resultText").innerHTML = whyHtml;
+    // ── Why toggle: overlaid bottom-left of car image ─────────────
+    document.getElementById("resultText").style.display = "none";
     document.getElementById("whyText").textContent = data.text;
     document.getElementById("whyToggle").addEventListener("click", () => {
-      const toggle = document.getElementById("whyToggle");
-      const panel  = document.getElementById("whyPanel");
-      toggle.classList.toggle("open");
-      panel.classList.toggle("open");
+      document.getElementById("whyToggle").classList.toggle("open");
+      document.getElementById("whyPanel").classList.toggle("open");
     });
 
     // ── Merch grid ─────────────────────────────────────────────────
@@ -520,11 +526,12 @@
     if (data.merchLinks?.length) {
       merchHtml += `
         <div class="merch-section">
-          <div class="merch-section-header">
-            <div class="merch-section-eyebrow">Lifestyle & Merch</div>
-            <div class="merch-section-title">Was ebenfalls zu dir passt</div>
-          </div>
-          <div class="merch-grid">`;
+          <div class="merch-section-inner">
+            <div class="merch-section-header">
+              <p class="merch-section-eyebrow">Lifestyle &amp; Merch</p>
+              <h2 class="merch-section-title">Was ebenfalls zu dir passt</h2>
+            </div>
+            <div class="merch-grid">`;
       data.merchLinks.forEach((l) => {
         const rawTitle = l.title || "Produkt";
         const title    = escapeHtml(rawTitle);
@@ -534,7 +541,7 @@
         const id       = Number(l.id);
         const color    = escapeHtml(l.subtitle || "");
 
-        const productUrl = `/merch-shop#product-${id}`;
+        const productUrl = `/merch-shop/${id}`;
         merchHtml += `
           <div class="merch-product-card"
                data-product-id="${id}"
@@ -559,7 +566,7 @@
             </div>
           </div>`;
       });
-      merchHtml += `</div></div>`;
+      merchHtml += `</div></div></div>`;
     }
     document.getElementById("merchSection").innerHTML = merchHtml;
 
@@ -646,7 +653,7 @@
       result.classList.add("visible");
       btn.disabled = false;
       setTimeout(() => {
-        const top = result.getBoundingClientRect().top + window.scrollY - 80;
+        const top = result.getBoundingClientRect().top + window.scrollY;
         window.scrollTo({ top, behavior: "smooth" });
       }, 150);
     } catch (err) {
