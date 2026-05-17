@@ -45,9 +45,30 @@
 
   .item:hover { transform: scale(1.01); }
 
-  .item img {
-    width: 120px; height: 90px; object-fit: cover;
-    border-radius: 12px; background: #f8fafc; flex-shrink: 0;
+  .item-media {
+    width: 160px;
+    height: 120px;
+    border-radius: var(--radius);
+    background: var(--paper);
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+
+  .item-media img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+    object-position: var(--image-position, center);
+    transform: translate(var(--image-x, 0), var(--image-y, 0)) scale(var(--image-zoom, 1));
+    transform-origin: center;
+  }
+
+  .item--car .item-media {
+    --image-position: 32% center;
+    --image-zoom: 1.25;
+    --image-x: 12%;
+    --image-y: 7%;
   }
 
   .item-info { flex: 1; }
@@ -62,18 +83,19 @@
   .item-price { font-weight: 800; color: var(--ink); font-size: 1.1rem; }
 
   .remove-btn {
-    background: #fee2e2; border: none; color: #ef4444;
-    padding: 6px 12px; border-radius: 8px; cursor: pointer;
-    font-size: 0.8rem; font-weight: 700; transition: 0.2s;
+    background: none; border: 1px solid var(--line); color: var(--muted);
+    padding: 6px 14px; border-radius: var(--radius); cursor: pointer;
+    font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em;
+    text-transform: uppercase; transition: 0.2s; font-family: inherit;
   }
-  .remove-btn:hover { background: #ef4444; color: #fff; }
+  .remove-btn:hover { border-color: var(--ink); color: var(--ink); }
 
   .qty-controls {
     display: flex; align-items: center; gap: 8px; margin-top: 4px;
   }
   .qty-btn {
-    width: 28px; height: 28px; border: 1px solid #e2e8f0; background: #f8fafc;
-    border-radius: 6px; cursor: pointer; font-size: 1rem; font-weight: 700;
+    width: 28px; height: 28px; border: 1px solid var(--line); background: var(--paper);
+    border-radius: var(--radius); cursor: pointer; font-size: 1rem; font-weight: 700;
     color: var(--ink); display: flex; align-items: center; justify-content: center;
     transition: 0.2s; padding: 0;
   }
@@ -89,11 +111,17 @@
     border: 1px solid var(--line);
   }
   .total-label { font-size: 1.1rem; opacity: 0.7; }
-  .total-value { font-size: 2rem; font-weight: 800; color: var(--ink); }
+  .total-value { font-size: 1.4rem; font-weight: 800; color: var(--ink); }
+  .summary-subtext { font-size: 0.8rem; opacity: 0.5; margin-top: 4px; }
 
   .checkout-action {
     margin-top: 24px;
-    text-align: right;
+  }
+  .checkout-action .btn {
+    width: 100%;
+    min-height: 56px;
+    font-size: 1rem;
+    letter-spacing: 0.1em;
   }
 
   .loading { text-align: center; padding: 40px; color: var(--muted); font-weight: 500; }
@@ -131,9 +159,9 @@
     letter-spacing: 0.08em; color: var(--muted);
   }
   .form-group input, .form-group select {
-    padding: 12px 14px; border: 1px solid #e2e8f0; border-radius: 10px;
+    padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--radius);
     font-size: 0.95rem; font-family: inherit; color: var(--ink);
-    background: #fafbfc; outline: none; transition: border-color 0.2s;
+    background: var(--paper); outline: none; transition: border-color 0.2s;
   }
   .form-group input:focus, .form-group select:focus { border-color: var(--accent); }
 
@@ -216,15 +244,18 @@
       <button class="btn btn-ghost" id="clearCartBtn">Warenkorb leeren</button>
     </div>
     <div id="cartContent">
-      <div class="loading">Inhalt wird sicher geladen...</div>
+      <div class="loading">Wird geladen...</div>
     </div>
   </div>
 
   <!-- Checkout -->
   <div class="checkout-view" id="checkoutView">
     <div class="cart-toolbar">
-      <h1>Kasse</h1>
-      <button class="btn-back" onclick="showCart()">← Zurück zum Warenkorb</button>
+      <div>
+        <p class="section-kicker">Checkout</p>
+        <h2 class="section-title">Ihre Bestellung.</h2>
+      </div>
+      <button class="btn-back" onclick="showCart()">← Zurück</button>
     </div>
 
     <div class="step-bar">
@@ -368,21 +399,21 @@
 
       items.forEach(item => {
         const itemEl = document.createElement("div");
-        itemEl.className = "item";
+        itemEl.className = item.type === "car" ? "item item--car" : "item item--merch";
         itemEl.id = `item-${item.id}`;
 
         if (item.imageUrl) {
+          const mediaEl = document.createElement("div");
+          mediaEl.className = "item-media";
+
           const imageEl = document.createElement("img");
           imageEl.src = normalizeImageUrl(item.imageUrl);
           imageEl.alt = normalizeText(item.name);
-          itemEl.appendChild(imageEl);
+          mediaEl.appendChild(imageEl);
+          itemEl.appendChild(mediaEl);
         } else {
           const placeholderEl = document.createElement("div");
-          placeholderEl.style.width = "120px";
-          placeholderEl.style.height = "90px";
-          placeholderEl.style.background = "#f1f5f9";
-          placeholderEl.style.borderRadius = "12px";
-          placeholderEl.style.flexShrink = "0";
+          placeholderEl.className = "item-media";
           itemEl.appendChild(placeholderEl);
         }
 
@@ -467,8 +498,7 @@
       summaryInfoEl.appendChild(totalLabelEl);
 
       const summarySubtextEl = document.createElement("div");
-      summarySubtextEl.style.fontSize = "0.8rem";
-      summarySubtextEl.style.opacity = "0.5";
+      summarySubtextEl.className = "summary-subtext";
       summarySubtextEl.textContent = "Inkl. MwSt. zzgl. Versand";
       summaryInfoEl.appendChild(summarySubtextEl);
 
