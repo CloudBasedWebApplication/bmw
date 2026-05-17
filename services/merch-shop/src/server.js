@@ -1,5 +1,10 @@
 const express = require("express");
 const mysql = require("mysql2/promise");
+const {
+  buildMerchAssetUrl,
+  encodeObjectKey,
+  normalizeMerchAssetKey,
+} = require("./asset-paths");
 
 const app = express();
 const port = process.env.PORT || 3002;
@@ -13,23 +18,8 @@ const dbConfig = {
   charset: "utf8mb4",
 };
 
-function trimTrailingSlash(value) {
-  return String(value || "").replace(/\/+$/, "");
-}
-
-function resolveMinioPublicBaseUrl() {
-  if (process.env.MINIO_PUBLIC_URL) {
-    const configuredUrl = trimTrailingSlash(process.env.MINIO_PUBLIC_URL);
-    if (/^https?:\/\//i.test(configuredUrl) || configuredUrl.startsWith("/")) {
-      return configuredUrl;
-    }
-    return `/${configuredUrl}`;
-  }
-
-  return "/minio";
-}
-
-const minioBase = `${resolveMinioPublicBaseUrl()}/${process.env.MINIO_BUCKET || "configurator-images"}`;
+const MINIO_BUCKET = process.env.MINIO_BUCKET || "configurator-images";
+const MINIO_BASE = `http://${process.env.MINIO_ENDPOINT || "minio"}:${process.env.MINIO_PORT || 9000}`;
 
 function createProductSlug(product) {
   return `${product.name || ""}-${product.color || ""}`
@@ -60,11 +50,38 @@ async function loadProducts() {
     ...p,
     price: parseFloat(p.price),
     slug: createProductSlug(p),
-    imageUrl: `${minioBase}/${p.minioObject}`,
+    imageUrl: buildMerchAssetUrl(p.minioObject),
   }));
 }
 
 app.get("/health", (_req, res) => res.json({ ok: true }));
+
+app.get("/assets/*", async (req, res) => {
+  const objectKey = normalizeMerchAssetKey(req.params[0]);
+
+  if (!objectKey) {
+    return res.status(400).json({ error: "invalid asset key" });
+  }
+
+  try {
+    const upstream = await fetch(`${MINIO_BASE}/${encodeURIComponent(MINIO_BUCKET)}/${encodeObjectKey(objectKey)}`);
+    res.status(upstream.status);
+
+    const contentType = upstream.headers.get("content-type");
+    if (contentType) {
+      res.setHeader("content-type", contentType);
+    }
+
+    const cacheControl = upstream.headers.get("cache-control");
+    if (cacheControl) {
+      res.setHeader("cache-control", cacheControl);
+    }
+
+    res.send(Buffer.from(await upstream.arrayBuffer()));
+  } catch (err) {
+    res.status(502).json({ error: err.message });
+  }
+});
 
 app.get("/products", async (_req, res) => {
   try {

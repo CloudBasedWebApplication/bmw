@@ -1,6 +1,7 @@
 flowchart LR
     user["User"]
-    webapp["Web App\nEJS pages + static assets"]
+    frontend["Web Shop Frontend\n/static + browser entry proxy"]
+    backendPresentation["Web Shop Backend\nEJS page rendering + /api proxy"]
     gateway["API Gateway\nAPI proxying"]
 
     subgraph backend["Microservices"]
@@ -21,8 +22,9 @@ flowchart LR
         googlemaps["Google Maps API"]
     end
 
-    user --> webapp
-    webapp --> gateway
+    user --> frontend
+    frontend --> backendPresentation
+    backendPresentation --> gateway
 
     gateway --> configurator
     gateway --> merchandise
@@ -35,6 +37,7 @@ flowchart LR
     configurator --> minio
 
     merchandise --> mysql
+    merchandise --> minio
 
     ai --> gemini
     ai --> configurator

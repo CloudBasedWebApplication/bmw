@@ -4,7 +4,7 @@
 
 This document describes the high-level architecture of the BMW cloud web app course project. It summarizes the agreed system boundaries, service responsibilities, main data flow, and infrastructure dependencies.
 
-The system is designed around one web application, one API gateway, and multiple backend microservices. The first version is optimized for local Docker-based development and demonstration, while still keeping service ownership clear.
+The system is designed around a split web-shop presentation layer, one API gateway, and multiple backend microservices. The first version is optimized for local Docker-based development and demonstration, while still keeping service ownership clear.
 
 For product-level expected behavior, refer to `docs/PRD.md`. This architecture document focuses on responsibility boundaries and request/data flow rather than delivery status.
 
@@ -13,7 +13,8 @@ For product-level expected behavior, refer to `docs/PRD.md`. This architecture d
 ```mermaid
 flowchart LR
     user["User"]
-    webapp["Web App\nEJS pages + static assets"]
+    frontend["Web Shop Frontend\n/static + browser entry proxy"]
+    backendPresentation["Web Shop Backend\nEJS page rendering + /api proxy"]
     gateway["API Gateway\nAPI proxying"]
 
     subgraph backend["Microservices"]
@@ -34,8 +35,9 @@ flowchart LR
         googlemaps["Google Maps API"]
     end
 
-    user --> webapp
-    webapp --> gateway
+    user --> frontend
+    frontend --> backendPresentation
+    backendPresentation --> gateway
 
     gateway --> configurator
     gateway --> merchandise
@@ -48,6 +50,7 @@ flowchart LR
     configurator --> minio
 
     merchandise --> mysql
+    merchandise --> minio
 
     ai --> gemini
     ai --> configurator
@@ -65,7 +68,8 @@ The Mermaid source is also stored separately in `docs/diagrams/architecture.mmd`
 
 The architecture follows a simple microservice structure:
 
-- one web application for user interaction, EJS page rendering, and static assets
+- one browser-facing web-shop frontend for `/static`, `/health`, and request forwarding
+- one web-shop backend for EJS page rendering and same-origin API forwarding
 - one API gateway for API request forwarding
 - four backend domain services
 - one relational database for persistent business data
@@ -74,26 +78,40 @@ The architecture follows a simple microservice structure:
 - one backend AI integration through the `ai-feature` service
 - one client-side map integration through the Google Maps JavaScript API
 
-The web application is the single browser-facing entry point in local development. Browser API calls use same-origin `/api/*` routes, which are forwarded to the API gateway. Business truth remains in the backend services.
+The web-shop frontend is the only browser-facing application container in local development. It serves shared static assets and forwards page/API requests to the web-shop backend. Browser API calls use same-origin `/api/*` routes, which pass through the web-shop backend to the API gateway. Business truth remains in the backend services.
 
 ## 4. Main Components
 
-### 4.1 Web App
+### 4.1 Web Shop Frontend
 
-The `services/web-app` service provides the browser-facing presentation layer.
+The `services/web-shop-frontend` service provides the browser-facing entry point.
 
 Its responsibilities are:
 
-- render the EJS pages for Home, Configurator, Merch Shop, AI Feature, and Shopping Cart
-- serve static assets for the web experience, such as fonts and images under `/static`
-- keep the existing page routes stable for the browser
+- serve static assets for the web experience under `/static`
+- expose the application host port (`localhost:3000`) in Docker Compose
+- provide a lightweight `/health` endpoint for the browser-facing container
+- forward all non-static browser requests to `web-shop-backend`
+
+It does not render EJS pages and does not call domain microservices directly.
+
+### 4.2 Web Shop Backend
+
+The `services/web-shop-backend` service provides server-side rendering and browser request mediation behind the frontend proxy.
+
+Its responsibilities are:
+
+- render the EJS pages for Home, Configurator, Merch Shop, AI Feature, Shopping Cart, and Impressum
+- keep existing page routes stable for the browser
 - forward same-origin `/api/*` requests to the API gateway
+- fetch merch list/detail data for SSR through the API gateway at `/api/merch/products` and `/api/merch/products/:productId`
+- mediate same-origin API asset requests through the gateway instead of exposing a presentation-tier MinIO proxy
 
-The web app does not own configuration validity, official pricing, AI recommendation logic, or cart persistence rules.
+The web-shop backend does not own configuration validity, official pricing, AI recommendation logic, cart persistence rules, or merch catalog truth. It has no direct `MERCH_URL` dependency.
 
-The Home page is part of this presentation layer. It is not a microservice because it is a browser-facing page rendered by `web-app`, not an independently deployable backend capability with its own business rules or data ownership.
+The Home page is part of this presentation layer. It is not a microservice because it is a browser-facing page rendered by `web-shop-backend`, not an independently deployable backend capability with its own business rules or data ownership.
 
-### 4.2 API Gateway
+### 4.3 API Gateway
 
 The `api-gateway` service provides the API-facing entry point for the frontend.
 
@@ -105,7 +123,7 @@ Its responsibilities are:
 
 It intentionally does not render EJS pages and does not serve static assets.
 
-### 4.3 Configurator Service
+### 4.4 Configurator Service
 
 The configurator service is the source of truth for car configuration results.
 
@@ -119,7 +137,7 @@ Its responsibilities are:
 
 The service does not generate images. It looks up a pre-uploaded image object in MinIO using the key stored in MySQL for the given combination.
 
-### 4.4 Merch Shop Service
+### 4.5 Merch Shop Service
 
 The merch shop service provides product information for the merchandise page.
 
@@ -127,14 +145,15 @@ Its responsibilities are:
 
 - return product list and detail information
 - read merchandise data from MySQL
+- resolve merchandise image URLs from MinIO-backed object keys
 - support cart addition and display use cases
 - provide stable product identifiers suitable for direct linking from AI recommendations and the web application
 
-### 4.5 Route Planning
+### 4.6 Route Planning
 
 There is no standalone road service. Route planning runs entirely in the browser using the Google Maps JavaScript API.
 
-- the `web-app` injects the Maps API key server-side into the EJS template
+- the `web-shop-backend` injects the Maps API key server-side into the EJS template
 - the browser loads Maps JS API and uses `DirectionsService` and `DirectionsRenderer`
 - the `api-gateway` holds a hardcoded list of store and showroom destinations, returned via `/api/destinations`
 - no backend call is made to Google Maps at runtime
@@ -143,7 +162,7 @@ Google Maps is the source of truth for route calculation, distance, duration, an
 
 A dedicated `location-service` or `route-destination-service` is therefore intentionally not introduced in the current scope. Such a service would only move a small static destination list out of the gateway while the actual route planning behavior would still depend on the client-side Google Maps APIs. Keeping the destination list as gateway support data avoids over-engineering and keeps the service boundaries aligned with real domain ownership.
 
-### 4.6 AI Feature Service
+### 4.7 AI Feature Service
 
 The AI feature service is a global shopping assistant accessible from any page. It handles both car configuration recommendations and merchandise recommendations.
 
@@ -160,7 +179,7 @@ This service is an integration/orchestration service. It does not own a database
 
 This boundary also protects `ai-feature` from a future split from one shared database into service-owned databases. Database names, schemas, credentials, containers, and migration strategy are internal details of `car-configurator` and `merch-shop`. `ai-feature` depends on their HTTP API contracts; it should only need changes if those endpoint URLs, response fields, response semantics, or service availability change.
 
-### 4.7 Shopping Cart Service
+### 4.8 Shopping Cart Service
 
 The cart service manages the unified cart.
 
@@ -195,7 +214,18 @@ Redis stores shopping cart state. It is used because the cart is session-oriente
 
 ### 5.3 MinIO
 
-MinIO stores pre-generated configurator and merchandise images. It is used because these images are binary assets rather than relational records.
+MinIO stores pre-generated configurator and merchandise images. It is used because these images are binary assets rather than relational records. Browser-visible product image delivery is owned by the services that own the image references.
+
+Phase 2 keeps the image objects in MinIO, but removes presentation-tier direct access to MinIO. Browser-visible image requests must flow through the application and service boundary:
+
+`Browser -> web-shop-frontend -> web-shop-backend -> api-gateway -> owning service -> MinIO`
+
+The implemented Phase 2 route contracts are:
+
+- `GET /api/configurator/assets/*` for configurator-owned images
+- `GET /api/merch/assets/*` for merchandise-owned images
+
+`car-configurator` and `merch-shop` own the MinIO reads for their image prefixes and stream image responses back through the gateway. The gateway uses a binary/streaming proxy path for these routes, preserving response status, `content-type`, cache headers where present, and response body. The legacy browser-facing `/minio/*` URL contract is removed, not kept as a compatibility redirect.
 
 ### 5.4 Database Ownership
 
@@ -220,7 +250,7 @@ Its role is to:
 
 ### 6.2 Google Maps JavaScript API
 
-The Maps JS API is loaded client-side in the browser. The API key is injected into the EJS template by `web-app` at render time and restricted by HTTP referrer in Google Cloud Console.
+The Maps JS API is loaded client-side in the browser. The API key is injected into the EJS template by `web-shop-backend` at render time and restricted by HTTP referrer in Google Cloud Console.
 
 Its role is to:
 
@@ -232,9 +262,11 @@ Its role is to:
 
 ### 7.1 Standard Configurator Flow
 
-1. the user selects configuration options in the web app
-2. the web app calls `/api/configurator/...`
-3. the API gateway forwards the request to the configurator service
+1. the user selects configuration options in the browser
+2. the browser calls `/api/configurator/...` on `web-shop-frontend`
+3. `web-shop-frontend` forwards to `web-shop-backend`
+4. `web-shop-backend` forwards to the API gateway
+5. the API gateway forwards the request to the configurator service
 4. the configurator service validates the selection
 5. the configurator service resolves the image and price
 6. the frontend displays the official result
@@ -260,7 +292,7 @@ Its role is to:
 
 ### 7.4 Route Planning Flow
 
-1. the user opens the route planning page; the browser loads Maps JS API with the key injected by `web-app`
+1. the user opens the route planning page through `web-shop-frontend`; the browser loads Maps JS API with the key injected by `web-shop-backend`
 2. the frontend fetches the destination list through `/api/destinations`
 3. the user selects a destination; the browser calls `DirectionsService` directly
 4. `DirectionsRenderer` draws the route on the map in the browser
@@ -269,8 +301,8 @@ Its role is to:
 
 The architecture reflects the following agreed decisions:
 
-- one unified web app is used instead of multiple frontend applications
-- server-side rendering and static web assets are separated into `services/web-app`
+- one unified browser entry is used instead of multiple frontend applications
+- static asset serving and SSR are split between `services/web-shop-frontend` and `services/web-shop-backend`
 - `api-gateway` is kept focused on API proxying and request forwarding
 - the configurator uses pre-generated images instead of live rendering
 - pre-generated images are stored in MinIO
@@ -281,6 +313,9 @@ The architecture reflects the following agreed decisions:
 - AI recommendation should use a stable prompt/template plus structured output contract
 - cart stores snapshots for display stability
 - route planning runs client-side via Maps JS API; Google Maps owns route calculation, while `api-gateway` only serves the predefined destination list as support data
+- Phase 2 keeps images in MinIO, but only the owning domain services may read MinIO objects for browser-visible image delivery
+- Phase 2 removes the MinIO API host port `9000`; the MinIO console port `9001` may remain host-exposed for local infrastructure/debug access
+- Phase 2 deletes the legacy `/minio/*` URL contract and validates all browser image paths through `/api/configurator/assets/*` or `/api/merch/assets/*`
 
 ## 9. First-Version Constraints
 

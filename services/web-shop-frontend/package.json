@@ -1,14 +1,14 @@
 {
-  "name": "web-app",
+  "name": "web-shop-frontend",
   "version": "1.0.0",
   "private": true,
   "main": "src/server.js",
   "scripts": {
-    "start": "node src/server.js"
+    "start": "node src/server.js",
+    "test": "node --test"
   },
   "dependencies": {
-    "ejs": "^3.1.10",
     "express": "^4.21.2",
-    "express-ejs-layouts": "^2.5.1"
+    "http-proxy-middleware": "^3.0.5"
   }
 }

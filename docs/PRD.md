@@ -12,20 +12,20 @@ This PRD describes the intended product behavior and target architecture for the
 
 | Layer | Choice |
 |---|---|
-| Web Entry | `services/web-app` with EJS (server-side rendering) + vanilla JS |
+| Web Entry | `services/web-shop-frontend` + `services/web-shop-backend` with EJS (server-side rendering) + vanilla JS |
 | Backend | Node.js + Express |
 | Primary DB | MySQL (single instance, one schema per service) |
 | Cache | Redis |
 | Object Storage | MinIO |
 | AI | Gemini API |
-| Map | Google Maps JavaScript API (client-side, key injected by `web-app`) |
+| Map | Google Maps JavaScript API (client-side, key injected by `web-shop-backend`) |
 | Orchestration | Docker Compose |
 
 ## 3. Product Scope
 
 ### In Scope
 
-- One unified web entry application in `services/web-app/`
+- One unified web entry path through `services/web-shop-frontend/` and `services/web-shop-backend/`
 - One API gateway in `api-gateway/` for API proxying and session-oriented support endpoints
 - Four backend services: `car-configurator`, `merch-shop`, `ai-feature`, `shopping-cart`
 - MySQL for persistent domain data
@@ -67,11 +67,11 @@ This PRD describes the intended product behavior and target architecture for the
 
 All inter-service calls are synchronous HTTP REST. No message queue. Key call chains:
 
-- Frontend → each backend service directly
+- User/browser → `web-shop-frontend` → `web-shop-backend` → `api-gateway` → domain services
 - `ai-feature` → `configurator` (to resolve official car config result)
 - `ai-feature` → `merchandise` (to fetch product catalog for context)
-- Frontend → `cart` (add car snapshot or merchandise item)
-- Web app frontend → `api-gateway` destinations endpoint (to fetch predefined route targets)
+- Browser same-origin `/api/cart/*` → `web-shop-frontend` → `web-shop-backend` → `api-gateway` → `shopping-cart` (add car snapshot or merchandise item)
+- Browser same-origin `/api/destinations` → `web-shop-frontend` → `web-shop-backend` → `api-gateway` destinations endpoint (to fetch predefined route targets)
 
 ### Cart Session
 
@@ -81,7 +81,8 @@ No login. Cart state is keyed by a session ID (generated client-side or by a coo
 
 | Container | Role |
 |---|---|
-| `web-app` | Serves EJS pages, static assets, and forwards same-origin `/api/*` calls |
+| `web-shop-frontend` | Serves `/static`, exposes the browser-facing app port, and forwards non-static requests |
+| `web-shop-backend` | Serves EJS pages and forwards same-origin `/api/*` calls |
 | `api-gateway` | Proxies API calls to backend services and owns API support endpoints |
 | `car-configurator` | Configuration logic and price calculation |
 | `merch-shop` | Product catalog |
@@ -129,7 +130,7 @@ Product detail requirements:
 ### 6.3 Route Planning (client-side via Maps JS API)
 
 - No standalone road service; route planning runs entirely in the browser
-- `web-app` injects the Maps API key into the EJS template at render time; `api-gateway` exposes an endpoint returning the hardcoded store/showroom destination list
+- `web-shop-backend` injects the Maps API key into the EJS template at render time; `api-gateway` exposes an endpoint returning the hardcoded store/showroom destination list
 - The browser loads Maps JS API, calls `DirectionsService` to calculate the route, and renders it with `DirectionsRenderer`
 - No backend call to Google Maps at runtime
 

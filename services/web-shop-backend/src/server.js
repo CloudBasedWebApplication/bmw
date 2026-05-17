@@ -29,36 +29,10 @@ if (!REPO_ROOT) {
 const WEB_ROOT = path.join(REPO_ROOT, "web");
 const VIEWS_ROOT = path.join(WEB_ROOT, "views");
 const API_GATEWAY = process.env.API_GATEWAY_URL || "http://api-gateway:3000";
-const MERCH = process.env.MERCH_URL || "http://merch-shop:3002";
 
 app.set("view engine", "ejs");
 app.set("views", VIEWS_ROOT);
 app.disable("view cache");
-app.use("/static", express.static(path.join(WEB_ROOT, "public")));
-app.use("/minio", async (req, res) => {
-  try {
-    const upstreamBase = `http://${process.env.MINIO_ENDPOINT || "minio"}:${process.env.MINIO_PORT || 9000}`;
-    const upstreamUrl = `${upstreamBase}${req.originalUrl.replace(/^\/minio/, "")}`;
-    const upstreamResponse = await fetch(upstreamUrl, { method: req.method });
-
-    res.status(upstreamResponse.status);
-
-    const contentType = upstreamResponse.headers.get("content-type");
-    if (contentType) {
-      res.setHeader("content-type", contentType);
-    }
-
-    const cacheControl = upstreamResponse.headers.get("cache-control");
-    if (cacheControl) {
-      res.setHeader("cache-control", cacheControl);
-    }
-
-    const body = Buffer.from(await upstreamResponse.arrayBuffer());
-    res.send(body);
-  } catch (err) {
-    res.status(502).send(`minio proxy unavailable: ${err.message}`);
-  }
-});
 app.use("/api", express.json());
 
 function renderPage(res, view, locals = {}) {
@@ -99,9 +73,94 @@ function getConfiguratorInitialSelection(req) {
   return routeSelection || legacyQuerySelection || null;
 }
 
+function readSetCookieHeaders(headers) {
+  if (typeof headers.getSetCookie === "function") {
+    return headers.getSetCookie();
+  }
+
+  const setCookie = headers.get("set-cookie");
+  return setCookie ? [setCookie] : [];
+}
+
+function forwardSetCookieHeaders(upstream, res) {
+  const cookies = readSetCookieHeaders(upstream.headers);
+  if (cookies.length > 0) {
+    res.setHeader("set-cookie", cookies);
+  }
+}
+
+function normalizeAssetApiPathFromRequest(req) {
+  const rawUrl = String(req.originalUrl || "");
+  const [rawPath, rawQuery] = rawUrl.split("?", 2);
+  const supportedPrefixes = [
+    "/api/configurator/assets",
+    "/api/merch/assets",
+  ];
+  const publicPrefix = supportedPrefixes.find((prefix) => rawPath.startsWith(`${prefix}/`));
+
+  if (!publicPrefix) {
+    return null;
+  }
+
+  const rawSegments = rawPath.slice(publicPrefix.length + 1).split("/");
+  const encodedSegments = [];
+
+  for (const rawSegment of rawSegments) {
+    if (!rawSegment || rawSegment === "." || rawSegment === "..") {
+      return null;
+    }
+
+    let decodedSegment;
+    try {
+      decodedSegment = decodeURIComponent(rawSegment);
+    } catch (_err) {
+      return null;
+    }
+
+    if (
+      !decodedSegment ||
+      decodedSegment === "." ||
+      decodedSegment === ".." ||
+      decodedSegment.includes("/") ||
+      decodedSegment.includes("\\")
+    ) {
+      return null;
+    }
+
+    encodedSegments.push(encodeURIComponent(decodedSegment));
+  }
+
+  return `${publicPrefix}/${encodedSegments.join("/")}${rawQuery ? `?${rawQuery}` : ""}`;
+}
+
+function isAssetApiPath(req) {
+  return /^\/api\/(?:configurator|merch)\/assets(?:\/|$)/.test(
+    String(req.originalUrl || "").split("?")[0]
+  );
+}
+
+function buildApiGatewayUrl(req) {
+  const assetPath = normalizeAssetApiPathFromRequest(req);
+
+  if (assetPath) {
+    return new URL(assetPath, API_GATEWAY);
+  }
+
+  if (isAssetApiPath(req)) {
+    return null;
+  }
+
+  return new URL(req.originalUrl, API_GATEWAY);
+}
+
 async function forwardToApiGateway(req, res) {
   try {
-    const upstreamUrl = new URL(req.originalUrl, API_GATEWAY);
+    const upstreamUrl = buildApiGatewayUrl(req);
+
+    if (!upstreamUrl) {
+      return res.status(400).json({ error: "invalid asset key" });
+    }
+
     const headers = {};
 
     if (req.headers.cookie) {
@@ -119,18 +178,19 @@ async function forwardToApiGateway(req, res) {
     });
 
     res.status(upstream.status);
-
-    const setCookie = upstream.headers.get("set-cookie");
-    if (setCookie) {
-      res.setHeader("set-cookie", setCookie);
-    }
+    forwardSetCookieHeaders(upstream, res);
 
     const contentType = upstream.headers.get("content-type");
     if (contentType) {
       res.setHeader("content-type", contentType);
     }
 
-    res.send(await upstream.text());
+    const cacheControl = upstream.headers.get("cache-control");
+    if (cacheControl) {
+      res.setHeader("cache-control", cacheControl);
+    }
+
+    res.send(Buffer.from(await upstream.arrayBuffer()));
   } catch (err) {
     res.status(502).json({ error: err.message });
   }
@@ -141,7 +201,7 @@ app.all("/api/*", forwardToApiGateway);
 app.get("/health", (_req, res) => {
   res.json({
     ok: true,
-    service: "web-app",
+    service: "web-shop-backend",
     timestamp: new Date().toISOString(),
   });
 });
@@ -177,7 +237,7 @@ app.get("/car-configurator/:model/:color/:interior/:wheels", renderConfigurator)
 
 app.get("/merch-shop", async (_req, res) => {
   try {
-    const response = await fetch(`${MERCH}/products`);
+    const response = await fetch(new URL("/api/merch/products", API_GATEWAY));
     const products = await response.json();
     renderPage(res, "merch-shop", {
       title: "BMW Merch Shop",
@@ -193,8 +253,8 @@ app.get("/merch-shop", async (_req, res) => {
 app.get("/merch-shop/:productId", async (req, res) => {
   try {
     const [productResponse, productsResponse] = await Promise.all([
-      fetch(`${MERCH}/products/${encodeURIComponent(req.params.productId)}`),
-      fetch(`${MERCH}/products`),
+      fetch(new URL(`/api/merch/products/${encodeURIComponent(req.params.productId)}`, API_GATEWAY)),
+      fetch(new URL("/api/merch/products", API_GATEWAY)),
     ]);
 
     if (productResponse.status === 404) {
@@ -251,4 +311,4 @@ app.get("/impressum", (_req, res) => {
   });
 });
 
-app.listen(port, () => console.log(`web-app listening on port ${port}`));
+app.listen(port, () => console.log(`web-shop-backend listening on port ${port}`));
