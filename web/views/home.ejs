@@ -431,20 +431,12 @@
   }
 
   .yt-stage-section {
-    background: #000;
+    background: #fff;
     padding: clamp(48px, 7vw, 96px) 0;
   }
 
   .yt-stage-section .yt-stage-header {
     margin-bottom: 2rem;
-  }
-
-  .yt-stage-section .section-title {
-    color: #fff;
-  }
-
-  .yt-stage-section .section-copy {
-    color: rgba(255, 255, 255, 0.55);
   }
 
   .heritage-section::after {
@@ -574,7 +566,7 @@
   }
 
   .route-section .page-shell {
-    width: min(1360px, calc(100% - 40px));
+    width: min(1180px, calc(100% - 40px));
   }
 
   .route-overlay {
@@ -1058,25 +1050,6 @@
     </div>
   </section>
 
-  <section class="yt-stage-section">
-    <div class="page-shell">
-      <div class="yt-stage-header">
-        <p class="section-kicker">Bayrische Meisterleistung in Bewegung</p>
-        <h2 class="section-title">Mehr als Design.</h2>
-        <p class="section-copy">Erlebe, wie Präzision, Technik und Handwerk zusammenkommen.</p>
-      </div>
-      <div class="heritage-yt">
-        <iframe
-          src="https://www.youtube.com/embed/YA9RF1AsawI"
-          title="BMW – Nicht nostalgisch. Verwurzelt."
-          sandbox="allow-scripts allow-same-origin allow-presentation"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-          allowfullscreen
-        ></iframe>
-      </div>
-    </div>
-  </section>
-
   <section class="heritage-section" aria-label="Heritage">
     <video class="heritage-video" autoplay muted loop playsinline preload="metadata">
       <source src="https://www.bmwgroup.com/content/dam/grpw/websites/bmwgroup_com/company/produktion/videos/240419_Group_Produktion_Header_2560x896.mp4" type="video/mp4">
@@ -1107,6 +1080,25 @@
       <div class="heritage-mark" aria-label="Gründungsjahr">
         <strong>1916</strong>
         <span>Aus Bayern<br>für morgen</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="yt-stage-section">
+    <div class="page-shell">
+      <div class="yt-stage-header">
+        <p class="section-kicker">Bayrische Meisterleistung in Bewegung</p>
+        <h2 class="section-title">Mehr als Design.</h2>
+        <p class="section-copy">Erlebe, wie Präzision, Technik und Handwerk zusammenkommen.</p>
+      </div>
+      <div class="heritage-yt">
+        <iframe
+          src="https://www.youtube.com/embed/YA9RF1AsawI"
+          title="BMW – Nicht nostalgisch. Verwurzelt."
+          sandbox="allow-scripts allow-same-origin allow-presentation"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowfullscreen
+        ></iframe>
       </div>
     </div>
   </section>
@@ -1263,7 +1255,7 @@
 
           function initMap() {
             map = new google.maps.Map(document.getElementById("map"), {
-              zoom: 6,
+              zoom: 5,
               center: DEFAULT_CENTER,
               backgroundColor: "#070b10",
               clickableIcons: false,
@@ -1276,6 +1268,7 @@
             directionsService = new google.maps.DirectionsService();
             directionsRenderer = new google.maps.DirectionsRenderer({
               suppressMarkers: true,
+              preserveViewport: true,
               polylineOptions: {
                 strokeColor: "#8FC0FF",
                 strokeOpacity: 0.95,
@@ -1362,7 +1355,7 @@
 
             const DRIVE_DURATION = 8000;
             const ZOOM_DURATION = 1500;
-            const FINAL_ZOOM = 16;
+            const FINAL_ZOOM = 13;
 
             const startZoom = map.getZoom();
             const start = performance.now();
@@ -1484,6 +1477,10 @@
                   directionsRenderer.setDirections(result);
                   const route = result.routes[0];
                   const leg = route.legs[0];
+
+                  if (route.bounds) {
+                    map.fitBounds(route.bounds, { top: 380, right: 120, bottom: 160, left: 120 });
+                  }
 
                   document.getElementById("resultDistance").textContent = leg.distance ? leg.distance.text : "-";
                   document.getElementById("resultDuration").textContent = leg.duration ? formatDuration(leg.duration.value) : "-";
