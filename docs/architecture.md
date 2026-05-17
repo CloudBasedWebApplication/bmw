@@ -194,8 +194,9 @@ MinIO stores pre-generated configurator and merchandise images. It is used becau
 
 - `car-configurator` owns the schema `bmw_car_configurator` (models, options, configurations, prices, image keys).
 - `merch-shop` owns the schema `bmw_merch_shop` (merchandise products).
+- Both schema names are fixed architecture constants and must not be configured via environment variables.
 - Services must not query tables owned by other services directly.
-- Local development may still run one shared MySQL instance in Docker Compose, but ownership is enforced logically by separate schemas and service-specific environment variables.
+- Local development may still run one shared MySQL instance in Docker Compose, but ownership is enforced logically by separate schemas with fixed names.
 
 ## 6. External Integrations
 
