@@ -35,7 +35,7 @@ Contains the API proxy and support endpoints.
 
 - `api-gateway/src/`: API proxy routes, health/support endpoints, and session-cookie handling
 
-This directory keeps backend service URLs internal. It forwards API requests to the owning microservices and manages the anonymous cart session cookie.
+This directory keeps backend service URLs internal. It forwards API requests to the owning microservices and manages the anonymous cart session cookie. The `/api/destinations` endpoint is gateway support data for predefined BMW route targets, not a separate Route Planning microservice.
 
 ### `web/`
 

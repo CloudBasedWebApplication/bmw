@@ -91,6 +91,8 @@ Its responsibilities are:
 
 The web app does not own configuration validity, official pricing, AI recommendation logic, or cart persistence rules.
 
+The Home page is part of this presentation layer. It is not a microservice because it is a browser-facing page rendered by `web-app`, not an independently deployable backend capability with its own business rules or data ownership.
+
 ### 4.2 API Gateway
 
 The `api-gateway` service provides the API-facing entry point for the frontend.
@@ -136,6 +138,10 @@ There is no standalone road service. Route planning runs entirely in the browser
 - the browser loads Maps JS API and uses `DirectionsService` and `DirectionsRenderer`
 - the `api-gateway` holds a hardcoded list of store and showroom destinations, returned via `/api/destinations`
 - no backend call is made to Google Maps at runtime
+
+Google Maps is the source of truth for route calculation, distance, duration, and map rendering. The application does not own route-calculation domain logic; it only provides a curated list of predefined BMW destinations for the browser-side route planning experience.
+
+A dedicated `location-service` or `route-destination-service` is therefore intentionally not introduced in the current scope. Such a service would only move a small static destination list out of the gateway while the actual route planning behavior would still depend on the client-side Google Maps APIs. Keeping the destination list as gateway support data avoids over-engineering and keeps the service boundaries aligned with real domain ownership.
 
 ### 4.6 AI Feature Service
 
@@ -266,7 +272,7 @@ The architecture reflects the following agreed decisions:
 - AI recommendation is implemented through a service-to-service flow, not a direct frontend-to-Gemini shortcut
 - AI recommendation should use a stable prompt/template plus structured output contract
 - cart stores snapshots for display stability
-- route planning runs client-side via Maps JS API; the key is injected by `web-app` and the destination list is served by `api-gateway`
+- route planning runs client-side via Maps JS API; Google Maps owns route calculation, while `api-gateway` only serves the predefined destination list as support data
 
 ## 9. First-Version Constraints
 
