@@ -20,7 +20,11 @@ function trimTrailingSlash(value) {
 
 function resolveMinioPublicBaseUrl() {
   if (process.env.MINIO_PUBLIC_URL) {
-    return trimTrailingSlash(process.env.MINIO_PUBLIC_URL);
+    const configuredUrl = trimTrailingSlash(process.env.MINIO_PUBLIC_URL);
+    if (/^https?:\/\//i.test(configuredUrl) || configuredUrl.startsWith("/")) {
+      return configuredUrl;
+    }
+    return `/${configuredUrl}`;
   }
 
   return "/minio";
