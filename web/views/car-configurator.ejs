@@ -557,6 +557,39 @@
     });
   }
 
+  function displayText(value) {
+    return String(value || "")
+      .replace(/Weiss/g, "Weiß")
+      .replace(/weiss/g, "weiß")
+      .replace(/Raeder/g, "Räder")
+      .replace(/raeder/g, "räder")
+      .replace(/Auffaellig/g, "Auffällig")
+      .replace(/auffaellig/g, "auffällig")
+      .replace(/faellig/g, "fällig")
+      .replace(/Praezise/g, "Präzise")
+      .replace(/Praeziser/g, "Präziser")
+      .replace(/praezise/g, "präzise")
+      .replace(/Hoeher/g, "Höher")
+      .replace(/Hoehere/g, "Höhere")
+      .replace(/hoeher/g, "höher")
+      .replace(/Oberflaechen/g, "Oberflächen")
+      .replace(/oberflaechen/g, "oberflächen")
+      .replace(/Luxurioes/g, "Luxuriös")
+      .replace(/luxurioes/g, "luxuriös")
+      .replace(/Weitlaeufig/g, "Weitläufig")
+      .replace(/weitlaeufig/g, "weitläufig")
+      .replace(/Repraesentativ/g, "Repräsentativ")
+      .replace(/repraesentativ/g, "repräsentativ")
+      .replace(/grossflaechig/g, "großflächig")
+      .replace(/Grossflaechig/g, "Großflächig")
+      .replace(/Souveraen/g, "Souverän")
+      .replace(/souveraen/g, "souverän")
+      .replace(/Einpraegsam/g, "Einprägsam")
+      .replace(/einpraegsam/g, "einprägsam")
+      .replace(/moeglich/g, "möglich")
+      .replace(/Moeglich/g, "Möglich");
+  }
+
   function normalizeText(value) {
     return String(value || "")
       .replace(/ä/gi, "ae").replace(/ö/gi, "oe").replace(/ü/gi, "ue")
@@ -929,7 +962,7 @@
     state.models.forEach((model) => {
       const btn = document.createElement("button");
       btn.className = "config-btn" + (state.selection.modelId === model.id ? " active" : "");
-      btn.textContent = model.name;
+      btn.textContent = displayText(model.name);
       btn.addEventListener("click", async () => {
         if (state.selection.modelId === model.id) return;
         await navigateToModel(model);
@@ -946,7 +979,7 @@
       wrapper.className = "swatch-wrapper" + (state.selection.colorId === color.id ? " active" : "");
       wrapper.innerHTML = `
         <span class="swatch" style="background:${colorFromName(color.name)}"></span>
-        <span class="swatch-label">${color.name}</span>
+        <span class="swatch-label">${displayText(color.name)}</span>
       `;
       wrapper.addEventListener("click", () => {
         if (state.selection.colorId === color.id) return;
@@ -966,7 +999,7 @@
     state.interiors.forEach((interior) => {
       const btn = document.createElement("button");
       btn.className = "option-btn" + (state.selection.interiorId === interior.id ? " active" : "");
-      btn.textContent = `${interior.name} (+${formatPrice(interior.price)})`;
+      btn.textContent = `${displayText(interior.name)} (+${formatPrice(interior.price)})`;
       btn.addEventListener("click", () => {
         if (state.selection.interiorId === interior.id) return;
         state.selection.interiorId = interior.id;
@@ -985,7 +1018,7 @@
     state.wheels.forEach((wheel) => {
       const btn = document.createElement("button");
       btn.className = "option-btn" + (state.selection.wheelsId === wheel.id ? " active" : "");
-      btn.textContent = `${wheel.name} (+${formatPrice(wheel.price)})`;
+      btn.textContent = `${displayText(wheel.name)} (+${formatPrice(wheel.price)})`;
       btn.addEventListener("click", () => {
         if (state.selection.wheelsId === wheel.id) return;
         state.selection.wheelsId = wheel.id;
@@ -1039,11 +1072,11 @@
     }
 
     document.getElementById("modelNameDisplay").textContent =
-      `${cfg.model.name} ${cfg.model.packageName || ""}`.trim();
+      displayText(`${cfg.model.name} ${cfg.model.packageName || ""}`.trim());
     document.getElementById("price").textContent = formatPrice(cfg.totalPrice);
-    document.getElementById("selectedColor").textContent = cfg.color ? cfg.color.name : "-";
-    document.getElementById("selectedInterior").textContent = cfg.interior ? cfg.interior.name : "-";
-    document.getElementById("selectedWheels").textContent = cfg.wheels ? cfg.wheels.name : "-";
+    document.getElementById("selectedColor").textContent = cfg.color ? displayText(cfg.color.name) : "-";
+    document.getElementById("selectedInterior").textContent = cfg.interior ? displayText(cfg.interior.name) : "-";
+    document.getElementById("selectedWheels").textContent = cfg.wheels ? displayText(cfg.wheels.name) : "-";
 
     addBtn.disabled = false;
     updateImage();
@@ -1092,15 +1125,15 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           type: "car",
-          name: `${cfg.model.name} ${cfg.model.packageName || ""}`.trim(),
+          name: displayText(`${cfg.model.name} ${cfg.model.packageName || ""}`.trim()),
           price: cfg.totalPrice,
           imageUrl: cfg.previewImages.front,
           quantity: 1,
           details: {
             modelId: cfg.model.id,
-            color: cfg.color ? cfg.color.name : null,
-            interior: cfg.interior ? cfg.interior.name : null,
-            wheels: cfg.wheels ? cfg.wheels.name : null
+            color: cfg.color ? displayText(cfg.color.name) : null,
+            interior: cfg.interior ? displayText(cfg.interior.name) : null,
+            wheels: cfg.wheels ? displayText(cfg.wheels.name) : null
           }
         })
       });
