@@ -62,7 +62,7 @@ None specific to the gateway at this time.
 
 #### Confirmed Gaps
 
-No page-rendering gaps remain after issue #88. Browser-facing routes are owned by `services/web-app`; gateway changes should stay limited to API, session, and support endpoint behavior.
+No page-rendering gaps remain after local issue 8. Browser-facing routes are owned by `services/web-app`; gateway changes should stay limited to API, session, and support endpoint behavior.
 
 ---
 
