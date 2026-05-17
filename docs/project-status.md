@@ -52,6 +52,8 @@ None that block the current user journeys.
 
 The gateway is the API-facing entry point for browser requests. It manages the session cookie that identifies each user's cart and proxies cart, configurator, merch, and AI requests to the appropriate backend services, keeping container-internal URLs out of client-side code. The `PATCH /api/cart/items/:id` and `DELETE /api/cart` proxies support cart quantity changes and clear-cart behavior.
 
+`GET /health` reports only gateway service status. Route and page discovery belongs to `services/web-app` documentation or route definitions rather than gateway health.
+
 `GET /api/destinations` returns the list of BMW route targets as JSON. This endpoint makes destination data backend-owned product data: the route-planning page fetches it at runtime and no longer embeds the list in the EJS template. Future additions or changes to destinations require only a server-side update.
 
 #### Accepted Simplifications
