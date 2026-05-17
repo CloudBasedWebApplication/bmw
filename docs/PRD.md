@@ -12,20 +12,21 @@ This PRD describes the intended product behavior and target architecture for the
 
 | Layer | Choice |
 |---|---|
-| Web Entry | `api-gateway` with EJS (server-side rendering) + vanilla JS |
+| Web Entry | `services/web-app` with EJS (server-side rendering) + vanilla JS |
 | Backend | Node.js + Express |
 | Primary DB | MySQL (single instance, one schema per service) |
 | Cache | Redis |
 | Object Storage | MinIO |
 | AI | Gemini API |
-| Map | Google Maps JavaScript API (client-side, key injected by `api-gateway`) |
+| Map | Google Maps JavaScript API (client-side, key injected by `web-app`) |
 | Orchestration | Docker Compose |
 
 ## 3. Product Scope
 
 ### In Scope
 
-- One unified web entry application in `api-gateway/`
+- One unified web entry application in `services/web-app/`
+- One API gateway in `api-gateway/` for API proxying and session-oriented support endpoints
 - Four backend services: `car-configurator`, `merch-shop`, `ai-feature`, `shopping-cart`
 - MySQL for persistent domain data
 - Redis for cart state
@@ -70,7 +71,7 @@ All inter-service calls are synchronous HTTP REST. No message queue. Key call ch
 - `ai-feature` → `configurator` (to resolve official car config result)
 - `ai-feature` → `merchandise` (to fetch product catalog for context)
 - Frontend → `cart` (add car snapshot or merchandise item)
-- Frontend → `api-gateway` destinations endpoint (to fetch predefined route targets)
+- Web app frontend → `api-gateway` destinations endpoint (to fetch predefined route targets)
 
 ### Cart Session
 
@@ -80,7 +81,8 @@ No login. Cart state is keyed by a session ID (generated client-side or by a coo
 
 | Container | Role |
 |---|---|
-| `api-gateway` | Serves EJS pages and acts as the web entry point |
+| `web-app` | Serves EJS pages, static assets, and forwards same-origin `/api/*` calls |
+| `api-gateway` | Proxies API calls to backend services and owns API support endpoints |
 | `car-configurator` | Configuration logic and price calculation |
 | `merch-shop` | Product catalog |
 | `ai-feature` | Gemini integration and recommendation logic |
@@ -127,7 +129,7 @@ Product detail requirements:
 ### 6.3 Route Planning (client-side via Maps JS API)
 
 - No standalone road service; route planning runs entirely in the browser
-- `api-gateway` injects the Maps API key into the EJS template at render time and exposes an endpoint returning the hardcoded store/showroom destination list
+- `web-app` injects the Maps API key into the EJS template at render time; `api-gateway` exposes an endpoint returning the hardcoded store/showroom destination list
 - The browser loads Maps JS API, calls `DirectionsService` to calculate the route, and renders it with `DirectionsRenderer`
 - No backend call to Google Maps at runtime
 

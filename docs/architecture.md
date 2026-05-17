@@ -51,7 +51,6 @@ flowchart LR
 
     ai --> gemini
     ai --> configurator
-    ai --> mysql
     ai --> merchandise
 
     cart --> redis
@@ -145,13 +144,13 @@ The AI feature service is a global shopping assistant accessible from any page. 
 Its responsibilities are:
 
 - accept user natural-language prompts
-- fetch relevant context: configuration options and merchandise catalog
+- fetch relevant context through service APIs: configuration options from `car-configurator` and merchandise catalog data from `merch-shop`
 - send structured context and a stable prompt/template to Gemini
 - receive structured recommendation output and rationale from Gemini
-- call `configurator` to resolve the official car configuration result
+- use configurator APIs, not direct SQL, whenever car configuration data or official validation is needed
 - return recommendations as links and structured merchandise recommendation items
 
-This service does not own official pricing or image truth. Those remain in the configurator service.
+This service is an integration/orchestration service. It does not own a database schema, connect to MySQL, or query another service's tables directly. If AI needs additional domain data, the owning service must expose it through a service endpoint. Official pricing, configuration validity, and image truth remain in the configurator service; merchandise catalog truth remains in the merch shop service.
 
 ### 4.7 Shopping Cart Service
 
@@ -180,7 +179,7 @@ MySQL stores persistent business data:
 - rationale metadata
 - merchandise catalog data
 
-The first version uses a table-driven lookup model instead of a complex rules engine.
+The first version uses a table-driven lookup model instead of a complex rules engine. MySQL is accessed by the domain services that own the data, currently `car-configurator` and `merch-shop`. The `ai-feature` service has no direct MySQL dependency and consumes domain data only through those service APIs.
 
 ### 5.2 Redis
 
@@ -232,9 +231,8 @@ Its role is to:
 4. the AI feature service reads relevant context
 5. the AI feature service calls Gemini
 6. Gemini returns structured recommendation output and rationale
-7. the AI feature service calls the configurator service
-8. the configurator service returns the official configuration result
-9. the frontend shows the recommended configuration and merch recommendation panel
+7. the AI feature service maps the structured output to supported configurator and merch targets
+8. the frontend opens the recommended configuration or merch product through the normal web/API flows
 
 ### 7.3 Cart Flow
 
@@ -261,6 +259,7 @@ The architecture reflects the following agreed decisions:
 - the configurator uses pre-generated images instead of live rendering
 - pre-generated images are stored in MinIO
 - backend services own business truth
+- AI is an orchestration service with no database ownership; it uses configurator and merch APIs for domain data
 - configuration pricing is calculated in the backend
 - AI recommendation is implemented through a service-to-service flow, not a direct frontend-to-Gemini shortcut
 - AI recommendation should use a stable prompt/template plus structured output contract
