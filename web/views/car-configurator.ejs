@@ -9,6 +9,9 @@
     --radius-md: 2px;
     --shadow: 0 24px 80px rgba(15, 23, 42, 0.12);
     --config-rail: rgba(255, 255, 255, 0.92);
+    --config-nav-top: 24px;
+    --config-nav-height: 64px;
+    --config-summary-top: calc(var(--config-nav-top) + var(--config-nav-height) + 16px);
     --summary-bar-height: 96px;
   }
 
@@ -18,36 +21,25 @@
 
   .site-nav--solid {
     position: fixed;
-    top: 0;
+    top: var(--config-nav-top);
     left: 50%;
     z-index: 10;
-    width: 100%;
-    min-height: 72px;
+    width: min(1180px, calc(100% - 40px));
+    min-height: var(--config-nav-height);
     margin: 0;
     transform: translateX(-50%);
-    border: 0;
-    border-radius: 0;
-    background: rgba(255, 255, 255, 0.96);
-    color: #111827;
-    box-shadow: 0 1px 0 rgba(17, 24, 39, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius);
+    background: var(--dark);
+    color: #fff;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
   }
 
-  .site-nav--solid .brand span,
-  .site-nav--solid .nav-links a {
-    color: rgba(17, 24, 39, 0.68);
-  }
-
-  .site-nav--solid .nav-links a:hover,
-  .site-nav--solid .nav-links a.active {
-    color: #111827;
-    background: rgba(17, 24, 39, 0.06);
-  }
-
   .config-background {
     position: fixed;
-    inset: 72px 0 0;
+    inset: 0;
     z-index: 0;
     overflow: hidden;
     background:
@@ -79,8 +71,8 @@
     z-index: 1;
     max-width: 1440px;
     margin: 0 auto;
-    min-height: calc(100vh - 72px);
-    padding: calc(72px + var(--summary-bar-height) + 36px) 32px 40px;
+    min-height: calc(100vh - var(--config-summary-top));
+    padding: calc(var(--config-summary-top) + var(--summary-bar-height) + 36px) 32px 40px;
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(390px, 448px);
     gap: 40px;
@@ -89,12 +81,12 @@
 
   @media (max-width: 980px) {
     .config-layout { grid-template-columns: 1fr; }
-    .config-layout { padding: calc(72px + var(--summary-bar-height) + 36px) 16px 28px; }
+    .config-layout { padding: calc(var(--config-summary-top) + var(--summary-bar-height) + 36px) 16px 28px; }
     .config-spacer { min-height: 40vh; }
     .config-column,
     .config-spacer { grid-column: 1; }
     .config-panel-stack {
-      max-height: calc(100vh - 72px - var(--summary-bar-height) - 40px);
+      max-height: calc(100vh - var(--config-summary-top) - var(--summary-bar-height) - 40px);
       margin-top: 0;
       transform: none;
     }
@@ -124,8 +116,8 @@
   .config-panel-stack {
     position: relative;
     height: var(--config-panel-stack-height, auto);
-    max-height: calc(100vh - 72px - var(--summary-bar-height) - 72px);
-    min-height: 408px;
+    max-height: calc(100vh - var(--config-summary-top) - var(--summary-bar-height) - 72px);
+    min-height: 295px;
     margin-top: 189px;
     overflow: hidden;
     transform: translateX(38px);
@@ -151,7 +143,7 @@
     top: 0;
     left: 0;
     width: 100%;
-    min-height: 408px;
+    min-height: 295px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -304,9 +296,10 @@
 
   .summary-row {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 4px;
     padding: 0 18px;
     border-right: 1px solid rgba(17, 24, 39, 0.12);
     border-bottom: 0;
@@ -323,15 +316,16 @@
 
   .summary-value {
     font-weight: 700;
-    text-align: right;
+    text-align: left;
   }
 
   .price-tag {
     display: flex;
     flex-direction: column;
     min-width: 170px;
-    padding-right: 24px;
-    border-right: 1px solid rgba(17, 24, 39, 0.12);
+    padding-left: 24px;
+    border-left: 1px solid rgba(17, 24, 39, 0.12);
+    text-align: right;
   }
 
   .price-tag span {
@@ -366,20 +360,21 @@
 
   .summary-panel {
     position: fixed;
-    top: 72px;
+    top: var(--config-summary-top);
     left: 50%;
     z-index: 9;
     width: 100%;
     min-height: var(--summary-bar-height);
     margin: 0;
     padding: 14px 32px;
+    background: rgba(255, 255, 255, 0.28);
     transform: translateX(-50%);
     border-width: 0 0 1px;
-    border-color: rgba(17, 24, 39, 0.1);
+    border-color: rgba(255, 255, 255, 0.26);
     border-radius: 0;
-    box-shadow: 0 1px 0 rgba(17, 24, 39, 0.08);
+    box-shadow: 0 18px 60px rgba(15, 23, 42, 0.08);
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr) minmax(210px, 280px);
+    grid-template-columns: minmax(0, 1fr) auto minmax(210px, 280px);
     gap: 24px;
     align-items: center;
   }
@@ -394,6 +389,10 @@
 
   .summary-action {
     min-width: 0;
+    align-self: center;
+    position: relative;
+    display: flex;
+    align-items: center;
   }
 
   @media (max-width: 760px) {
@@ -410,10 +409,11 @@
 
     .price-tag {
       min-width: 0;
-      padding-right: 0;
+      padding-left: 0;
       padding-bottom: 10px;
-      border-right: 0;
+      border-left: 0;
       border-bottom: 1px solid rgba(17, 24, 39, 0.1);
+      text-align: left;
     }
 
     .price-main {
@@ -451,8 +451,12 @@
   }
 
   #status {
-    margin-top: 14px;
-    min-height: 20px;
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    margin-top: 0;
+    min-height: 0;
     text-align: center;
     font-weight: 600;
     font-size: 0.9rem;
@@ -466,11 +470,6 @@
 <div class="placeholder" id="placeholder">Lade Vorschau ...</div>
 
 <div class="panel summary-panel">
-  <div class="price-tag">
-    <span id="modelNameDisplay">Modell laden...</span>
-    <div class="price-main" id="price">0,00 EUR</div>
-  </div>
-
   <div class="summary-grid">
     <div class="summary-row">
       <div class="summary-key">Exterieur</div>
@@ -484,6 +483,11 @@
       <div class="summary-key">Felgen</div>
       <div class="summary-value" id="selectedWheels">-</div>
     </div>
+  </div>
+
+  <div class="price-tag">
+    <span id="modelNameDisplay">Modell laden...</span>
+    <div class="price-main" id="price">0,00 EUR</div>
   </div>
 
   <div class="summary-action">
