@@ -140,6 +140,8 @@ The response is returned to the frontend as structured recommendation links: a c
 
 `ai-feature` is an integration/orchestration service. It does not own a MySQL schema, does not depend on `mysql2`, and does not query `car-configurator` or `merch-shop` tables directly. Additional AI data needs should be solved through new or extended service endpoints in the owning service.
 
+This boundary is intended to remain valid if the current shared database is later decomposed into service-owned databases. `ai-feature` should depend on `CONFIGURATOR_URL`, `MERCH_URL`, and the HTTP response contracts of those services, not on database schema names, credentials, containers, or migration details.
+
 #### Accepted Simplifications
 
 **AI merch recommendations are still compact list items.** The merch recommendation panel has a structured layout with thumbnails, titles, prices, and reasons, but it remains a compact recommendation panel rather than embedding the full product-detail experience.

@@ -152,6 +152,8 @@ Its responsibilities are:
 
 This service is an integration/orchestration service. It does not own a database schema, connect to MySQL, or query another service's tables directly. If AI needs additional domain data, the owning service must expose it through a service endpoint. Official pricing, configuration validity, and image truth remain in the configurator service; merchandise catalog truth remains in the merch shop service.
 
+This boundary also protects `ai-feature` from a future split from one shared database into service-owned databases. Database names, schemas, credentials, containers, and migration strategy are internal details of `car-configurator` and `merch-shop`. `ai-feature` depends on their HTTP API contracts; it should only need changes if those endpoint URLs, response fields, response semantics, or service availability change.
+
 ### 4.7 Shopping Cart Service
 
 The cart service manages the unified cart.
@@ -179,7 +181,7 @@ MySQL stores persistent business data:
 - rationale metadata
 - merchandise catalog data
 
-The first version uses a table-driven lookup model instead of a complex rules engine. MySQL is accessed by the domain services that own the data, currently `car-configurator` and `merch-shop`. The `ai-feature` service has no direct MySQL dependency and consumes domain data only through those service APIs.
+The first version uses a table-driven lookup model instead of a complex rules engine. MySQL is accessed by the domain services that own the data, currently `car-configurator` and `merch-shop`. If those services later move to separate service-owned databases, the database topology remains hidden behind their APIs. The `ai-feature` service has no direct database dependency and consumes domain data only through those service APIs.
 
 ### 5.2 Redis
 

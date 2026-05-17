@@ -5,7 +5,9 @@
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "test": "node test/recommendation.smoke.js"
+    "test": "node test/recommendation.smoke.js",
+    "smoke:recommendation:live": "node test/recommendation.live-smoke.js",
+    "smoke:ai": "node test/recommendation.compose-smoke.js"
   },
   "dependencies": {
     "express": "^4.21.2",
