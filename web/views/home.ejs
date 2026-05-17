@@ -1116,10 +1116,8 @@
         <div class="route-layout">
           <aside class="route-panel">
             <form class="controls" id="routeForm">
-              <button class="btn btn-primary" id="routeBtn" type="submit" disabled>Route starten</button>
+              <button class="btn btn-primary" id="routeBtn" type="submit" disabled>Route berechnen</button>
             </form>
-
-            <p class="route-status" id="routeStatus" aria-live="polite"></p>
 
             <div class="route-result" id="routeResult" aria-live="polite">
               <div class="route-metric">
@@ -1280,12 +1278,6 @@
             loadDestinations();
           }
 
-          function setStatus(message, type) {
-            const status = document.getElementById("routeStatus");
-            status.textContent = message || "";
-            status.className = "route-status" + (type ? " " + type : "");
-          }
-
           function selectedDestination() {
             return destinations[0] || null;
           }
@@ -1300,11 +1292,9 @@
 
               routeBtn.disabled = destinations.length === 0;
               updateRouteTitle();
-              setStatus(destinations.length ? "Route zur BMW Welt starten." : "BMW Welt Ziel nicht verfügbar.", destinations.length ? "" : "error");
             } catch (err) {
               console.error(err);
               routeBtn.disabled = true;
-              setStatus("BMW Welt konnte nicht geladen werden.", "error");
             }
           }
 
@@ -1431,7 +1421,6 @@
               return currentLocationOrigin;
             }
 
-            setStatus("Standort wird ermittelt...", "");
             currentLocationOrigin = await requestCurrentLocation();
             return currentLocationOrigin;
           }
@@ -1451,13 +1440,11 @@
             const routeBtn = document.getElementById("routeBtn");
 
             if (!destination) {
-              setStatus("BMW Welt ist gerade nicht verfügbar.", "error");
               return;
             }
 
             routeBtn.disabled = true;
             routeBtn.textContent = "Route wird berechnet";
-            setStatus("Route wird berechnet...", "");
 
             try {
               const origin = await resolveOrigin();
@@ -1468,31 +1455,28 @@
                 travelMode: google.maps.TravelMode.DRIVING,
               }, (result, status) => {
                 routeBtn.disabled = false;
-                routeBtn.textContent = "Route starten";
+                routeBtn.textContent = "Route berechnen";
 
                 if (status === "OK") {
                   directionsRenderer.setDirections(result);
                   const route = result.routes[0];
                   const leg = route.legs[0];
 
-                  if (route.bounds) {
-                    map.fitBounds(route.bounds, { top: 380, right: 120, bottom: 160, left: 120 });
-                  }
-
                   document.getElementById("resultDistance").textContent = leg.distance ? leg.distance.text : "-";
                   document.getElementById("resultDuration").textContent = leg.duration ? formatDuration(leg.duration.value) : "-";
-                  setStatus(`Route zu ${destination.name || destination.label} ist bereit.`, "success");
-
                   updateDestinationMarker(leg.end_location, destination.name || destination.label);
-                  animateCar(route.overview_path);
-                } else {
-                  setStatus("Route konnte nicht berechnet werden: " + status, "error");
+
+                  if (route.bounds) {
+                    map.fitBounds(route.bounds, { top: 380, right: 120, bottom: 160, left: 120 });
+                    google.maps.event.addListenerOnce(map, "idle", () => animateCar(route.overview_path));
+                  } else {
+                    animateCar(route.overview_path);
+                  }
                 }
               });
             } catch (err) {
               routeBtn.disabled = false;
               routeBtn.textContent = "Route starten";
-              setStatus(err.message, "error");
             }
           }
 
