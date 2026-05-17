@@ -9,7 +9,7 @@ const pool = mysql.createPool({
   port: process.env.MYSQL_PORT || 3306,
   user: process.env.MYSQL_USER || "bmw_user",
   password: process.env.MYSQL_PASSWORD || "change_me",
-  database: process.env.MYSQL_DATABASE_CAR_CONFIGURATOR || "bmw_car_configurator",
+  database: "bmw_car_configurator",
   waitForConnections: true,
   connectionLimit: 10,
 });
