@@ -2,146 +2,113 @@
 
 ## 1. Zweck und Nutzung
 
-Dieses Dokument ist der zentrale Einstieg fuer die Aufgabenverteilung in der aktuellen Kollaborationsphase. Die urspruengliche Aufteilung in 6 Module wird hier in kleinteilige, claimbare Tasks ueberfuehrt, ohne den aktuellen Projektfortschritt zu ignorieren.
+Dieses Dokument ist der Einstieg fuer claimbare Aufgaben in der aktuellen Kollaborationsphase. Es basiert auf dem aktuellen Implementierungsstand und ersetzt aeltere Next-Phase-Listen, die inzwischen durch gemergte Arbeit ueberholt sind.
 
 Grundregeln fuer die Task-Arbeit:
 
-- Keine kompletten Module claimen — nur einzelne Task-Eintraege.
+- Keine kompletten Module claimen, nur einzelne Task-Eintraege.
 - `★★★`-Tasks werden zuerst als Vertrags- oder Schnittstellenaufgabe abgestimmt und erst danach implementiert.
 - Ein Task soll moeglichst in einem PR schliessbar sein.
 
-Die Datenbasis fuer dieses Dokument ist fest priorisiert: `docs/project-status.md` → `docs/PRD.md` → `docs/architecture.md` → Code und Git-Historie nur zur Klaerung offener Punkte.
+Priorisierte Datenbasis: `docs/project-status.md` -> `docs/PRD.md` -> `docs/architecture.md` -> Code und Git-Historie nur zur Klaerung offener Punkte.
 
 ## 2. Aktueller Stand
 
-Es gibt bereits einen funktionsfaehigen Phase-1-Skeleton mit `api-gateway`, `car-configurator`, `merch-shop`, `ai-feature`, `shopping-cart`, Docker Compose, MySQL, Redis und MinIO. Gateway, Configurator, Merch, AI, Cart und Route-Planning sind als Seiten erreichbar.
+Das Projekt hat jetzt eine getrennte Browser- und API-Schicht:
+
+- `services/web-app` rendert die EJS-Seiten, serviert statische Assets und leitet `/api/*` same-origin an `api-gateway` weiter.
+- `api-gateway` proxyt APIs, setzt die Cart-Session-Cookie und stellt produktnahe Support-Endpunkte wie `/api/destinations` bereit.
+- `car-configurator`, `merch-shop`, `ai-feature` und `shopping-cart` bilden die Backend-Dienste.
+- MySQL, Redis und MinIO sind ueber Docker Compose integriert.
+
+Bereits erledigt und nicht mehr als Next-Phase-Arbeit zu planen:
+
+- AI Prompt/Template plus strukturiertes Output-Schema
+- Merch Product Detail Route und Detail View
+- Cart Quantity Update und Clear Cart
+- Destination Endpoint plus Route-Page-Migration
 
 Aktuell akzeptierte Vereinfachungen bleiben bestehen:
 
-- Gemeinsame Nutzung von `bmw_app`
-- Direkte Frontend-Links aus `ai-feature`
-- Bewusst flache Parametertiefe im Configurator
-
-Fuer die naechste Phase sind vier Luecken bestaetigt:
-
-- AI Prompt/Template plus Output-Schema
-- Produkt-Detailansicht fuer Merch-Empfehlungen
-- Quantity Update im Cart
-- Destinationen aus `api-gateway` statt aus Frontend-Hardcoding
+- Gemeinsame Nutzung von `bmw_app`, mit Service Ownership per Konvention
+- Keine Authentifizierung und kein Checkout
+- Configurator bleibt im Rahmen des vorhandenen Options- und Datenmodells
+- AI ist ein Orchestrierungsdienst und besitzt kein Datenbankschema
 
 ## 3. Modul-Aufteilung
 
-### 3.1 `car-configurator`
-
-Dieses Modul ist nicht "fehlend". Es schliesst bereits den vereinfachten Phase-1-Loop und ist kein Schwerpunkt der naechsten Phase, solange kein anderer Task reichere Konfigurationsdaten benoetigt.
+### 3.1 `web-app`
 
 | Catalog | Status | Komplexitaet | Aufgabe | Abhaengigkeit | Sichtbares Ergebnis |
 |---|---|---|---|---|---|
-| Page / UI | `Abgeschlossen` | `★` | Configurator-Seite laedt Modelle, wechselt Farben, zeigt Bilder und den vom Backend gelieferten Preis. | — | Ein Nutzer kann die aktuelle Konfigurationsschleife ohne Mock-Platzhalter durchspielen. |
-| Page / UI | `Akzeptierte Vereinfachung` | `★` | Die aktuelle UI bleibt auf den vorhandenen flachen Parametersatz begrenzt. | — | Das Team behandelt die geringe Parametertiefe als bewusste Phasenentscheidung und nicht als Bug. |
-| API / Contract | `Abgeschlossen` | `★★` | Die aktuelle Configurator-API liefert offizielle Bildlinks und einen serverseitig berechneten Endpreis fuer unterstuetzte Kombinationen. | — | Das Frontend kann den offiziellen Zustand ohne clientseitige Preislogik rendern. |
-| API / Contract | `Spaetere Erweiterung` | `★★` | Den Response-Vertrag um Felder wie `configurationId`, `basePrice`, `optionAdjustments` und strukturiertes `rationale` erweitern. | Erst wenn Downstream-Consumer diese Felder wirklich brauchen. | Die im PRD beschriebenen Zielfelder existieren im API-Vertrag und koennen von AI, Cart oder erweiterten UIs genutzt werden. |
-| Data / Storage | `Abgeschlossen` | `★★` | Konfigurationskombinationen sind ueber MySQL-Daten und Bildkeys hinterlegt. | — | Unterstuetzte Kombinationen werden aus gespeicherten Daten statt aus statischen Frontend-Mappings aufgeloest. |
-| Data / Storage | `Spaetere Erweiterung` | `★★` | Das Datenmodell um echte zusaetzliche Optiondimensionen wie trim oder wheels erweitern. | Erst nach expliziter Scope-Entscheidung. | Eine neue Optiondimension existiert sowohl in den Daten als auch im offiziellen Ergebnisfluss. |
-| Integration / Connectivity | `Abgeschlossen` | `★★` | Configurator ist bereits mit MinIO-basierten Bildreferenzen und dem Gateway-Fluss verbunden. | — | End-to-End-Ergebnisse enthalten funktionierende Bild-URLs und werden in der Seite angezeigt. |
+| Page / UI | `Abgeschlossen` | `★` | EJS-Seiten fuer Home, Configurator, Merch, Merch Detail, AI, Cart und Impressum rendern. | — | Nutzer erreichen alle Hauptseiten ueber den Browser-Einstieg. |
+| API / Contract | `Abgeschlossen` | `★★` | Same-origin `/api/*` an `api-gateway` weiterleiten. | — | Client-Code nutzt keine container-internen URLs. |
+| Integration / Connectivity | `Offen` | `★★` | AI-Merch-Links auf die kanonische Detailroute `/merch-shop/:productId` oder Slug ausrichten. | AI URL-Builder anpassen. | AI-Empfehlungen oeffnen direkt die passende Produktdetailseite. |
 
-### 3.2 `ai-feature`
-
-Dieses Modul ist einer der Hauptschwerpunkte der naechsten Phase. Der Laufzeitfluss existiert bereits, aber Prompt/Template und Output-Vertrag sind noch unterdefiniert.
+### 3.2 `api-gateway`
 
 | Catalog | Status | Komplexitaet | Aufgabe | Abhaengigkeit | Sichtbares Ergebnis |
 |---|---|---|---|---|---|
-| Page / UI | `Abgeschlossen` | `★` | Die AI-Seite ist erreichbar und kann Natural-Language-Anfragen abschicken. | — | Ein Nutzer kann einen Prompt absenden und eine Antwort auf der Seite sehen. |
-| Page / UI | `Spaetere Erweiterung` | `★★` | Den AI-Einstieg von einer Einzel-Seite in Richtung globales Widget oder geteiltes Interaktionsmuster weiterentwickeln. | Nach stabilem Prompt/Schema-Vertrag. | Nutzer koennen AI spaeter von mehr als einer Seite aus nutzen. |
-| API / Contract | `Naechste Phase` | `★★★` | Das AI Prompt/Template als stabilen Vertrag statt als lose Prompt-Formulierung entwerfen. | — | Es gibt ein abgestimmtes Template mit Zweck, Context-Injection-Regeln und klaren Output-Erwartungen. |
-| API / Contract | `Naechste Phase` | `★★★` | Das AI-Response-Schema definieren, das vom Frontend konsumiert wird. | Nach Prompt/Template-Entwurf. | Das Frontend ist nicht mehr von frei schwankender Modell-Ausgabeform abhaengig. |
-| API / Contract | `Akzeptierte Vereinfachung` | `★` | AI liefert aktuell direkt Frontend-Links. | — | Dieses Verhalten bleibt in der aktuellen Phase bewusst unveraendert. |
-| API / Contract | `Spaetere Erweiterung` | `★★` | Car Recommendations spaeter ueber einen reicheren Configurator-Resolution-Flow fuehren. | Nach reicheren Configurator-Feldern. | AI-Empfehlungen koennen mehr als den aktuellen flachen Parametersatz verwenden. |
-| API / Contract | `Spaetere Erweiterung` | `★★` | Reichere Erklaerungsfelder oder Recommendation-Metadaten zurueckgeben. | Nach stabilem Schema. | Downstream-Seiten koennen mehr als einen generischen Erklaerungsblock rendern. |
-| Data / Storage | `Abgeschlossen` | `★★` | AI liest bereits Kontext aus Configurator- und Merch-Diensten, bevor Gemini aufgerufen wird. | — | Empfehlungen basieren auf Live-Service-Kontext statt auf isolierten Hardcodings. |
-| Integration / Connectivity | `Naechste Phase` | `★★★` | AI-Outputs mit Merch-Detail-Routing und Configurator-Empfehlungszielen in Einklang bringen. | Nach Response-Schema und Merch-Detail-Vertrag. | Jedes AI-Ziel landet sauber auf einer stabilen Frontend-Destination. |
+| API / Contract | `Abgeschlossen` | `★★` | Configurator-, Merch-, Cart- und AI-APIs proxien. | — | Frontend-Flows bleiben same-origin und serviceunabhaengig. |
+| API / Contract | `Abgeschlossen` | `★` | `/api/destinations` bereitstellen. | — | Route Planning konsumiert Backend-gelieferte Ziel-Daten. |
+| Session | `Abgeschlossen` | `★` | Cart-Session-Cookie fuer anonyme Warenkoerbe setzen. | — | Cart-Zustand ist pro Browser-Session getrennt. |
+| Maintenance | `Abgeschlossen` | `★` | Alte page-rendering Routen im Gateway entfernt. | services/web-app deckt alle Browser-Routen ab. | Gateway bleibt klar API-fokussiert. |
 
-### 3.3 `merch-shop`
-
-Dieses Modul verkauft bereits Produkte, hat aber noch keine praezise Produkt-Detail-Landing-Strategie fuer AI und Deep Links.
+### 3.3 `car-configurator`
 
 | Catalog | Status | Komplexitaet | Aufgabe | Abhaengigkeit | Sichtbares Ergebnis |
 |---|---|---|---|---|---|
-| Page / UI | `Abgeschlossen` | `★` | Die Merch-Seite rendert Produktkarten mit Bild, Preis und Add-to-Cart-Aktion. | — | Ein Nutzer kann Produkte browsen und direkt aus der Liste in den Cart legen. |
-| Page / UI | `Naechste Phase` | `★★` | Eine Produkt-Detailansicht oder einen klaren Detail-State fuer den Merch-Flow einfuehren. | Nach stabiler Entscheidung fuer das Produkt-Detail-Routing. | Ein Nutzer kann ein konkretes Produkt gezielt oeffnen und nicht nur im generischen Grid sehen. |
-| Page / UI | `Spaetere Erweiterung` | `★` | Nach Einfuehrung der Detailansicht feinere Produkt-Metadaten sichtbar machen. | Nach Produkt-Detail-Erlebnis. | Reichere Produktinformationen lassen sich anzeigen, ohne die Listenansicht zu ueberladen. |
-| API / Contract | `Abgeschlossen` | `★★` | Der Merch-Service liefert Produktlistendaten mit Preis- und Bildmetadaten. | — | Das Gateway kann die aktuelle Merch-Seite aus Backend-Daten rendern. |
-| API / Contract | `Naechste Phase` | `★★★` | Den Merch-Recommendation-Landing-Vertrag fuer AI definieren. | Nach Entscheidung fuer Produkt-Detail-Route oder Detail-State. | AI kann auf ein stabiles Produktsziel zeigen statt nur zur generischen Liste zurueckzuspringen. |
-| Data / Storage | `Abgeschlossen` | `★★` | Der Produktkatalog ist in MySQL hinterlegt und mit Bildobjekten verknuepft. | — | Merch-Daten bestehen nicht nur aus Mock-Content. |
-| Integration / Connectivity | `Naechste Phase` | `★★` | Merch-Detail-Routing mit Gateway und AI-Recommendation-Zielen verbinden. | Nach Merch-Detail-Vertrag. | Direkte Merch-Links funktionieren konsistent aus Navigation und AI-Ausgabe. |
+| API / Contract | `Abgeschlossen` | `★★` | Modelle, Optionen, Konfigurationen und offizielle Preis-/Bilddaten liefern. | — | Frontend und AI koennen unterstuetzte Konfigurationen aus Service-Daten ableiten. |
+| Data / Storage | `Abgeschlossen` | `★★` | Konfigurationsdaten in MySQL lesen und Bildkeys auf MinIO-URLs abbilden. | — | Der Dienst bleibt Source of Truth fuer Konfigurationsgueltigkeit, Preis und Bildreferenzen. |
+| API / Contract | `Offen` | `★★` | Einen finalen Resolution-/Validation-Schritt fuer AI-Car-Empfehlungen sauber nutzen oder dokumentieren. | Entscheidung, ob PRD-Wortlaut strikt umgesetzt werden soll. | AI kann vor der Antwort ein offizielles Configurator-Ergebnis validieren. |
 
-### 3.4 `shopping-cart`
-
-Dieses Modul ist einer der Hauptschwerpunkte der naechsten Phase. Der Cart-Loop existiert, aber die Editierbarkeit ist fuer Merch-Flows noch zu schwach.
+### 3.4 `merch-shop`
 
 | Catalog | Status | Komplexitaet | Aufgabe | Abhaengigkeit | Sichtbares Ergebnis |
 |---|---|---|---|---|---|
-| Page / UI | `Abgeschlossen` | `★` | Die Cart-Seite kann Eintraege listen und Eintraege entfernen. | — | Aktuelle Cart-Inhalte werden gerendert und Deletions sind sichtbar wirksam. |
-| Page / UI | `Naechste Phase` | `★★` | Quantity-Editing fuer Merchandise direkt in der Cart-Seite einfuehren. | Nach Quantity-Update-API. | Nutzer koennen die Merch-Menge aendern, ohne zu loeschen und neu hinzuzufuegen. |
-| Page / UI | `Naechste Phase` | `★` | Die sichtbare Total-Preis-Aktualisierung nach Mengenanpassung absichern. | Nach Quantity-Update-API und UI-Interaktion. | Der gerenderte Gesamtpreis reagiert sofort und korrekt auf Quantity-Aenderungen. |
-| API / Contract | `Abgeschlossen` | `★★` | Cart unterstuetzt bereits list, add und remove auf Redis-basiertem Session-State. | — | Das Gateway kann Cart-Eintraege im aktuellen Session-Kontext persistieren und wieder lesen. |
-| API / Contract | `Naechste Phase` | `★★` | Eine dedizierte Quantity-Update-API fuer Merchandise einfuehren. | — | Mengenanpassungen laufen ueber eine definierte Cart-Operation statt ueber Delete-und-Readd. |
-| API / Contract | `Akzeptierte Vereinfachung` | `★` | Car Items duerfen in der aktuellen Phase weiterhin als Snapshots gespeichert und angezeigt werden. | — | Das Team behandelt das Snapshot-Modell fuer Autos vorerst als ausreichend. |
-| API / Contract | `Spaetere Erweiterung` | `★★` | Das Merge-Verhalten fuer identische Merch-Produkte festlegen. | Nach Quantity-Update-Verhalten. | Der Cart-Vertrag sagt explizit, ob wiederholte Adds verschmolzen oder getrennt bleiben. |
-| API / Contract | `Spaetere Erweiterung` | `★★` | Die Quantity-Policy fuer Car Items explizit festlegen. | Nach Stabilisierung des Merch-Quantity-Flows. | Das Team kann klar beantworten, ob Car Items immer Quantity-1 bleiben oder anders behandelt werden. |
-| Data / Storage | `Abgeschlossen` | `★★` | Cart-State ist bereits unter einem session-basierten Redis-Key gespeichert. | — | Cart-Persistenz ist nicht mehr nur in-memory. |
-| Integration / Connectivity | `Naechste Phase` | `★★` | Cart-Item-Shape mit Quantity-Update-Verhalten und Total-Berechnung abgleichen. | Nach Quantity-Update-API. | Cart-UI, Gateway und Cart-Service haben das gleiche Verstaendnis von Mengenlogik und Total-Aenderung. |
+| API / Contract | `Abgeschlossen` | `★★` | Produktliste und Produktdetails ueber stabile IDs/Slugs liefern. | — | Listen- und Detailseiten nutzen dieselbe Produktquelle. |
+| Page / UI | `Abgeschlossen` | `★★` | Produktdetail-Erlebnis ueber `web-app` bereitstellen. | — | Nutzer koennen einzelne Produkte direkt oeffnen. |
+| Integration / Connectivity | `Offen` | `★★` | AI-Empfehlungslinks auf die bestehende Detailroute abstimmen. | AI URL-Builder. | Empfehlungen landen nicht mehr auf der generischen Liste. |
 
-### 3.5 `api-gateway`
-
-Dieses Modul ist nicht mehr "Basis fuer spaeter", sondern bereits der produktive Einstiegspunkt und gleichzeitig die wichtigste Integrationsschicht der naechsten Phase.
+### 3.5 `shopping-cart`
 
 | Catalog | Status | Komplexitaet | Aufgabe | Abhaengigkeit | Sichtbares Ergebnis |
 |---|---|---|---|---|---|
-| Page / UI | `Abgeschlossen` | `★` | Das Gateway stellt bereits Einstiegsrouten fuer alle Hauptseiten bereit. | — | Nutzer koennen ueber einen einheitlichen Einstieg durch die aktuelle Plattform navigieren. |
-| API / Contract | `Abgeschlossen` | `★★` | Das Gateway proxyt bereits die benoetigten Service-APIs fuer die existierenden Seiten. | — | Frontend-Seiten muessen nicht direkt auf alle container-internen Services zugreifen. |
-| API / Contract | `Naechste Phase` | `★★` | Einen `/api/destinations`-Endpoint oder eine gleichwertige interne Route fuer Route Targets einfuehren. | — | Route-Planning-Destinationen werden aus dem Gateway geladen statt aus dem Seitentemplate. |
-| API / Contract | `Naechste Phase` | `★★` | Stabiles Routing oder stabiles Link-Handling fuer Merch-Detail-Landings und AI-Empfehlungsziele bereitstellen. | Nach Merch-Detail-Vertrag und AI-Output-Vertrag. | Gateway-seitige Routen tragen Deep Links in die beabsichtigte User Experience. |
-| Data / Storage | `Spaetere Erweiterung` | `★` | Gemeinsame page-level Data-Helper nur dann weiter konsolidieren, wenn die Wiederholung real stoert. | Nur bei wachsendem Shared-Bedarf. | Wiederholte Verkabelungslogik sinkt, ohne eine schwere Framework-Schicht einzufuehren. |
-| Integration / Connectivity | `Naechste Phase` | `★★` | Die Route-Planning-Seite an Gateway-gelieferte Destinationen anbinden. | Nach Destinations-Endpoint. | Die Route-Seite besitzt ihre Destination-Daten nicht mehr selbst. |
-| Integration / Connectivity | `Naechste Phase` | `★★` | Gateway-Flows fuer Merch-Detail-Landing und AI-Target-Routing schliessen. | Nach Merch-Detail-Vertrag und AI-Output-Vertrag. | AI-Links und direkte Navigation landen auf stabilen Gateway-gesteuerten Experiences. |
+| API / Contract | `Abgeschlossen` | `★★` | Add, List, Quantity Update, Remove und Clear unterstuetzen. | — | Nutzer koennen Warenkorbpositionen verwalten, ohne Delete-und-Readd Workarounds. |
+| Page / UI | `Abgeschlossen` | `★★` | Quantity Controls und Total-Aktualisierung auf der Cart-Seite. | — | Mengen- und Preisanderungen sind direkt sichtbar. |
+| API / Contract | `Spaetere Erweiterung` | `★` | Quantity-Policy fuer Car Items explizit festlegen. | Produktentscheidung. | Team kann klar sagen, ob Car Items immer Quantity 1 bleiben. |
 
-### 3.6 `前端页面 + 路线规划`
-
-Dieser Bereich ist kein reiner Styling-Block, sondern die Schicht, in der aus vorhandenen Backend-Funktionen vollstaendige Nutzerfluesse werden.
+### 3.6 `ai-feature`
 
 | Catalog | Status | Komplexitaet | Aufgabe | Abhaengigkeit | Sichtbares Ergebnis |
 |---|---|---|---|---|---|
-| Page / UI | `Abgeschlossen` | `★` | Die vorhandenen Seiten fuer Gateway, Configurator, Merch, AI, Cart und Route Planning sind erreichbar. | — | Das sichtbare Page-Skeleton fuer das aktuelle Produkt existiert end-to-end. |
-| Page / UI | `Naechste Phase` | `★★` | Die Route-Seite so umbauen, dass Destinationen aus `api-gateway` geladen werden. | Nach Destinations-Endpoint. | Die Seite rendert Ziele aus Backend-Daten statt aus Hardcoding. |
-| Page / UI | `Naechste Phase` | `★★` | Cart-Quantity-Interaktion in der Cart-Seite ergaenzen. | Nach Cart-Quantity-Update-API. | Ein Merch-Item kann auf der Seite in der Menge geaendert werden und das Total aktualisiert sich. |
-| Page / UI | `Naechste Phase` | `★★` | Eine Merch-Detail-UI oder einen klaren Detail-State einfuehren. | Nach Entscheidung fuer Merch-Detail-Routing. | Nutzer koennen ein Produkterlebnis ueber einen stabilen Detail-Einstieg oeffnen. |
-| Page / UI | `Spaetere Erweiterung` | `★★` | Den AI-Zugang von einer Einzel-Seite in Richtung globales Interaktionsmuster erweitern. | Nach Stabilisierung des AI-Vertrags. | Die AI wirkt spaeter produktweit integriert statt isoliert. |
-| API / Contract | `Naechste Phase` | `★★` | Sicherstellen, dass Frontend-Verhalten auf abgestimmten Gateway- und AI-Vertraegen basiert statt auf lokalen Annahmen. | Nach AI-Schema, Merch-Detail-Vertrag und Destinations-Endpoint. | Seitenlogik kodiert keine instabilen Annahmen, die spaeter mit Backends kollidieren. |
-| Data / Storage | `Abgeschlossen` | `★` | Die sichtbaren Seiten konsumieren in den aktuell unterstuetzten Flows bereits Live-Daten. | — | Die grossen sichtbaren Seiten laufen nicht mehr nur auf Platzhalter-Inhalten. |
-| Integration / Connectivity | `Naechste Phase` | `★★` | Die verbleibenden Seitenschleifen fuer Route-Destinationen, Merch-Detail-Landing und Cart-Quantity schliessen. | Nach den entsprechenden Gateway- oder Service-Vertraegen. | Die bestaetigten sichtbaren Luecken der naechsten Phase sind in der aktuellen Seitensammlung geschlossen. |
+| API / Contract | `Abgeschlossen` | `★★★` | Prompt/Template und strukturiertes Gemini Response-Schema verwenden. | — | Frontend konsumiert stabile Felder statt frei schwankender Modelltexte. |
+| Data Boundary | `Abgeschlossen` | `★★★` | Domain-Daten nur ueber `car-configurator` und `merch-shop` APIs beziehen, kein direkter MySQL-Zugriff. | — | AI bleibt Integrations-/Orchestrierungsservice ohne Datenbank-Ownership. |
+| Integration / Connectivity | `Offen` | `★★` | Merch URLs von `/merch-shop?product=<id>` auf kanonische Detailroute umstellen. | Bestehende Merch Detail Route. | AI-Merch-Empfehlungen sind echte Deep Links. |
+| Integration / Connectivity | `Offen` | `★★` | Optional: Car Recommendations vor der Antwort ueber Configurator API offiziell validieren. | Entscheidung zum PRD-Akzeptanzniveau. | AI-Antworten enthalten nur offiziell aufloesbare Konfigurationen. |
 
-## 5. Moduluebergreifende Vertragsaufgaben
+## 4. Moduluebergreifende Vertragsaufgaben
 
 | Vertragsthema | Status | Komplexitaet | Warum moduluebergreifend | Sichtbares Ergebnis |
 |---|---|---|---|---|
-| AI prompt/template + schema | `Naechste Phase` | `★★★` | Betrifft `ai-feature`, Frontend-Rendering, Merch-Landing und spaetere Configurator-Integration. | Das Team hat ein abgestimmtes Prompt/Template und genau ein Output-Schema, dem Downstream-Code vertrauen kann. |
-| Merch recommendation link contract | `Naechste Phase` | `★★★` | Betrifft `ai-feature`, `merch-shop`, `api-gateway` und das Verhalten der Merch-Seiten. | Ein einheitliches Ziel-Format fuer Merch-Empfehlungen ist abgestimmt und funktioniert fuer direkte Oeffnung. |
-| Cart item shape + quantity update contract | `Naechste Phase` | `★★★` | Betrifft Cart-Service, Gateway-Proxying, Cart-Seite und Total-Berechnung. | Alle Schichten verwenden das gleiche Modell fuer Mengenlogik und Aktualisierung. |
-| Destination endpoint payload contract | `Naechste Phase` | `★★★` | Betrifft `api-gateway`, Route-Planning-Seite und die kuenftige Wartbarkeit der Destination-Daten. | Destination-Daten haben ein abgestimmtes internes Payload-Format und die Route-Seite konsumiert genau dieses Format. |
+| AI no-DB boundary | `Abgeschlossen` | `★★★` | Betrifft Architektur, AI, Configurator und Merch. | AI nutzt Service-APIs statt SQL oder fremder Tabellen. |
+| Merch recommendation URL contract | `Offen` | `★★` | Betrifft `ai-feature`, `web-app` und `merch-shop`. | AI kennt ein stabiles Produktziel und die Web-App kann es direkt rendern. |
+| AI car official resolution | `Offen` | `★★` | Betrifft `ai-feature` und `car-configurator`. | Car-Empfehlungen koennen vor der Antwort gegen Configurator-Daten validiert werden. |
+| Web/API responsibility split | `Abgeschlossen` | `★★` | Betrifft `web-app`, `api-gateway`, Docker Compose und Doku. | Browser-Praesentation und API-Proxying sind klar getrennt. |
 
-## 6. Next-Phase Key Path
+## 5. Current Key Path
 
-Die naechste Phase beginnt nicht mit allgemeinen Refactorings. Die kritische Kette in Reihenfolge:
+Die naechste sinnvolle Kette ist klein und konkret:
 
-1. AI prompt/template + output schema
-2. Merch-Detail-Landing + Gateway-Anschluss
-3. Cart-Quantity-Update-API + Seiteninteraktion
-4. `api-gateway` Destinations-Endpoint + Migration der Route-Seite
+1. AI merch recommendation links auf `/merch-shop/:productId` oder Slug umstellen.
+2. Entscheiden, ob AI car recommendations vor der Antwort zwingend ueber Configurator API validiert werden muessen.
+3. Falls ja: Configurator-Resolution in `ai-feature` integrieren und Fehlerfaelle sauber behandeln.
+4. Danach `project-status.md` und `architecture.md` erneut mit dem finalen Verhalten abgleichen.
 
-Nicht Teil dieser kritischen Kette:
+Nicht mehr Teil der kritischen Kette:
 
-- Erweiterung der Configurator-Parameter
-- Aenderung der gemeinsamen Nutzung von `bmw_app`
-- Das Prinzip direkter Frontend-Links aus AI (bleibt, solange das Zielformat praeziser wird)
-- Bereits fertiggestellte Phase-1-Skeleton-Arbeit (wird nicht erneut als Startpunkt behandelt)
+- AI Prompt/Template + Output Schema
+- Merch Product Detail View
+- Cart Quantity Update
+- Destination Endpoint
+- Route-Planning Migration auf Gateway-Destinationen

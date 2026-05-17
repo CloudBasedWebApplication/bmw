@@ -8,8 +8,11 @@ Course project for a cloud-based web application built with a microservices arch
 bmw/
 ├─ api-gateway/
 │  └─ src/
+├─ web/
+│  ├─ public/
+│  └─ views/
 ├─ services/
-│  ├─ home/
+│  ├─ web-app/
 │  ├─ car-configurator/
 │  ├─ merch-shop/
 │  ├─ ai-feature/
@@ -28,18 +31,25 @@ bmw/
 
 ### `api-gateway/`
 
-Contains the user-facing entry application.
+Contains the API proxy and support endpoints.
 
-- `api-gateway/src/`: gateway and server-side application code
+- `api-gateway/src/`: API proxy routes, health/support endpoints, and session-cookie handling
 
-This directory acts as the unified entry point for the app. It renders service-owned EJS views and coordinates calls to backend services.
+This directory keeps backend service URLs internal. It forwards API requests to the owning microservices and manages the anonymous cart session cookie. The `/api/destinations` endpoint is gateway support data for predefined BMW route targets, not a separate Route Planning microservice.
+
+### `web/`
+
+Contains shared browser assets and EJS templates used by the web application.
+
+- `web/views/`: EJS page templates and layouts
+- `web/public/`: static browser assets served by the web app
 
 ### `services/`
 
-Contains all backend microservices.
+Contains the browser-facing web app and backend microservices.
 
+- `services/web-app/`: browser-facing entry application; renders all HTML/EJS pages, serves static assets, and forwards same-origin `/api/*` calls to `api-gateway`
 - `services/car-configurator/`: resolves selected options into a pre-generated image, validates combinations, and calculates price
-- `services/home/`: customer-facing start page with the BMW journey and route planning experience
 - `services/merch-shop/`: provides merchandise catalog and product detail data
 - `services/ai-feature/`: integrates Gemini, generates recommendations, and calls the configurator service
 - `services/shopping-cart/`: stores and returns unified cart state for both car configurations and merchandise
@@ -115,6 +125,7 @@ docker compose up --build
 ```
 
 This starts the gateway, all microservices, MySQL, Redis, MinIO, and the MinIO bootstrap container.
+Host port `3000` belongs to `web-app`; `api-gateway` is internal and is reached through `API_GATEWAY_URL`.
 
 ### 3. Open the app
 

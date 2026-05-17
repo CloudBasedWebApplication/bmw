@@ -2,7 +2,7 @@
 
 ## 1. Document Metadata
 
-**Last updated:** 2026-04-15
+**Last updated:** 2026-05-17
 
 **Scope:** This document describes implementation reality — what is built, why choices were made, and what remains open. For target behavior see [PRD.md](./PRD.md). For responsibility design see [architecture.md](./architecture.md). For task ownership see [team-collaboration-breakdown.md](./team-collaboration-breakdown.md).
 
@@ -19,22 +19,40 @@ Update this document in the same PR that changes the code it describes.
 
 ## 2. Project Background
 
-This is a course project for a cloud web application, built around an automotive platform. The core purpose is to demonstrate service decomposition, containerized local development, and integration with external infrastructure — database, object storage, cache, an AI API, and a map API. The product has five backend microservices, a unified web gateway, and three infrastructure services, all orchestrated locally with Docker Compose.
+This is a course project for a cloud web application, built around an automotive platform. The core purpose is to demonstrate service decomposition, containerized local development, and integration with external infrastructure — database, object storage, cache, an AI API, and a map API. The product has one browser-facing web app, one API gateway, four backend microservices, and three infrastructure services, all orchestrated locally with Docker Compose.
 
-The current implementation has a complete working skeleton. All five service pages are reachable through the unified gateway, the main user journeys work end to end, and the infrastructure layer (MySQL, Redis, MinIO) is integrated. Several design choices were deliberately simplified: the shared MySQL database and the reduced configurator parameter depth are phase-scoped decisions that keep the implementation tractable without blocking the principal architecture demonstration. The AI service now returns structured recommendation links instead of a free-form string.
+The current implementation has a complete working skeleton. All major pages are reachable through `services/web-app`, browser API calls are forwarded through `api-gateway`, the main user journeys work end to end, and the infrastructure layer (MySQL, Redis, MinIO) is integrated. Several design choices were deliberately simplified: the shared MySQL database and the reduced configurator parameter depth are phase-scoped decisions that keep the implementation tractable without blocking the principal architecture demonstration. The AI service now returns structured recommendation links instead of a free-form string.
 
 
 ---
 
 ## 3. Module Status
 
-### 3.1 api-gateway
+### 3.1 web-app
 
 #### What Is Working
 
-The gateway is the single web entry point for all pages. It registers routes for all five services, renders EJS templates server-side (including data pre-fetched from backend services where needed), and manages the session cookie that identifies each user's cart.
+The web app is the browser-facing entry point. It registers page routes for Home, Configurator, Merch Shop, Merch Product Detail, AI Feature, Shopping Cart, and Impressum, renders EJS templates server-side, serves static assets under `/static`, and proxies same-origin `/api/*` requests to `api-gateway`.
 
-The cart, configurator, and AI proxies forward browser requests to the appropriate backend services, keeping container-internal URLs out of client-side code. The `PATCH /api/cart/items/:id` and `DELETE /api/cart` proxies were added alongside the cart quantity and clear-cart features.
+The home page injects the Google Maps API key server-side and fetches destination data through `/api/destinations`. The merch pages fetch product data from `merch-shop` for both listing and direct product detail routes. The cart and AI pages consume the same-origin API surface exposed through the gateway.
+
+#### Accepted Simplifications
+
+None specific to the web app at this time.
+
+#### Confirmed Gaps
+
+None that block the current user journeys.
+
+---
+
+### 3.2 api-gateway
+
+#### What Is Working
+
+The gateway is the API-facing entry point for browser requests. It manages the session cookie that identifies each user's cart and proxies cart, configurator, merch, and AI requests to the appropriate backend services, keeping container-internal URLs out of client-side code. The `PATCH /api/cart/items/:id` and `DELETE /api/cart` proxies support cart quantity changes and clear-cart behavior.
+
+`GET /health` reports only gateway service status. Route and page discovery belongs to `services/web-app` documentation or route definitions rather than gateway health.
 
 `GET /api/destinations` returns the list of BMW route targets as JSON. This endpoint makes destination data backend-owned product data: the route-planning page fetches it at runtime and no longer embeds the list in the EJS template. Future additions or changes to destinations require only a server-side update.
 
@@ -44,11 +62,11 @@ None specific to the gateway at this time.
 
 #### Confirmed Gaps
 
-The gateway does not yet expose stable deep-link routes for individual merch products. AI recommendations that target a specific merchandise item currently point to the generic merch listing page because no `/merch-shop/product/:id` route exists. This will become relevant once the merch product-detail page (Issue 1) is built. The gateway routing work is a downstream dependency of that issue.
+No page-rendering gaps remain after local issue 8. Browser-facing routes are owned by `services/web-app`; gateway changes should stay limited to API, session, and support endpoint behavior.
 
 ---
 
-### 3.2 car-configurator
+### 3.3 car-configurator
 
 #### What Is Working
 
@@ -58,7 +76,7 @@ The configurator page loads available models on open and updates the color optio
 
 #### Accepted Simplifications
 
-**Reduced parameter depth.** The current implementation supports model and color as the two configuration dimensions. The PRD (§6.1) describes a richer parameter set (trim, wheels, and structured rationale metadata including `configurationId`, `basePrice`, `optionAdjustments`). This depth is deliberately deferred. The current response returns enough for display; it does not yet expose `configurationId`, `optionAdjustments`, or structured rationale fields. This simplification is acceptable until a downstream consumer (AI, cart, or extended UI) explicitly requires those fields.
+**Reduced parameter depth.** The current implementation supports the option dimensions present in the seeded data and API (`model`, `color`, `wheels`, and `interior`), but not a full production rules engine. The response returns enough for display and downstream linking; richer normalized fields can still be added if a downstream consumer needs them.
 
 #### Confirmed Gaps
 
@@ -66,11 +84,13 @@ None that block the current user journeys.
 
 ---
 
-### 3.3 merch-shop
+### 3.4 merch-shop
 
 #### What Is Working
 
-The merch-shop serves a product catalog from MySQL. The gateway pre-fetches the full product list when rendering the merch page, so products are visible without a client-side data fetch. Each product card shows the image (retrieved from MinIO), name, price, and an add-to-cart button.
+The merch-shop serves a product catalog from MySQL. The web app pre-fetches the full product list when rendering the merch page, so products are visible without a client-side data fetch. Each product card shows the image (retrieved from MinIO), name, price, and an add-to-cart button.
+
+The merch service exposes `GET /products/:productId`, and the web app exposes `/merch-shop/:productId` for direct product-detail pages. Product identifiers can be numeric IDs or generated slugs, which gives the web application a stable target for direct product links.
 
 #### Accepted Simplifications
 
@@ -78,11 +98,11 @@ None specific to the merch service at this time.
 
 #### Confirmed Gaps
 
-**No product-detail page (Issue 1).** There is no route or view for a single product. Every merch item is only accessible through the generic product grid. This matters because AI recommendations are required by the PRD (§6.2, §6.4) to link to a concrete product-detail experience rather than to the listing page. Until a stable product identifier and a detail route exist, AI deep-linking cannot be precise.
+None specific to the merch service at this time.
 
 ---
 
-### 3.4 shopping-cart
+### 3.5 shopping-cart
 
 #### What Is Working
 
@@ -110,27 +130,35 @@ Car items are stored as snapshots so cart display does not depend on a live conf
 
 ---
 
-### 3.5 ai-feature
+### 3.6 ai-feature
 
 #### What Is Working
 
-The AI assistant integrates with Gemini. It fetches the current configuration options from `car-configurator` and the full product catalog from `merch-shop` to build domain context, then calls Gemini with the user's input and that context. The response is returned to the frontend as structured recommendation links: a configurator URL pre-filled with recommended model and options, and merch shop recommendation items that include the product title, thumbnail URL, and a concise recommendation reason.
+The AI assistant integrates with Gemini. It fetches the current configuration options from `car-configurator` and the full product catalog from `merch-shop` to build domain context, then calls Gemini with the user's input and that context. Gemini output is constrained through a structured response schema and normalized before being returned to the frontend.
+
+The response is returned to the frontend as structured recommendation links: a configurator URL pre-filled with recommended model and options, and merch shop recommendation items that include the product title, thumbnail URL, price, and a concise recommendation reason.
+
+`ai-feature` is an integration/orchestration service. It does not own a MySQL schema, does not depend on `mysql2`, and does not query `car-configurator` or `merch-shop` tables directly. Additional AI data needs should be solved through new or extended service endpoints in the owning service.
+
+This boundary is intended to remain valid if the current shared database is later decomposed into service-owned databases. `ai-feature` should depend on `CONFIGURATOR_URL`, `MERCH_URL`, and the HTTP response contracts of those services, not on database schema names, credentials, containers, or migration details.
 
 #### Accepted Simplifications
 
-**AI merch recommendations are still compact list items.** The merch recommendation panel now has a structured layout with thumbnails, titles, and reasons, but it remains a compact list rather than a full product-detail experience. That is acceptable until Issue 1 is resolved with a dedicated merch detail route.
+**AI merch recommendations are still compact list items.** The merch recommendation panel has a structured layout with thumbnails, titles, prices, and reasons, but it remains a compact recommendation panel rather than embedding the full product-detail experience.
 
 #### Confirmed Gaps
 
-**Merch recommendation landing contract (Issue 1).** The AI now emits structured merch items with titles, image URLs, and reasons, but it still links to the generic merch listing page. A stable product-detail route is still missing, so deep-linking is not yet precise.
+**Merch recommendation landing URL.** The product-detail route exists, but AI still emits `/merch-shop?product=<id>` rather than the canonical `/merch-shop/:productId` or slug URL. Deep-link precision should be finished by switching the AI URL builder to the product-detail route.
+
+**Official configurator resolution.** AI currently builds a configurator link from structured model/options. If strict PRD wording requires the AI service to resolve an official configuration result before responding, it should call the configurator resolution endpoint as a final validation step.
 
 ---
 
-### 3.6 home
+### 3.7 home
 
 #### What Is Working
 
-The customer home page uses the Google Maps JavaScript API, loaded in the browser with a key injected by the gateway at render time. On page load, the destination dropdown is populated by a fetch to `GET /api/destinations`, which returns the six BMW locations from the gateway. The user selects a destination, clicks "Route berechnen," and the browser uses geolocation and `DirectionsService` to calculate and render the driving route. Distance and duration are shown in an info badge.
+The customer home page uses the Google Maps JavaScript API, loaded in the browser with a key injected by the web app at render time. On page load, the destination dropdown is populated by a fetch to `GET /api/destinations`, which returns the BMW locations from the gateway. The user selects a destination, clicks "Route berechnen," and the browser uses geolocation and `DirectionsService` to calculate and render the driving route. Distance and duration are shown in an info badge.
 
 The Google Maps API key is configured in `.env` (`GOOGLE_MAPS_API_KEY`) and injected into the EJS template server-side. If the key is absent or empty, the page shows a clear "API-Key erforderlich" fallback state instead of a broken map.
 
@@ -150,7 +178,8 @@ The full stack runs locally via Docker Compose with `docker compose up --build`.
 
 | Container | Image / Build | Port (host) | Role |
 |---|---|---|---|
-| `api-gateway` | build: `./api-gateway` | 3000 | Web entry, EJS rendering, API proxy |
+| `web-app` | build: `./services/web-app` | 3000 | Browser-facing EJS app, static assets, same-origin API forwarding |
+| `api-gateway` | build: `./api-gateway` | internal 3000 | API proxy, session cookie, support endpoints |
 | `car-configurator` | build: `./services/car-configurator` | 3001 | Config logic, MinIO image, price |
 | `merch-shop` | build: `./services/merch-shop` | 3002 | Product catalog |
 | `ai-feature` | build: `./services/ai-feature` | 3004 | Gemini integration |
@@ -163,9 +192,9 @@ The full stack runs locally via Docker Compose with `docker compose up --build`.
 
 **MySQL.** All service tables currently live in the shared `bmw_app` database (see Decision Log entry 5). The PRD target schema (§7.1) specifies `configurator_db` (owned by `car-configurator`) and `merchandise_db` (owned by `merch-shop`). Cross-schema queries are not permitted even in the shared setup.
 
-**Redis.** Cart state is stored at `cart:{sessionId}` as a JSON-serialized array of item objects. TTL is 24 hours. Session ID is assigned by the gateway as a cookie on first request.
+**Redis.** Cart state is stored at `cart:{sessionId}` as a JSON-serialized array of item objects. TTL is 24 hours. Session ID is assigned by the gateway as a cookie on first API request.
 
-**MinIO.** The `configurator-images` bucket holds all product images. Configurator images are uploaded under the `configurator/` prefix; merch images under `webshop/`. Images are pre-uploaded using `minio-init` on stack start, or manually re-synced with `docker compose run --rm minio-init`. Use ASCII-only filenames for merch assets to keep object keys stable across encodings.
+**MinIO.** The `configurator-images` bucket holds all product images. Configurator images are uploaded under the `configurator/` prefix; merch images under `merch-shop/`; home/static support images are mirrored under `home/`. Images are pre-uploaded using `minio-init` on stack start, or manually re-synced with `docker compose run --rm minio-init`. Use ASCII-only filenames for merch assets to keep object keys stable across encodings.
 
 **Persistence note.** Running `docker compose down -v` destroys all data volumes. MySQL seed and MinIO sync run automatically on the next `docker compose up`.
 
@@ -175,7 +204,7 @@ The full stack runs locally via Docker Compose with `docker compose up --build`.
 
 ### Cart item shape — Implemented
 
-**Parties:** `shopping-cart` (producer) ↔ `api-gateway` (proxy) ↔ browser cart page (consumer)
+**Parties:** `shopping-cart` (producer) ↔ `api-gateway` (proxy/session) ↔ `web-app` cart page (consumer)
 
 **Defined fields:**
 ```json
@@ -210,33 +239,41 @@ The full stack runs locally via Docker Compose with `docker compose up --build`.
 
 ### AI prompt/template + output schema — Implemented
 
-**Parties:** `ai-feature` (producer) → browser frontend (consumer)
+**Parties:** `ai-feature` (producer) → `api-gateway` (proxy) → `web-app` AI page (consumer)
 
-**Current state:** Structured recommendation payload returned. Merch items include product title, image URL, and reason metadata.
+**Current state:** Gemini output is constrained with a response schema and normalized by `ai-feature`. The frontend receives structured fields such as `text`, `carLink`, `merchLinks`, and the selected car option fields. Merch items include product title, image URL, price, and reason metadata.
 
 **PRD requirement (§6.4):** Structured payload separating recommendation links from free-text rationale. Must support car and merch recommendations in a single response. Car payload must be rich enough for configurator resolution; merch payload must identify the specific product target.
 
 ---
 
-### Merch recommendation landing contract — Unresolved
+### Merch product-detail route — Implemented
 
-**Parties:** `ai-feature` (link generator) → `merch-shop` / `api-gateway` (route target)
+**Parties:** `merch-shop` (product data) → `web-app` (route/view)
 
-**Current state:** AI links to the generic merch listing page. No product-detail route exists.
+**Current state:** `merch-shop` exposes product detail data via `GET /products/:productId`, and the web app exposes `/merch-shop/:productId` using the `web/views/merch-product.ejs` view.
 
-**Required:** A stable product identifier in the merch service, a product-detail route in the gateway, and an agreed URL format that AI can construct and the gateway can resolve.
+---
+
+### AI merch recommendation landing URL — Open
+
+**Parties:** `ai-feature` (link generator) → `web-app` merch detail route (route target)
+
+**Current state:** AI links still use `/merch-shop?product=<id>`, while the canonical product-detail route is `/merch-shop/:productId` or a product slug.
+
+**Required:** Update AI link generation to target the canonical product-detail route.
 
 ---
 
 ## 6. Design Decision Log
 
-### 1. Unified web entry via api-gateway with EJS
+### 1. Browser-facing web app plus API gateway
 
-**Date:** Project start  
-**Context:** The project needed one coherent user-facing application spanning all five service capabilities.  
-**Decision:** All pages are rendered through a single `api-gateway` using EJS templates. Service views live in their own directories and are rendered by the gateway.  
-**Rationale:** Keeps the web layer simple (no SPA framework), avoids CORS complexity, and lets the gateway manage session state centrally.  
-**Consequences:** All service UI changes touch the gateway's view resolution path. The gateway is a prerequisite for all page-level features.  
+**Date:** Project start
+**Context:** The project needed one coherent user-facing application spanning all five service capabilities.
+**Decision:** Pages are rendered through `services/web-app` using EJS templates and shared static assets. Browser API calls stay same-origin under `/api/*` and are forwarded to `api-gateway`, which handles API proxying and session-oriented support endpoints.
+**Rationale:** Keeps the web layer simple (no SPA framework), avoids CORS complexity, and separates browser presentation from API routing concerns.
+**Consequences:** Page-level changes usually touch `services/web-app` or `web/views`; API routing and session behavior remain in `api-gateway`.
 **Status:** Standing.
 
 ---
@@ -263,14 +300,14 @@ The full stack runs locally via Docker Compose with `docker compose up --build`.
 
 ---
 
-### 4. AI returns frontend links, not structured resolution data
+### 4. AI returns structured recommendation payloads
 
-**Date:** Project start  
-**Context:** Building a stable AI output schema requires prompt engineering and contract design work that would block the initial integration.  
-**Decision:** The AI service currently returns a free-form string containing URLs. No structured payload is defined.  
-**Rationale:** Unblocks the initial Gemini integration and end-to-end flow demonstration without committing to a schema prematurely.  
-**Consequences:** Frontend rendering quality is limited. Merch deep-linking cannot be precise. This is the primary open design task for the AI module.  
-**Status:** Revisable. The next AI work item is designing the prompt template and output schema (Issue 2).
+**Date:** Project start
+**Context:** The initial AI integration needed predictable frontend rendering rather than free-form model text.
+**Decision:** The AI service constrains Gemini output with a response schema, normalizes it server-side, and returns structured fields for free-text rationale, car recommendation links, merch recommendation cards, and selected car options.
+**Rationale:** Keeps frontend rendering stable while still allowing Gemini to choose recommendations from service-provided domain context.
+**Consequences:** The frontend can render cards and links predictably. Remaining routing refinement is limited to making merch recommendation URLs use the canonical product-detail route.
+**Status:** Standing. Schema details remain extensible as downstream consumers need richer metadata.
 
 ---
 
@@ -326,8 +363,11 @@ Append-only. When an issue is resolved, change Status to `Resolved` — do not d
 
 | # | Title | Affected Services | PRD | Severity | Impact | Status |
 |---|---|---|---|---|---|---|
-| 1 | No merch product-detail page | merch-shop, ai-feature, api-gateway | §6.2, §6.4 | High | AI recommendations land on the generic product list; no stable product URL exists for deep-linking | Open |
+| 1 | No merch product-detail page | merch-shop, ai-feature, api-gateway | §6.2, §6.4 | High | Product detail route and view now exist; AI URL generation still needs to switch to the canonical detail route | Resolved |
 | 2 | No structured AI prompt/output schema | ai-feature | §6.4 | High | The AI service now returns structured recommendation items and the free-form contract has been replaced | Resolved |
 | 3 | Cart quantity update | shopping-cart, api-gateway | §6.5 | Medium | Users had no way to change item quantities without removing and re-adding | Resolved |
 | 4 | Destinations hardcoded in frontend | home, api-gateway | §6.3 | Medium | Destination data was embedded in the EJS template rather than served from the gateway | Resolved |
 | 5 | No checkout / order submission | shopping-cart | §3 (out of scope) | Out of Scope | Cart has no payment or order flow; confirmed not in v1 scope | Out of Scope |
+| 6 | AI merch links use listing query URL | ai-feature, web-app | §6.2, §6.4 | Medium | Product details exist, but AI recommendations still target `/merch-shop?product=<id>` instead of `/merch-shop/:productId` | Open |
+| 7 | AI car recommendation not officially resolved before response | ai-feature, car-configurator | §6.4 | Medium | AI returns a configurator link from structured options; strict official-result semantics would require a final configurator API validation step | Open |
+| 8 | Gateway still contains page-rendering routes | web-app, api-gateway | §5, architecture §4.1-4.2 | Medium | Responsibility split is documented but gateway still duplicated EJS browser routes | Resolved |
