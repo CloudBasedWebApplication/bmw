@@ -178,6 +178,63 @@
     transform: scale(1.026);
   }
 
+  .vehicle-label {
+    position: absolute;
+    z-index: 3;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 16px;
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    border-radius: var(--radius);
+    background: rgba(7, 12, 18, 0.76);
+    color: #fff;
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.28);
+    backdrop-filter: blur(14px);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(6px);
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease, background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  }
+
+  .vehicle-label::after {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-top: 2px solid currentColor;
+    border-right: 2px solid currentColor;
+    transform: rotate(45deg);
+  }
+
+  .vehicle-hotspot--3er .vehicle-label {
+    left: 14%;
+    bottom: 24%;
+  }
+
+  .vehicle-hotspot--x5 .vehicle-label {
+    right: 13%;
+    bottom: 24%;
+  }
+
+  .vehicle-hotspot:hover .vehicle-label,
+  .vehicle-hotspot:focus-visible .vehicle-label {
+    background: var(--accent);
+    border-color: rgba(255, 255, 255, 0.44);
+    opacity: 1;
+    transform: translateY(-3px);
+    visibility: visible;
+  }
+
+  .vehicle-hotspot:focus-visible .vehicle-label {
+    box-shadow: 0 0 0 3px rgba(143, 192, 255, 0.42), 0 16px 36px rgba(0, 0, 0, 0.28);
+  }
+
   .stage-index {
     position: absolute;
     top: 28px;
@@ -204,7 +261,7 @@
   .stage-caption h4 {
     margin: 0;
     color: #fff;
-    font-size: 5rem;
+    font-size: 3.35rem;
     font-weight: 700;
     letter-spacing: 0;
     line-height: 0.96;
@@ -214,9 +271,17 @@
 
   .service-rail {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: clamp(20px, 3vw, 36px);
     margin-bottom: clamp(52px, 8vw, 96px);
+  }
+
+  .service-intro {
+    margin-bottom: 34px;
+  }
+
+  .service-intro .section-copy {
+    max-width: 620px;
   }
 
   .service-link {
@@ -369,20 +434,12 @@
   }
 
   .yt-stage-section {
-    background: #000;
+    background: #fff;
     padding: clamp(48px, 7vw, 96px) 0;
   }
 
   .yt-stage-section .yt-stage-header {
     margin-bottom: 2rem;
-  }
-
-  .yt-stage-section .section-title {
-    color: #fff;
-  }
-
-  .yt-stage-section .section-copy {
-    color: rgba(255, 255, 255, 0.55);
   }
 
   .heritage-section::after {
@@ -490,117 +547,132 @@
   }
 
   .route-section {
-    background: #fff;
-    padding: clamp(78px, 9vw, 126px) 0;
+    position: relative;
+    overflow: hidden;
+    background: #070b10;
+    color: #fff;
+    min-height: 100vh;
+    min-height: 100svh;
+    padding: 0;
+    scroll-margin-top: 0;
+  }
+
+  .route-section::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background:
+      linear-gradient(90deg, rgba(7, 11, 16, 0.9) 0%, rgba(7, 11, 16, 0.66) 31%, rgba(7, 11, 16, 0.12) 68%, rgba(7, 11, 16, 0.32) 100%),
+      linear-gradient(180deg, rgba(7, 11, 16, 0.72) 0%, rgba(7, 11, 16, 0.04) 38%, rgba(7, 11, 16, 0.5) 100%);
+    pointer-events: none;
+  }
+
+  .route-section .page-shell {
+    width: min(1180px, calc(100% - 40px));
+  }
+
+  .route-overlay {
+    position: relative;
+    z-index: 2;
+    min-height: 100vh;
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding: clamp(28px, 4vw, 58px) 0;
+    pointer-events: none;
+  }
+
+  .route-copy {
+    max-width: 760px;
+    text-shadow: 0 16px 42px rgba(0, 0, 0, 0.48);
+    pointer-events: auto;
+  }
+
+  .route-section .section-kicker {
+    color: #8fc0ff;
+  }
+
+  .route-section .section-title {
+    max-width: 980px;
+    color: #fff;
+  }
+
+  .route-section .section-copy {
+    max-width: 640px;
+    color: rgba(255, 255, 255, 0.74);
   }
 
   .route-layout {
-    margin-top: 42px;
-    display: grid;
-    grid-template-columns: minmax(290px, 0.42fr) minmax(0, 0.58fr);
-    gap: 22px;
-    align-items: start;
+    width: min(720px, 100%);
+    margin-top: clamp(13px, 2vw, 24px);
+    pointer-events: auto;
   }
 
   .route-panel {
-    padding: 24px;
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    background: var(--paper);
-  }
-
-  .route-panel h3 {
-    margin: 0 0 10px;
-    font-size: 1.35rem;
-    font-weight: 700;
-    line-height: 1.15;
-  }
-
-  .route-panel p {
-    margin: 0 0 22px;
-    color: var(--muted);
-  }
-
-  .route-meta {
     display: grid;
-    grid-template-columns: 1fr;
-    gap: 1px;
-    margin-bottom: 22px;
-    border: 1px solid var(--line);
-    background: var(--line);
-  }
-
-  .route-meta div {
-    display: grid;
-    grid-template-columns: 92px 1fr;
-    gap: 12px;
-    padding: 11px 12px;
-    background: #fff;
-  }
-
-  .route-meta span {
-    color: var(--muted);
-    font-size: 0.7rem;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-  }
-
-  .route-meta strong {
-    color: var(--ink);
-    font-size: 0.9rem;
-    font-weight: 700;
-    line-height: 1.25;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 10px;
+    align-items: stretch;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: #fff;
+    box-shadow: none;
+    backdrop-filter: none;
+    overflow: visible;
   }
 
   .controls {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 12px;
+    align-items: stretch;
   }
 
   .route-status {
-    margin: 16px 0 0;
-    min-height: 22px;
-    color: var(--muted);
-    font-size: 0.94rem;
-    font-weight: 700;
+    display: block;
+    margin-top: 10px;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    white-space: normal;
   }
 
   .route-status.error {
-    color: #b42318;
+    color: #ffb4ab;
   }
 
   .route-status.success {
-    color: #087443;
+    color: #8fdab5;
   }
 
   .route-result {
+    position: absolute;
+    top: clamp(28px, 4vw, 58px);
+    right: 0;
     display: grid;
-    grid-template-columns: 1fr;
-    gap: 10px;
-    margin: 18px 0 0;
-    opacity: 0;
-    transform: translateY(8px);
-    transition: opacity 0.35s ease, transform 0.35s ease;
-    pointer-events: none;
-  }
-
-  .route-result.visible {
+    width: min(430px, 36vw);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+    margin: 0;
+    padding: 14px 18px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: var(--radius);
+    background: rgba(7, 12, 18, 0.38);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
+    backdrop-filter: blur(18px);
     opacity: 1;
-    transform: translateY(0);
     pointer-events: auto;
   }
 
-  .result-card {
-    border-left: 3px solid var(--accent);
-    background: #fff;
-    padding: 13px 14px;
+  .route-metric {
+    min-width: 0;
   }
 
-  .result-card span {
+  .route-metric span {
     display: block;
-    color: var(--muted);
+    color: #8fc0ff;
     font-size: 0.72rem;
     font-weight: 700;
     letter-spacing: 0.11em;
@@ -608,24 +680,34 @@
     margin-bottom: 4px;
   }
 
-  .result-card strong {
+  .route-metric strong {
     display: block;
-    color: var(--ink);
-    font-size: 1rem;
-    line-height: 1.3;
+    color: #fff;
+    font-size: 1.8rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    line-height: 1.2;
+    text-transform: uppercase;
   }
 
   .map-frame {
-    min-height: 640px;
-    border-radius: var(--radius);
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    min-height: 100vh;
+    min-height: 100svh;
+    height: 100%;
+    border-radius: 0;
     overflow: hidden;
     background: #101722;
-    box-shadow: var(--shadow);
+    box-shadow: none;
   }
 
   #map {
     width: 100%;
-    height: 640px;
+    height: 100%;
+    min-height: 100vh;
+    min-height: 100svh;
     background: #101722;
   }
 
@@ -647,16 +729,24 @@
     height: 40px;
   }
 
-  .car-marker {
-    width: 34px;
-    height: 52px;
-    transform: translateY(50%) rotate(var(--bearing, 0deg));
+  .route-car-marker {
+    position: absolute;
+    width: 44px;
+    height: 68px;
+    pointer-events: none;
+    transform-origin: center;
     transition: transform 0.08s linear;
     will-change: transform;
-    filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.6));
+    filter: drop-shadow(0 7px 12px rgba(0, 0, 0, 0.64));
   }
 
-  .car-marker.hidden {
+  .route-car-marker svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .route-car-marker.hidden {
     display: none;
   }
 
@@ -684,17 +774,21 @@
 
   @media (max-width: 1180px) {
     .stage-caption h4 {
-      font-size: 4rem;
+      font-size: 3rem;
+    }
+
+    .service-rail {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
 
   @media (max-width: 980px) {
     .stage-caption h4 {
-      font-size: 3.6rem;
+      font-size: 2.55rem;
     }
 
     .route-layout {
-      grid-template-columns: 1fr;
+      margin-top: 42px;
     }
 
     .heritage-content {
@@ -709,13 +803,13 @@
 
   @media (max-width: 880px) {
     .stage-caption h4 {
-      font-size: 3.1rem;
+      font-size: 2.25rem;
     }
   }
 
   @media (max-width: 780px) {
     .stage-caption h4 {
-      font-size: 2.7rem;
+      font-size: 1.95rem;
     }
   }
 
@@ -729,7 +823,18 @@
     }
 
     .route-section {
-      padding: 64px 0;
+      min-height: 100vh;
+      min-height: 100svh;
+      padding: 0;
+    }
+
+    .route-overlay {
+      padding: 30px 0 44px;
+    }
+
+    .route-layout {
+      width: 100%;
+      margin-top: 28px;
     }
 
     .vehicle-hero {
@@ -760,8 +865,25 @@
       left: 18px;
     }
 
+    .vehicle-label {
+      min-height: 40px;
+      padding: 0 12px;
+      font-size: 0.68rem;
+      letter-spacing: 0.05em;
+    }
+
+    .vehicle-hotspot--3er .vehicle-label {
+      left: 8%;
+      bottom: 25%;
+    }
+
+    .vehicle-hotspot--x5 .vehicle-label {
+      right: 7%;
+      bottom: 25%;
+    }
+
     .stage-caption h4 {
-      font-size: 1.75rem;
+      font-size: 1.55rem;
     }
 
     .vehicle-hotspot--3er {
@@ -799,25 +921,35 @@
 
     .route-panel {
       padding: 18px;
+      grid-template-columns: 1fr;
+      max-height: 64svh;
     }
 
-    .route-meta div {
+    .controls,
+    .route-result {
       grid-template-columns: 1fr;
-      gap: 3px;
+    }
+
+    .route-result {
+      position: static;
+      width: 100%;
     }
 
     .map-frame {
-      min-height: 430px;
+      min-height: 100vh;
+      min-height: 100svh;
     }
 
     #map {
-      height: 430px;
+      min-height: 100vh;
+      min-height: 100svh;
+      height: 100%;
     }
   }
 
   @media (max-width: 420px) {
     .stage-caption h4 {
-      font-size: 1.28rem;
+      font-size: 1.08rem;
     }
   }
 </style>
@@ -828,8 +960,8 @@
   </video>
 
   <div class="hero-overlay">
-    <h1 class="hero-title">Road zu deinem<br>Supercar</h1>
-    <p class="hero-subtitle">Die Reise beginnt jetzt</p>
+    <h1 class="hero-title">Dein Weg zu deinem<br>Supercar</h1>
+    <p class="hero-subtitle">Mit KI-Beratung, passenden Produkten und deiner Route zur BMW Welt München.</p>
     <a class="btn btn-cta" href="/car-configurator">Jetzt konfigurieren</a>
     <div class="scroll-hint">Scroll</div>
   </div>
@@ -838,7 +970,19 @@
 <main>
   <section class="experience-section" id="experience">
     <div class="page-shell">
-      <div class="service-rail" aria-label="Weitere Einstiege">
+      <div class="service-intro">
+        <p class="section-kicker">Deine BMW Experience</p>
+        <h2 class="section-title">Vier Einstiege für deinen nächsten BMW.</h2>
+        <p class="section-copy">Konfiguration, KI-Beratung, passende Produkte und die Route zur BMW Welt München an einem Ort.</p>
+      </div>
+
+      <div class="service-rail" aria-label="BMW Experience Einstiege">
+        <a class="service-link" href="/car-configurator">
+          <img class="service-image" src="<%= homeImageBase %>/bmw_duo_4k_uhd.png" alt="BMW 3er und BMW X5" loading="lazy">
+          <span class="service-number">01</span>
+          <h3>Konfigurator</h3>
+          <p>Wähle Modell, Farbe, Interieur und Räder für deinen nächsten BMW.</p>
+        </a>
         <a class="service-link" href="/ai-feature">
           <img class="service-image" src="<%= homeImageBase %>/bmw_ai.png" alt="BMW KI Beratung" loading="lazy">
           <span class="service-number">02</span>
@@ -849,13 +993,13 @@
           <img class="service-image" src="<%= homeImageBase %>/bmw_merch.png" alt="BMW Merchandise" loading="lazy">
           <span class="service-number">03</span>
           <h3>Merchandise</h3>
-          <p>Ausgewählte Begleiter für Fahrt, Reise und Alltag.</p>
+          <p>Passende Produkte für Fahrt, Reise und Alltag.</p>
         </a>
         <a class="service-link" href="#route-planner">
           <img class="service-image" src="<%= homeImageBase %>/bmw_world.png" alt="BMW Welt München" loading="lazy">
           <span class="service-number">04</span>
           <h3>Route zur BMW Welt</h3>
-          <p>Der Weg nach München bleibt Teil der Experience, aber ohne laute Oberfläche.</p>
+          <p>Plane deine Fahrt zur BMW Welt München direkt auf der Karte.</p>
         </a>
       </div>
 
@@ -864,33 +1008,16 @@
         <span class="stage-index">Aktueller Fokus</span>
         <a class="vehicle-hotspot vehicle-hotspot--3er" href="/car-configurator?model=3er" aria-label="BMW 3er konfigurieren">
           <img src="<%= homeImageBase %>/bmw_3er_isolated.png" alt="" aria-hidden="true" loading="lazy">
+          <span class="vehicle-label">BMW 3er konfigurieren</span>
         </a>
         <a class="vehicle-hotspot vehicle-hotspot--x5" href="/car-configurator?model=x5" aria-label="BMW X5 konfigurieren">
           <img src="<%= homeImageBase %>/bmw_x5_isolated.png" alt="" aria-hidden="true" loading="lazy">
+          <span class="vehicle-label">BMW X5 konfigurieren</span>
         </a>
         <div class="stage-caption">
-          <h4>Eine Bühne, zwei Charaktere.</h4>
+          <h4>Zwei Modelle. Ein Klick zum Konfigurator.</h4>
         </div>
       </section>
-    </div>
-  </section>
-
-  <section class="yt-stage-section">
-    <div class="page-shell">
-      <div class="yt-stage-header">
-        <p class="section-kicker">BMW in Bewegung</p>
-        <h2 class="section-title">Erlebe BMW in Bewegung.</h2>
-        <p class="section-copy">Präzision, die man spürt – bevor man das Lenkrad berührt. Ein Blick hinter die Kulissen dessen, was BMW ausmacht.</p>
-      </div>
-      <div class="heritage-yt">
-        <iframe
-          src="https://www.youtube.com/embed/YA9RF1AsawI"
-          title="BMW – Nicht nostalgisch. Verwurzelt."
-          sandbox="allow-scripts allow-same-origin allow-presentation"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-          allowfullscreen
-        ></iframe>
-      </div>
     </div>
   </section>
 
@@ -899,8 +1026,8 @@
       <div class="merch-preview-head">
         <div>
           <p class="section-kicker">Merchandise Highlights</p>
-          <h2 class="section-title">Alle Produkte zum Durchswipen.</h2>
-          <p class="section-copy">Die komplette Auswahl aus dem Store. Ein Klick führt direkt zum Merchandise Shop.</p>
+          <h2 class="section-title">BMW Merchandise entdecken.</h2>
+          <p class="section-copy">Ausgewählte Produkte für Fahrt, Reise und Alltag. Direkt ansehen oder im Shop weiterstöbern.</p>
         </div>
         <div class="merch-preview-actions">
           <a class="btn btn-ghost" href="/merch-shop">Zum Shop</a>
@@ -931,23 +1058,23 @@
     </video>
     <div class="page-shell heritage-content">
       <div>
-        <p class="section-kicker">Archiv und Zukunft</p>
-        <h2 class="heritage-title">Nicht nostalgisch. Verwurzelt.</h2>
+        <p class="section-kicker">Aus Präzision wird Charakter</p>
+        <h2 class="heritage-title">Vom Werk bis zu deiner Konfiguration.</h2>
 
-        <p class="heritage-copy">Bayerische Motoren Werke AG steht hier nicht als Retro-Geste, sondern als Herkunft für moderne Entscheidungen: klare Linien, technische Ruhe, sichtbare Präzision.</p>
+        <p class="heritage-copy">BMW steht hier für Technik, die man sieht, und Entscheidungen, die sich bewusst anfühlen: vom ersten Detail bis zur Route nach München.</p>
 
         <div class="heritage-ledger">
           <div class="ledger-item">
-            <span>Handwerk</span>
-            <strong>Details, die sich nicht vordrängen.</strong>
+            <span>Fertigung</span>
+            <strong>Wo Qualität sichtbar wird.</strong>
           </div>
           <div class="ledger-item">
             <span>Technik</span>
-            <strong>Auswahl mit nachvollziehbarer Logik.</strong>
+            <strong>Klarheit in jedem Schritt.</strong>
           </div>
           <div class="ledger-item">
             <span>Zukunft</span>
-            <strong>Digitale Beratung als Teil der Journey.</strong>
+            <strong>Die Experience wird digital weitergedacht.</strong>
           </div>
         </div>
       </div>
@@ -959,119 +1086,203 @@
     </div>
   </section>
 
-  <section class="route-section" id="route-planner">
+  <section class="yt-stage-section">
     <div class="page-shell">
-      <p class="section-kicker">Route</p>
-      <h2 class="section-title" id="routeTitle">Dein Ziel: BMW Welt München</h2>
-      <p class="section-copy">Ein ruhiger Planungsbereich für deine Fahrt nach München. Standort nutzen, Adresse eingeben, Route starten.</p>
+      <div class="yt-stage-header">
+        <p class="section-kicker">Bayerische Meisterleistung in Bewegung</p>
+        <h2 class="section-title">Mehr als Design.</h2>
+        <p class="section-copy">Erlebe, wie Präzision, Technik und Handwerk zusammenkommen.</p>
+      </div>
+      <div class="heritage-yt">
+        <iframe
+          src="https://www.youtube.com/embed/YA9RF1AsawI"
+          title="BMW – Nicht nostalgisch. Verwurzelt."
+          sandbox="allow-scripts allow-same-origin allow-presentation"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowfullscreen
+        ></iframe>
+      </div>
+    </div>
+  </section>
 
-      <% if (mapsApiKey) { %>
+  <section class="route-section" id="route-planner">
+    <% if (mapsApiKey) { %>
+      <div class="map-frame">
+        <div id="map"></div>
+      </div>
+
+      <div class="page-shell route-overlay">
+        <div class="route-copy">
+          <p class="section-kicker">Route zur BMW Welt</p>
+          <h2 class="section-title" id="routeTitle">Dein Weg nach München.</h2>
+          <p class="section-copy">Starte die Berechnung mit deinem Standort und sieh Distanz und Fahrtdauer direkt auf der Karte.</p>
+        </div>
+
         <div class="route-layout">
           <aside class="route-panel">
-            <h3>Route planen</h3>
-            <p>Die Fahrstrecke wird mit Google Maps berechnet und direkt auf der Karte visualisiert.</p>
-
-            <div class="route-meta" aria-label="Zieldaten">
-              <div>
-                <span>Ziel</span>
-                <strong>BMW Welt München</strong>
-              </div>
-              <div>
-                <span>Adresse</span>
-                <strong>Am Olympiapark 1, 80809 München</strong>
-              </div>
-            </div>
-
             <form class="controls" id="routeForm">
-              <div class="field">
-                <label class="field-label" for="startAddress">Startadresse</label>
-                <input class="input" id="startAddress" name="startAddress" type="text" autocomplete="street-address" placeholder="Adresse eingeben oder Standort nutzen">
-              </div>
-              <button class="btn btn-secondary" id="locationBtn" type="button">Standort nutzen</button>
               <button class="btn btn-primary" id="routeBtn" type="submit" disabled>Route starten</button>
             </form>
 
             <p class="route-status" id="routeStatus" aria-live="polite"></p>
 
             <div class="route-result" id="routeResult" aria-live="polite">
-              <div class="result-card">
-                <span>Ziel</span>
-                <strong id="resultDestination">-</strong>
-              </div>
-              <div class="result-card">
+              <div class="route-metric">
                 <span>Distanz</span>
                 <strong id="resultDistance">-</strong>
               </div>
-              <div class="result-card">
+              <div class="route-metric">
                 <span>Fahrtdauer</span>
                 <strong id="resultDuration">-</strong>
               </div>
             </div>
           </aside>
-
-          <div class="map-frame">
-            <div id="map"></div>
-          </div>
         </div>
+      </div>
 
         <script>
           const DEFAULT_CENTER = { lat: 51.1657, lng: 10.4515 };
-          const BMW_LOGO_URL =
-            "https://www.bmw-welt.com/content/dam/bmw/common/images/logo-icons/BMW/BMW_White_Logo.svg.asset.1670245093434.svg";
-
-          const CAR_SVG =
-            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 90" width="34" height="52">' +
-              '<rect x="10" y="8" width="40" height="74" rx="12" fill="#1C69D4" stroke="#fff" stroke-width="2"/>' +
-              '<rect x="16" y="16" width="28" height="20" rx="4" fill="#cfe8ff" opacity="0.85"/>' +
-              '<rect x="16" y="54" width="28" height="20" rx="4" fill="#1a5196"/>' +
-              '<circle cx="16" cy="12" r="2.2" fill="#fff59d"/>' +
-              '<circle cx="44" cy="12" r="2.2" fill="#fff59d"/>' +
-              '<circle cx="16" cy="78" r="2" fill="#ef5350"/>' +
-              '<circle cx="44" cy="78" r="2" fill="#ef5350"/>' +
+          const BMW_MAP_STYLES = [
+            { elementType: "geometry", stylers: [{ color: "#101722" }] },
+            { elementType: "labels.icon", stylers: [{ visibility: "off" }] },
+            { elementType: "labels.text.fill", stylers: [{ color: "#8b98aa" }] },
+            { elementType: "labels.text.stroke", stylers: [{ color: "#070b10" }, { weight: 2 }] },
+            { featureType: "administrative", elementType: "geometry.stroke", stylers: [{ color: "#263243" }] },
+            { featureType: "landscape", elementType: "geometry", stylers: [{ color: "#0d141e" }] },
+            { featureType: "poi", stylers: [{ visibility: "off" }] },
+            { featureType: "road", elementType: "geometry", stylers: [{ color: "#202b3a" }] },
+            { featureType: "road", elementType: "geometry.stroke", stylers: [{ color: "#080d13" }] },
+            { featureType: "road.arterial", elementType: "geometry", stylers: [{ color: "#28384d" }] },
+            { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#1c69d4" }, { lightness: -38 }, { saturation: -12 }] },
+            { featureType: "road.highway", elementType: "geometry.stroke", stylers: [{ color: "#8fc0ff" }, { lightness: -35 }] },
+            { featureType: "road.local", elementType: "labels.text.fill", stylers: [{ color: "#647184" }] },
+            { featureType: "transit", stylers: [{ visibility: "off" }] },
+            { featureType: "water", elementType: "geometry", stylers: [{ color: "#050b13" }] },
+            { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#526073" }] },
+          ];
+          const BMW_PIN_SVG =
+            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">' +
+              '<circle cx="32" cy="32" r="28" fill="#0b0f14" stroke="#8fc0ff" stroke-width="3"/>' +
+              '<circle cx="32" cy="32" r="18" fill="#fff"/>' +
+              '<path d="M32 14a18 18 0 0 1 18 18H32z" fill="#1c69d4"/>' +
+              '<path d="M14 32a18 18 0 0 1 18-18v18z" fill="#fff"/>' +
+              '<path d="M32 32h18a18 18 0 0 1-18 18z" fill="#fff"/>' +
+              '<path d="M14 32h18v18a18 18 0 0 1-18-18z" fill="#1c69d4"/>' +
+              '<circle cx="32" cy="32" r="18" fill="none" stroke="#0b0f14" stroke-width="2"/>' +
+            '</svg>';
+          const SPORTS_CAR_SVG =
+            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 112" aria-hidden="true">' +
+              '<rect x="14" y="10" width="44" height="92" rx="15" fill="#1c69d4" stroke="#fff" stroke-width="4"/>' +
+              '<rect x="22" y="22" width="28" height="22" rx="5" fill="#d9f0ff" opacity=".92"/>' +
+              '<rect x="22" y="66" width="28" height="22" rx="5" fill="#0b2349" opacity=".88"/>' +
+              '<path d="M17 46h8M47 46h8M17 78h8M47 78h8" stroke="#8fc0ff" stroke-width="4" stroke-linecap="round"/>' +
+              '<circle cx="23" cy="16" r="3" fill="#fff6a6"/>' +
+              '<circle cx="49" cy="16" r="3" fill="#fff6a6"/>' +
+              '<circle cx="23" cy="96" r="3" fill="#ff6b6b"/>' +
+              '<circle cx="49" cy="96" r="3" fill="#ff6b6b"/>' +
+              '<path d="M28 54h16" stroke="#07111c" stroke-width="4" stroke-linecap="round" opacity=".65"/>' +
             '</svg>';
 
           let map, directionsService, directionsRenderer;
-          let AdvancedMarkerElementCtor;
-          let carMarker, carContent, destinationMarker;
+          let carMarker, destinationMarker;
           let animationFrame = null;
           let destinations = [];
           let currentLocationOrigin = null;
 
-          async function initMap() {
-            const { Map } = await google.maps.importLibrary("maps");
-            const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
-            AdvancedMarkerElementCtor = AdvancedMarkerElement;
+          function svgDataUrl(svg) {
+            return "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg);
+          }
 
-            map = new Map(document.getElementById("map"), {
-              zoom: 6,
+          function createSportsCarMarker(initialPosition, targetMap) {
+            function toLatLng(position) {
+              if (position && typeof position.lat === "function") return position;
+              return new google.maps.LatLng(position.lat, position.lng);
+            }
+
+            class SportsCarOverlay extends google.maps.OverlayView {
+              constructor(position) {
+                super();
+                this.position = toLatLng(position);
+                this.rotation = 0;
+                this.div = null;
+              }
+
+              onAdd() {
+                this.div = document.createElement("div");
+                this.div.className = "route-car-marker hidden";
+                this.div.innerHTML = SPORTS_CAR_SVG;
+                this.getPanes().overlayMouseTarget.appendChild(this.div);
+              }
+
+              draw() {
+                if (!this.div) return;
+                const projection = this.getProjection();
+                if (!projection) return;
+                const point = projection.fromLatLngToDivPixel(this.position);
+                this.div.style.left = point.x + "px";
+                this.div.style.top = point.y + "px";
+                this.div.style.transform = `translate(-50%, -50%) rotate(${this.rotation}deg)`;
+              }
+
+              onRemove() {
+                if (this.div) {
+                  this.div.remove();
+                  this.div = null;
+                }
+              }
+
+              setPosition(position) {
+                this.position = toLatLng(position);
+                this.draw();
+              }
+
+              setRotation(rotation) {
+                this.rotation = rotation || 0;
+                this.draw();
+              }
+
+              show() {
+                if (this.div) this.div.classList.remove("hidden");
+              }
+
+              hide() {
+                if (this.div) this.div.classList.add("hidden");
+              }
+            }
+
+            const overlay = new SportsCarOverlay(initialPosition);
+            overlay.setMap(targetMap);
+            return overlay;
+          }
+
+          function initMap() {
+            map = new google.maps.Map(document.getElementById("map"), {
+              zoom: 5,
               center: DEFAULT_CENTER,
-              mapId: "DEMO_MAP_ID",
-              colorScheme: "DARK",
-              disableDefaultUI: false,
+              backgroundColor: "#070b10",
+              clickableIcons: false,
+              disableDefaultUI: true,
+              gestureHandling: "cooperative",
+              styles: BMW_MAP_STYLES,
+              zoomControl: false,
             });
 
             directionsService = new google.maps.DirectionsService();
             directionsRenderer = new google.maps.DirectionsRenderer({
               suppressMarkers: true,
+              preserveViewport: true,
               polylineOptions: {
                 strokeColor: "#8FC0FF",
                 strokeOpacity: 0.95,
-                strokeWeight: 5,
+                strokeWeight: 6,
               },
             });
             directionsRenderer.setMap(map);
 
-            carContent = document.createElement("div");
-            carContent.className = "car-marker hidden";
-            carContent.innerHTML = CAR_SVG;
+            carMarker = createSportsCarMarker(DEFAULT_CENTER, map);
+            carMarker.hide();
 
-            carMarker = new AdvancedMarkerElement({
-              position: DEFAULT_CENTER,
-              map: map,
-              content: carContent,
-            });
-
-            await loadDestinations();
+            loadDestinations();
           }
 
           function setStatus(message, type) {
@@ -1104,27 +1315,30 @@
 
           function updateRouteTitle() {
             const destination = selectedDestination();
-            document.getElementById("routeTitle").textContent = destination
+            const routeTitle = document.getElementById("routeTitle");
+            if (!routeTitle) return;
+            routeTitle.textContent = destination
               ? `Dein Ziel: ${destination.name || destination.label}`
               : "Dein Ziel: BMW Welt München";
           }
 
           function updateDestinationMarker(position, title) {
-            if (!AdvancedMarkerElementCtor || !position) return;
-
-            const markerContent = document.createElement("div");
-            markerContent.className = "bmw-marker";
-            markerContent.innerHTML = '<img src="' + BMW_LOGO_URL + '" alt="">';
+            if (!position) return;
 
             if (destinationMarker) {
-              destinationMarker.map = null;
+              destinationMarker.setMap(null);
             }
 
-            destinationMarker = new AdvancedMarkerElementCtor({
+            destinationMarker = new google.maps.Marker({
               position,
               map,
               title,
-              content: markerContent,
+              icon: {
+                url: svgDataUrl(BMW_PIN_SVG),
+                scaledSize: new google.maps.Size(56, 56),
+                anchor: new google.maps.Point(28, 28),
+              },
+              zIndex: 5,
             });
 
             destinationMarker.addListener("click", () => {
@@ -1139,11 +1353,11 @@
             if (!path || path.length < 2) return;
             if (animationFrame) cancelAnimationFrame(animationFrame);
 
-            carContent.classList.remove("hidden");
+            carMarker.show();
 
             const DRIVE_DURATION = 8000;
             const ZOOM_DURATION = 1500;
-            const FINAL_ZOOM = 16;
+            const FINAL_ZOOM = 13;
 
             const startZoom = map.getZoom();
             const start = performance.now();
@@ -1171,12 +1385,12 @@
               if (elapsed < DRIVE_DURATION) {
                 const progress = easeInOutCubic(elapsed / DRIVE_DURATION);
                 const pos = positionAt(progress);
-                carMarker.position = { lat: pos.lat, lng: pos.lng };
-                carContent.style.setProperty("--bearing", pos.bearing + "deg");
+                carMarker.setPosition({ lat: pos.lat, lng: pos.lng });
+                carMarker.setRotation(pos.bearing);
                 animationFrame = requestAnimationFrame(step);
               } else {
                 const destination = selectedDestination();
-                carMarker.position = path[path.length - 1];
+                carMarker.setPosition(path[path.length - 1]);
                 animationFrame = null;
                 zoomIn(performance.now(), path[path.length - 1], destination ? destination.name : "BMW Ziel");
               }
@@ -1218,28 +1432,28 @@
           }
 
           async function resolveOrigin() {
-            const input = document.getElementById("startAddress");
-            const manualOrigin = input.value.trim();
-
-            if (manualOrigin) {
-              currentLocationOrigin = null;
-              return manualOrigin;
-            }
-
             if (currentLocationOrigin) {
               return currentLocationOrigin;
             }
 
             setStatus("Standort wird ermittelt...", "");
             currentLocationOrigin = await requestCurrentLocation();
-            input.placeholder = "Aktueller Standort wird verwendet";
             return currentLocationOrigin;
+          }
+
+          function formatDuration(seconds) {
+            const totalMinutes = Math.max(1, Math.round(seconds / 60));
+            const hours = Math.floor(totalMinutes / 60);
+            const minutes = totalMinutes % 60;
+
+            if (!hours) return `${minutes} min`;
+            if (!minutes) return `${hours}h`;
+            return `${hours}h ${minutes} min`;
           }
 
           async function calculateRoute() {
             const destination = selectedDestination();
             const routeBtn = document.getElementById("routeBtn");
-            const resultBox = document.getElementById("routeResult");
 
             if (!destination) {
               setStatus("BMW Welt ist gerade nicht verfügbar.", "error");
@@ -1247,7 +1461,7 @@
             }
 
             routeBtn.disabled = true;
-            resultBox.classList.remove("visible");
+            routeBtn.textContent = "Route wird berechnet";
             setStatus("Route wird berechnet...", "");
 
             try {
@@ -1259,16 +1473,19 @@
                 travelMode: google.maps.TravelMode.DRIVING,
               }, (result, status) => {
                 routeBtn.disabled = false;
+                routeBtn.textContent = "Route starten";
 
                 if (status === "OK") {
                   directionsRenderer.setDirections(result);
                   const route = result.routes[0];
                   const leg = route.legs[0];
 
-                  document.getElementById("resultDestination").textContent = destination.name || destination.label || "BMW Ziel";
+                  if (route.bounds) {
+                    map.fitBounds(route.bounds, { top: 380, right: 120, bottom: 160, left: 120 });
+                  }
+
                   document.getElementById("resultDistance").textContent = leg.distance ? leg.distance.text : "-";
-                  document.getElementById("resultDuration").textContent = leg.duration ? leg.duration.text : "-";
-                  resultBox.classList.add("visible");
+                  document.getElementById("resultDuration").textContent = leg.duration ? formatDuration(leg.duration.value) : "-";
                   setStatus(`Route zu ${destination.name || destination.label} ist bereit.`, "success");
 
                   updateDestinationMarker(leg.end_location, destination.name || destination.label);
@@ -1279,47 +1496,30 @@
               });
             } catch (err) {
               routeBtn.disabled = false;
-              setStatus(err.message + " Bitte Startadresse eingeben.", "error");
-              document.getElementById("startAddress").focus();
+              routeBtn.textContent = "Route starten";
+              setStatus(err.message, "error");
             }
           }
-
-          document.getElementById("startAddress").addEventListener("input", () => {
-            currentLocationOrigin = null;
-          });
-
-          document.getElementById("locationBtn").addEventListener("click", async () => {
-            const btn = document.getElementById("locationBtn");
-            const input = document.getElementById("startAddress");
-            btn.disabled = true;
-            setStatus("Standort wird ermittelt...", "");
-
-            try {
-              currentLocationOrigin = await requestCurrentLocation();
-              input.value = "";
-              input.placeholder = "Aktueller Standort wird verwendet";
-              setStatus("Standort erkannt. Du kannst die Route starten.", "success");
-            } catch (err) {
-              setStatus(err.message + " Bitte Startadresse eingeben.", "error");
-              input.focus();
-            } finally {
-              btn.disabled = false;
-            }
-          });
 
           document.getElementById("routeForm").addEventListener("submit", (event) => {
             event.preventDefault();
             calculateRoute();
           });
         </script>
-        <script src="https://maps.googleapis.com/maps/api/js?key=<%= mapsApiKey %>&libraries=marker&v=weekly&callback=initMap" async defer></script>
+        <script src="https://maps.googleapis.com/maps/api/js?key=<%= mapsApiKey %>&v=weekly&callback=initMap" async defer></script>
       <% } else { %>
+      <div class="page-shell route-overlay">
+        <div class="route-copy">
+          <p class="section-kicker">Route</p>
+          <h2 class="section-title" id="routeTitle">Dein Ziel: BMW Welt München</h2>
+          <p class="section-copy">Standort nutzen, Startadresse eingeben und die Fahrt zur BMW Welt direkt auf der Karte planen.</p>
+        </div>
         <div class="no-key">
           <h3>API-Key erforderlich</h3>
           <p>Bitte konfigurieren Sie den <code>GOOGLE_MAPS_API_KEY</code> in Ihrer Umgebung.</p>
         </div>
-      <% } %>
-    </div>
+      </div>
+    <% } %>
   </section>
 </main>
 
