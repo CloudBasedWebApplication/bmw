@@ -3,16 +3,9 @@
      section-*, .btn*, .field/.input, .card* live in /static/ci/bmw-ci.css. */
 
   .cart-layout {
-    max-width: 800px;
+    max-width: 960px;
     margin: 0 auto;
-    padding: 40px 20px 80px;
-  }
-
-  .cart-layout h1 {
-    font-size: 2.5rem;
-    font-weight: 800;
-    letter-spacing: -0.03em;
-    margin: 0 0 32px;
+    padding: 64px 32px 80px;
   }
 
   .cart-toolbar {
@@ -22,9 +15,17 @@
     margin-bottom: 32px;
   }
 
+  .cart-toolbar h1 {
+    font-size: 2.4rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    margin: 0;
+    color: var(--ink);
+  }
+
   .empty-state {
     text-align: center;
-    padding: 80px 40px;
+    padding: 120px 40px;
     background: var(--panel);
     border-radius: var(--radius);
     box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
@@ -214,7 +215,7 @@
   <!-- Cart -->
   <div id="cartWrapper">
     <div class="cart-toolbar">
-      <h1 style="margin:0;">Ihr Warenkorb</h1>
+      <h1>Ihr Warenkorb</h1>
       <button class="btn btn-ghost" id="clearCartBtn">Warenkorb leeren</button>
     </div>
     <div id="cartContent">
@@ -225,7 +226,7 @@
   <!-- Checkout -->
   <div class="checkout-view" id="checkoutView">
     <div class="cart-toolbar">
-      <h1 style="margin:0;">Kasse</h1>
+      <h1>Kasse</h1>
       <button class="btn-back" onclick="showCart()">← Zurück zum Warenkorb</button>
     </div>
 
