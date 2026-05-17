@@ -1,7 +1,5 @@
 <%
-  const _minioBase = String(process.env.MINIO_PUBLIC_URL || "http://localhost:9000").replace(/\/+$/, "");
-  const _minioBucket = process.env.MINIO_BUCKET || "configurator-images";
-  const aiHeroImg = `${_minioBase}/${_minioBucket}/home/bmw_duo_4k_uhd.png`;
+  const aiHeroImg = "/static/images/bmw_duo_4k_uhd.png";
 %>
 <style>
   /* AI-feature-specific layout. BMW CI tokens, fonts, page-shell, site-nav,
