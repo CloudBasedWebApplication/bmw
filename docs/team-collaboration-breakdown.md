@@ -17,7 +17,7 @@ Priorisierte Datenbasis: `docs/project-status.md` -> `docs/PRD.md` -> `docs/arch
 Das Projekt hat jetzt eine getrennte Browser- und API-Schicht:
 
 - `services/web-shop-frontend` ist der einzige host-exponierte App-Container, serviert `/static` und leitet alle anderen Browser-Requests an `web-shop-backend` weiter.
-- `services/web-shop-backend` rendert die EJS-Seiten, leitet `/api/*` same-origin an `api-gateway` weiter und behaelt `/minio` als dokumentierte Phase-1-Ausnahme.
+- `services/web-shop-backend` rendert die EJS-Seiten und leitet `/api/*` same-origin an `api-gateway` weiter.
 - `api-gateway` proxyt APIs, setzt die Cart-Session-Cookie und stellt produktnahe Support-Endpunkte wie `/api/destinations` bereit.
 - `car-configurator`, `merch-shop`, `ai-feature` und `shopping-cart` bilden die Backend-Dienste.
 - MySQL, Redis und MinIO sind ueber Docker Compose integriert.
@@ -28,6 +28,7 @@ Bereits erledigt und nicht mehr als Next-Phase-Arbeit zu planen:
 - Merch Product Detail Route und Detail View
 - Cart Quantity Update und Clear Cart
 - Destination Endpoint plus Route-Page-Migration
+- Phase 2 Service-owned Image Endpoints; Browser-Bildpfade laufen ueber `/api/configurator/assets/*` und `/api/merch/assets/*`, MinIO API 9000 ist nur noch Docker-intern
 
 Aktuell akzeptierte Vereinfachungen bleiben bestehen:
 
@@ -46,7 +47,7 @@ Aktuell akzeptierte Vereinfachungen bleiben bestehen:
 | Static / Proxy | `Abgeschlossen` | `★` | `/static` und Host-Port 3000 in `web-shop-frontend` bereitstellen; sonst an `web-shop-backend` proxien. | — | Nur der Frontend-Container ist als App am Host exponiert. |
 | API / Contract | `Abgeschlossen` | `★★` | Same-origin `/api/*` ueber `web-shop-backend` an `api-gateway` weiterleiten. | — | Client-Code nutzt keine container-internen URLs. |
 | Integration / Connectivity | `Abgeschlossen` | `★★` | Merch-SSR-Daten ueber Gateway `/api/merch/products` und `/api/merch/products/:productId` laden. | api-gateway Merch-Routen. | Die Praesentationsschicht ruft `merch-shop` nicht direkt auf. |
-| Integration / Connectivity | `Phase-1-Ausnahme` | `★` | `/minio` temporaer im `web-shop-backend` proxien. | Phase 2 Service-owned Image Endpoints. | Bestehende Bild-URLs funktionieren bis zur naechsten Architekturphase. |
+| Integration / Connectivity | `Abgeschlossen` | `★★` | Service-owned Image Endpoints fuer Configurator und Merch ueber Gateway bereitstellen. | car-configurator und merch-shop Asset-Routen. | Browser-Bildpfade nutzen `/api/configurator/assets/*` und `/api/merch/assets/*`; kein `/minio` Browservertrag. |
 | Integration / Connectivity | `Offen` | `★★` | AI-Merch-Links auf die kanonische Detailroute `/merch-shop/:productId` oder Slug ausrichten. | AI URL-Builder anpassen. | AI-Empfehlungen oeffnen direkt die passende Produktdetailseite. |
 
 ### 3.2 `api-gateway`

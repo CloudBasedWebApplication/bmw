@@ -13,6 +13,35 @@ function listen(server) {
   });
 }
 
+function rawGet(baseUrl, path) {
+  const url = new URL(baseUrl);
+
+  return new Promise((resolve, reject) => {
+    const req = http.request(
+      {
+        host: url.hostname,
+        port: url.port,
+        method: "GET",
+        path,
+      },
+      (res) => {
+        const chunks = [];
+        res.on("data", (chunk) => chunks.push(chunk));
+        res.on("end", () => {
+          resolve({
+            status: res.statusCode,
+            headers: res.headers,
+            body: Buffer.concat(chunks),
+          });
+        });
+      }
+    );
+
+    req.on("error", reject);
+    req.end();
+  });
+}
+
 async function waitForHealth(baseUrl) {
   const deadline = Date.now() + 5000;
   let lastError;
@@ -49,7 +78,6 @@ async function startBackend(apiGatewayUrl) {
       ...process.env,
       PORT: String(port),
       API_GATEWAY_URL: apiGatewayUrl,
-      MINIO_PUBLIC_URL: "/minio",
       REPO_ROOT: path.resolve(process.cwd(), "..", ".."),
     },
     stdio: ["ignore", "ignore", "pipe"],
@@ -109,7 +137,7 @@ test("merch listing SSR fetches products through the API gateway", async () => {
           name: "BMW Cap",
           category: "accessories",
           price: 29.9,
-          imageUrl: "/minio/configurator-images/merch-shop/cap.avif",
+          imageUrl: "/api/merch/assets/merch-shop/cap.avif",
           description: "Cap",
           color: "Black",
         },
@@ -129,6 +157,23 @@ test("merch listing SSR fetches products through the API gateway", async () => {
     assert.equal(response.status, 200);
     assert.match(html, /BMW Cap/);
     assert.deepEqual(requests, ["/api/merch/products"]);
+  } finally {
+    await backend.stop();
+    apiGateway.close();
+  }
+});
+
+test("backend does not expose the legacy minio proxy", async () => {
+  const apiGateway = http.createServer((_req, res) => {
+    res.writeHead(404).end();
+  });
+  const apiGatewayPort = await listen(apiGateway);
+  const backend = await startBackend(`http://127.0.0.1:${apiGatewayPort}`);
+
+  try {
+    const response = await fetch(`${backend.baseUrl}/minio/configurator-images/home/bmw_ai.png`);
+
+    assert.equal(response.status, 404);
   } finally {
     await backend.stop();
     apiGateway.close();
@@ -159,6 +204,53 @@ test("api forwarding preserves multiple set-cookie headers from the gateway", as
       "sessionId=abc; Path=/; HttpOnly",
       "cartHint=full; Path=/; SameSite=Lax",
     ]);
+  } finally {
+    await backend.stop();
+    apiGateway.close();
+  }
+});
+
+test("api forwarding preserves binary asset response metadata and body", async () => {
+  const body = Buffer.from([0, 1, 2, 3, 255]);
+  const apiGateway = http.createServer((req, res) => {
+    assert.equal(req.url, "/api/merch/assets/merch-shop/cap.avif");
+    res.writeHead(200, {
+      "content-type": "image/avif",
+      "cache-control": "public, max-age=120",
+    });
+    res.end(body);
+  });
+  const apiGatewayPort = await listen(apiGateway);
+  const backend = await startBackend(`http://127.0.0.1:${apiGatewayPort}`);
+
+  try {
+    const response = await fetch(`${backend.baseUrl}/api/merch/assets/merch-shop/cap.avif`);
+
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get("content-type"), "image/avif");
+    assert.equal(response.headers.get("cache-control"), "public, max-age=120");
+    assert.deepEqual(Buffer.from(await response.arrayBuffer()), body);
+  } finally {
+    await backend.stop();
+    apiGateway.close();
+  }
+});
+
+test("backend rejects encoded configurator asset traversal before gateway fetch", async () => {
+  const requests = [];
+  const apiGateway = http.createServer((req, res) => {
+    requests.push(req.url);
+    res.writeHead(200, { "content-type": "image/jpeg" });
+    res.end("should not be fetched");
+  });
+  const apiGatewayPort = await listen(apiGateway);
+  const backend = await startBackend(`http://127.0.0.1:${apiGatewayPort}`);
+
+  try {
+    const response = await rawGet(backend.baseUrl, "/api/configurator/assets/configurator/sub/%2e%2e/6_front.jpg");
+
+    assert.equal(response.status, 400);
+    assert.deepEqual(requests, []);
   } finally {
     await backend.stop();
     apiGateway.close();

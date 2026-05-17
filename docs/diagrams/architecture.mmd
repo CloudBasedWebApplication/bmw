@@ -25,7 +25,6 @@ flowchart LR
     user --> frontend
     frontend --> backendPresentation
     backendPresentation --> gateway
-    backendPresentation -. "temporary Phase 1 /minio proxy" .-> minio
 
     gateway --> configurator
     gateway --> merchandise

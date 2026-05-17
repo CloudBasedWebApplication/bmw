@@ -38,7 +38,6 @@ flowchart LR
     user --> frontend
     frontend --> backendPresentation
     backendPresentation --> gateway
-    backendPresentation -. "temporary Phase 1 /minio proxy" .-> minio
 
     gateway --> configurator
     gateway --> merchandise
@@ -106,7 +105,7 @@ Its responsibilities are:
 - keep existing page routes stable for the browser
 - forward same-origin `/api/*` requests to the API gateway
 - fetch merch list/detail data for SSR through the API gateway at `/api/merch/products` and `/api/merch/products/:productId`
-- keep the temporary Phase 1 `/minio` proxy so existing image URLs remain browser-reachable until service-owned image endpoints replace it
+- mediate same-origin API asset requests through the gateway instead of exposing a presentation-tier MinIO proxy
 
 The web-shop backend does not own configuration validity, official pricing, AI recommendation logic, cart persistence rules, or merch catalog truth. It has no direct `MERCH_URL` dependency.
 
@@ -215,18 +214,18 @@ Redis stores shopping cart state. It is used because the cart is session-oriente
 
 ### 5.3 MinIO
 
-MinIO stores pre-generated configurator and merchandise images. It is used because these images are binary assets rather than relational records. In Phase 1, `web-shop-backend` keeps `/minio` as a temporary browser-facing proxy exception; Phase 2 should replace this with image endpoints owned by the services that own the image references.
+MinIO stores pre-generated configurator and merchandise images. It is used because these images are binary assets rather than relational records. Browser-visible product image delivery is owned by the services that own the image references.
 
 Phase 2 keeps the image objects in MinIO, but removes presentation-tier direct access to MinIO. Browser-visible image requests must flow through the application and service boundary:
 
 `Browser -> web-shop-frontend -> web-shop-backend -> api-gateway -> owning service -> MinIO`
 
-The accepted Phase 2 route contracts are:
+The implemented Phase 2 route contracts are:
 
 - `GET /api/configurator/assets/*` for configurator-owned images
 - `GET /api/merch/assets/*` for merchandise-owned images
 
-`car-configurator` and `merch-shop` own the MinIO reads for their image prefixes and stream image responses back through the gateway. The gateway must use a binary/streaming proxy path for these routes, preserving response status, `content-type`, cache headers where present, and response body. The legacy browser-facing `/minio/*` URL contract should be removed, not kept as a compatibility redirect.
+`car-configurator` and `merch-shop` own the MinIO reads for their image prefixes and stream image responses back through the gateway. The gateway uses a binary/streaming proxy path for these routes, preserving response status, `content-type`, cache headers where present, and response body. The legacy browser-facing `/minio/*` URL contract is removed, not kept as a compatibility redirect.
 
 ### 5.4 Database Ownership
 
@@ -314,7 +313,6 @@ The architecture reflects the following agreed decisions:
 - AI recommendation should use a stable prompt/template plus structured output contract
 - cart stores snapshots for display stability
 - route planning runs client-side via Maps JS API; Google Maps owns route calculation, while `api-gateway` only serves the predefined destination list as support data
-- `/minio` remains only a documented Phase 1 exception in the web-shop backend until service-owned image endpoints are implemented
 - Phase 2 keeps images in MinIO, but only the owning domain services may read MinIO objects for browser-visible image delivery
 - Phase 2 removes the MinIO API host port `9000`; the MinIO console port `9001` may remain host-exposed for local infrastructure/debug access
 - Phase 2 deletes the legacy `/minio/*` URL contract and validates all browser image paths through `/api/configurator/assets/*` or `/api/merch/assets/*`

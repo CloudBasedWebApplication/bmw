@@ -33,30 +33,6 @@ const API_GATEWAY = process.env.API_GATEWAY_URL || "http://api-gateway:3000";
 app.set("view engine", "ejs");
 app.set("views", VIEWS_ROOT);
 app.disable("view cache");
-app.use("/minio", async (req, res) => {
-  try {
-    const upstreamBase = `http://${process.env.MINIO_ENDPOINT || "minio"}:${process.env.MINIO_PORT || 9000}`;
-    const upstreamUrl = `${upstreamBase}${req.originalUrl.replace(/^\/minio/, "")}`;
-    const upstreamResponse = await fetch(upstreamUrl, { method: req.method });
-
-    res.status(upstreamResponse.status);
-
-    const contentType = upstreamResponse.headers.get("content-type");
-    if (contentType) {
-      res.setHeader("content-type", contentType);
-    }
-
-    const cacheControl = upstreamResponse.headers.get("cache-control");
-    if (cacheControl) {
-      res.setHeader("cache-control", cacheControl);
-    }
-
-    const body = Buffer.from(await upstreamResponse.arrayBuffer());
-    res.send(body);
-  } catch (err) {
-    res.status(502).send(`minio proxy unavailable: ${err.message}`);
-  }
-});
 app.use("/api", express.json());
 
 function renderPage(res, view, locals = {}) {
@@ -113,9 +89,78 @@ function forwardSetCookieHeaders(upstream, res) {
   }
 }
 
+function normalizeAssetApiPathFromRequest(req) {
+  const rawUrl = String(req.originalUrl || "");
+  const [rawPath, rawQuery] = rawUrl.split("?", 2);
+  const supportedPrefixes = [
+    "/api/configurator/assets",
+    "/api/merch/assets",
+  ];
+  const publicPrefix = supportedPrefixes.find((prefix) => rawPath.startsWith(`${prefix}/`));
+
+  if (!publicPrefix) {
+    return null;
+  }
+
+  const rawSegments = rawPath.slice(publicPrefix.length + 1).split("/");
+  const encodedSegments = [];
+
+  for (const rawSegment of rawSegments) {
+    if (!rawSegment || rawSegment === "." || rawSegment === "..") {
+      return null;
+    }
+
+    let decodedSegment;
+    try {
+      decodedSegment = decodeURIComponent(rawSegment);
+    } catch (_err) {
+      return null;
+    }
+
+    if (
+      !decodedSegment ||
+      decodedSegment === "." ||
+      decodedSegment === ".." ||
+      decodedSegment.includes("/") ||
+      decodedSegment.includes("\\")
+    ) {
+      return null;
+    }
+
+    encodedSegments.push(encodeURIComponent(decodedSegment));
+  }
+
+  return `${publicPrefix}/${encodedSegments.join("/")}${rawQuery ? `?${rawQuery}` : ""}`;
+}
+
+function isAssetApiPath(req) {
+  return /^\/api\/(?:configurator|merch)\/assets(?:\/|$)/.test(
+    String(req.originalUrl || "").split("?")[0]
+  );
+}
+
+function buildApiGatewayUrl(req) {
+  const assetPath = normalizeAssetApiPathFromRequest(req);
+
+  if (assetPath) {
+    return new URL(assetPath, API_GATEWAY);
+  }
+
+  if (isAssetApiPath(req)) {
+    return null;
+  }
+
+  return new URL(req.originalUrl, API_GATEWAY);
+}
+
 async function forwardToApiGateway(req, res) {
   try {
-    const upstreamUrl = new URL(req.originalUrl, API_GATEWAY);
+    const upstreamUrl = buildApiGatewayUrl(req);
+
+    if (!upstreamUrl) {
+      return res.status(400).json({ error: "invalid asset key" });
+    }
+
     const headers = {};
 
     if (req.headers.cookie) {
@@ -140,7 +185,12 @@ async function forwardToApiGateway(req, res) {
       res.setHeader("content-type", contentType);
     }
 
-    res.send(await upstream.text());
+    const cacheControl = upstream.headers.get("cache-control");
+    if (cacheControl) {
+      res.setHeader("cache-control", cacheControl);
+    }
+
+    res.send(Buffer.from(await upstream.arrayBuffer()));
   } catch (err) {
     res.status(502).json({ error: err.message });
   }

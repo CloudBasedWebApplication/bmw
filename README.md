@@ -50,7 +50,7 @@ Contains shared browser assets and EJS templates used by the web-shop presentati
 Contains the split web-shop presentation layer and backend microservices.
 
 - `services/web-shop-frontend/`: browser-facing entry service; serves `/static`, exposes host port 3000, and forwards all other requests to `web-shop-backend`
-- `services/web-shop-backend/`: renders all HTML/EJS pages, forwards same-origin `/api/*` calls to `api-gateway`, fetches merch SSR data through the gateway, and keeps `/minio` as a temporary Phase 1 exception
+- `services/web-shop-backend/`: renders all HTML/EJS pages, forwards same-origin `/api/*` calls to `api-gateway`, and fetches merch SSR data through the gateway
 - `services/car-configurator/`: resolves selected options into a pre-generated image, validates combinations, and calculates price
 - `services/merch-shop/`: provides merchandise catalog and product detail data
 - `services/ai-feature/`: integrates Gemini, generates recommendations, and calls the configurator service
@@ -96,13 +96,7 @@ Copy-Item .env.example .env # Windows
 After copying the file, fill in at least `GEMINI_API_KEY` and `GOOGLE_MAPS_API_KEY` in `.env`.
 If you want to override the Gemini model selection locally, `GEMINI_MODEL` defaults to `gemini-2.5-flash` and `GEMINI_FALLBACK_MODEL` defaults to `gemini-2.5-flash-lite`.
 
-`MINIO_PUBLIC_URL` controls the image URLs that are sent to the browser. In Phase 1, keep it same-origin so browser image requests go through `web-shop-frontend` and the temporary `web-shop-backend` `/minio` proxy:
-
-```env
-MINIO_PUBLIC_URL=/minio
-```
-
-Docker Compose still exposes MinIO API port `9000` and console port `9001` as temporary/debug infrastructure ports. Do not use the direct MinIO API URL as the app image URL path during Phase 1.
+MinIO API port `9000` is Docker-internal only. Browser-visible product image URLs are owned API asset routes (`/api/configurator/assets/*` and `/api/merch/assets/*`) that flow through the web-shop frontend, web-shop backend, API gateway, and owning service before reading MinIO. Only the MinIO console/debug port `9001` is host-exposed.
 
 After changing `.env`, recreate the affected containers:
 
@@ -143,14 +137,14 @@ docker compose down
 ## MinIO Image Sync
 
 Images are imported from the project folders `assets/configurator/` and `assets/merch-shop/` into the MinIO bucket `MINIO_BUCKET`.
-The Home page assets from `web/public/images/` are also mirrored into `MINIO_BUCKET/home`. During Phase 1, browser `/minio/*` URLs are proxied by `web-shop-backend` through `web-shop-frontend`; Phase 2 should replace this with service-owned image endpoints.
+Home page presentation assets live under `web/public/images/` and are served by `web-shop-frontend` as `/static/images/<file>`.
 
-Phase 2 keeps image objects in MinIO, but removes direct presentation-tier image access to MinIO. Browser image requests should use same-origin API routes:
+Phase 2 keeps product image objects in MinIO, but removes presentation-tier direct access to MinIO. Browser image requests use same-origin API routes:
 
 - `GET /api/configurator/assets/*`
 - `GET /api/merch/assets/*`
 
-Those routes should flow through `web-shop-frontend`, `web-shop-backend`, and `api-gateway` to the owning service, which streams the object from MinIO. The old `/minio/*` browser URL path should be deleted rather than kept as a redirect. The MinIO API port `9000` should be Docker-internal only; port `9001` may remain available for local console/debug access.
+Those routes flow through `web-shop-frontend`, `web-shop-backend`, and `api-gateway` to the owning service, which streams the object from Docker-internal MinIO. The old `/minio/*` browser URL path has been deleted rather than kept as a redirect. MinIO API port `9000` is Docker-internal only; port `9001` remains available for local console/debug access.
 
 1. Put the car images into `assets/configurator/` and the merchandise images into `assets/merch-shop/`.
 2. Put the Home page images into `web/public/images/`.

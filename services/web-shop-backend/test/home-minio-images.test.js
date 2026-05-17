@@ -61,7 +61,6 @@ async function startBackend() {
       ...process.env,
       PORT: String(port),
       API_GATEWAY_URL: `http://127.0.0.1:${apiGatewayPort}`,
-      MINIO_PUBLIC_URL: "/minio",
       REPO_ROOT: path.resolve(process.cwd(), "..", ".."),
     },
     stdio: "ignore",
@@ -86,7 +85,7 @@ async function startBackend() {
   };
 }
 
-test("home page MinIO image URLs are absolute site paths", async () => {
+test("home page uses static presentation assets and owned merch asset paths", async () => {
   const backend = await startBackend();
 
   try {
@@ -96,8 +95,9 @@ test("home page MinIO image URLs are absolute site paths", async () => {
 
     const html = await response.text();
 
-    assert.doesNotMatch(html, /["']minio\/configurator-images\//);
-    assert.match(html, /["']\/minio\/configurator-images\/home\/bmw_ai\.png/);
+    assert.doesNotMatch(html, /\/minio\//);
+    assert.match(html, /["']\/static\/images\/bmw_ai\.png/);
+    assert.match(html, /["']\/api\/merch\/assets\/merch-shop\/BMW_Merchandise_weiss\.avif/);
   } finally {
     await backend.stop();
   }
