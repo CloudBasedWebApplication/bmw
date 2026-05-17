@@ -93,6 +93,11 @@
     .config-spacer { min-height: 40vh; }
     .config-column,
     .config-spacer { grid-column: 1; }
+    .config-panel-stack {
+      max-height: calc(100vh - 72px - var(--summary-bar-height) - 40px);
+      margin-top: 0;
+      transform: none;
+    }
     .config-background img {
       object-position: center center;
     }
@@ -116,6 +121,17 @@
     grid-column: 2;
   }
 
+  .config-panel-stack {
+    position: relative;
+    height: var(--config-panel-stack-height, auto);
+    max-height: calc(100vh - 72px - var(--summary-bar-height) - 72px);
+    min-height: 220px;
+    margin-top: 189px;
+    overflow: hidden;
+    transform: translateX(38px);
+    transition: height 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
   .panel {
     background: var(--config-rail);
     border-radius: var(--radius-lg);
@@ -130,6 +146,55 @@
     background: rgba(255, 255, 255, 0.28);
     border-color: rgba(255, 255, 255, 0.26);
     box-shadow: 0 18px 60px rgba(15, 23, 42, 0.08);
+    box-sizing: border-box;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    min-height: 220px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
+    transform: translateY(100%);
+    transition: transform 0.62s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.42s ease;
+  }
+
+  .config-options-panel.active {
+    border-color: rgba(17, 24, 39, 0.22);
+    position: relative;
+    opacity: 1;
+    pointer-events: auto;
+    visibility: visible;
+    transform: translateY(0);
+  }
+
+  .config-options-panel.is-transitioning {
+    position: absolute;
+    top: 0;
+    left: 0;
+    visibility: visible;
+    pointer-events: none;
+  }
+
+  .config-options-panel.enter-from-bottom {
+    transform: translateY(100%);
+  }
+
+  .config-options-panel.enter-from-top {
+    transform: translateY(-100%);
+  }
+
+  .config-options-panel.exit-to-top {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+
+  .config-options-panel.exit-to-bottom {
+    opacity: 0;
+    transform: translateY(100%);
   }
 
   .config-spacer {
@@ -430,20 +495,26 @@
 <div class="config-layout">
   <div class="config-spacer"></div>
   <div class="config-column">
-    <div class="panel config-options-panel">
-      <h1>Konfiguration</h1>
+    <div class="config-panel-stack" id="configPanelStack" aria-label="Konfigurationsschritte">
+      <section class="panel config-options-panel" data-view="front">
+        <h1>Modell</h1>
+        <div class="config-btn-group" id="modelBtns"></div>
+      </section>
 
-      <div class="section-label">Modell</div>
-      <div class="config-btn-group" id="modelBtns"></div>
+      <section class="panel config-options-panel" data-view="front">
+        <h1>Exterieur-Farbe</h1>
+        <div class="color-group" id="colorBtns"></div>
+      </section>
 
-      <div class="section-label">Exterieur-Farbe</div>
-      <div class="color-group" id="colorBtns"></div>
+      <section class="panel config-options-panel" data-view="interior">
+        <h1>Interieur</h1>
+        <div class="option-group" id="interiorBtns"></div>
+      </section>
 
-      <div class="section-label">Interieur</div>
-      <div class="option-group" id="interiorBtns"></div>
-
-      <div class="section-label">Felgen</div>
-      <div class="option-group" id="wheelsBtns"></div>
+      <section class="panel config-options-panel" data-view="wheels">
+        <h1>Felgen</h1>
+        <div class="option-group" id="wheelsBtns"></div>
+      </section>
     </div>
 
   </div>
@@ -632,6 +703,110 @@
     updateImage();
   }
 
+  function initializeConfigPanelScroll() {
+    const stack = document.getElementById("configPanelStack");
+    const panels = Array.from(document.querySelectorAll(".config-options-panel"));
+    if (!stack || !panels.length) return;
+
+    let activeIndex = Math.max(0, panels.findIndex((panel) => panel.dataset.view === state.selection.view));
+    let lastSwitchAt = 0;
+    let touchStartY = null;
+    let isAnimating = false;
+
+    function setStackHeight(panel) {
+      stack.style.setProperty("--config-panel-stack-height", `${panel.offsetHeight}px`);
+    }
+
+    function activatePanel(index, direction = 0) {
+      const nextIndex = Math.max(0, Math.min(index, panels.length - 1));
+      const nextPanel = panels[nextIndex];
+      const currentPanel = panels[activeIndex];
+      if (!nextPanel) return;
+      if (nextIndex === activeIndex || direction === 0 || !currentPanel) {
+        panels.forEach((entry) => {
+          entry.classList.remove(
+            "active",
+            "is-transitioning",
+            "enter-from-bottom",
+            "enter-from-top",
+            "exit-to-top",
+            "exit-to-bottom"
+          );
+        });
+        nextPanel.classList.add("active");
+        activeIndex = nextIndex;
+        setStackHeight(nextPanel);
+        setActiveView(nextPanel.dataset.view || "front");
+        return;
+      }
+
+      isAnimating = true;
+      setStackHeight(nextPanel);
+      currentPanel.classList.add("is-transitioning", direction > 0 ? "exit-to-top" : "exit-to-bottom");
+      nextPanel.classList.add(
+        "active",
+        "is-transitioning",
+        direction > 0 ? "enter-from-bottom" : "enter-from-top"
+      );
+      setActiveView(nextPanel.dataset.view || "front");
+
+      window.requestAnimationFrame(() => {
+        nextPanel.classList.remove("enter-from-bottom", "enter-from-top");
+      });
+
+      window.setTimeout(() => {
+        currentPanel.classList.remove("active", "is-transitioning", "exit-to-top", "exit-to-bottom");
+        nextPanel.classList.remove("is-transitioning");
+        activeIndex = nextIndex;
+        isAnimating = false;
+      }, 640);
+    }
+
+    function switchPanel(direction) {
+      if (isAnimating) return;
+      const now = Date.now();
+      if (now - lastSwitchAt < 720) return;
+      const nextIndex = activeIndex + direction;
+      if (nextIndex < 0 || nextIndex >= panels.length) return;
+      lastSwitchAt = now;
+      activatePanel(nextIndex, direction);
+    }
+
+    function refreshActivePanelHeight() {
+      const panel = panels[activeIndex];
+      if (panel) setStackHeight(panel);
+    }
+
+    window.addEventListener("resize", refreshActivePanelHeight);
+
+    function cleanupPanelScroll() {
+      window.removeEventListener("resize", refreshActivePanelHeight);
+    }
+
+    stack.addEventListener("panel-scroll-cleanup", cleanupPanelScroll, { once: true });
+
+    stack.addEventListener("wheel", (event) => {
+      if (Math.abs(event.deltaY) < 20) return;
+      event.preventDefault();
+      switchPanel(event.deltaY > 0 ? 1 : -1);
+    }, { passive: false });
+
+    stack.addEventListener("touchstart", (event) => {
+      touchStartY = event.touches[0] ? event.touches[0].clientY : null;
+    }, { passive: true });
+
+    stack.addEventListener("touchend", (event) => {
+      if (touchStartY === null) return;
+      const touchEndY = event.changedTouches[0] ? event.changedTouches[0].clientY : touchStartY;
+      const deltaY = touchStartY - touchEndY;
+      touchStartY = null;
+      if (Math.abs(deltaY) < 30) return;
+      switchPanel(deltaY > 0 ? 1 : -1);
+    }, { passive: true });
+
+    activatePanel(activeIndex);
+  }
+
   async function fetchOptionsForModel(modelId) {
     const encodedModelId = encodeURIComponent(modelId);
     const [colors, interiors, wheels] = await Promise.all([
@@ -667,6 +842,7 @@
       await recalculate();
       setActiveView(state.selection.view);
       syncBrowserUrl(true);
+      initializeConfigPanelScroll();
     } catch (err) {
       console.error(err);
       document.getElementById("placeholder").textContent = "Fehler beim Laden";
@@ -723,7 +899,7 @@
       window.history.replaceState(null, "", targetUrl);
       return;
     }
-    window.location.assign(targetUrl);
+    window.history.pushState(null, "", targetUrl);
   }
 
   async function navigateToModel(model) {
@@ -771,8 +947,10 @@
       wrapper.addEventListener("click", () => {
         if (state.selection.colorId === color.id) return;
         state.selection.colorId = color.id;
+        renderColorButtons();
         setActiveView("front");
         syncBrowserUrl(false);
+        recalculate();
       });
       container.appendChild(wrapper);
     });
@@ -788,8 +966,10 @@
       btn.addEventListener("click", () => {
         if (state.selection.interiorId === interior.id) return;
         state.selection.interiorId = interior.id;
+        renderInteriorButtons();
         setActiveView("interior");
         syncBrowserUrl(false);
+        recalculate();
       });
       container.appendChild(btn);
     });
@@ -805,8 +985,10 @@
       btn.addEventListener("click", () => {
         if (state.selection.wheelsId === wheel.id) return;
         state.selection.wheelsId = wheel.id;
+        renderWheelsButtons();
         setActiveView("wheels");
         syncBrowserUrl(false);
+        recalculate();
       });
       container.appendChild(btn);
     });
