@@ -9,6 +9,9 @@
     --radius-md: 2px;
     --shadow: 0 24px 80px rgba(15, 23, 42, 0.12);
     --config-rail: rgba(255, 255, 255, 0.92);
+    --config-nav-top: 24px;
+    --config-nav-height: 64px;
+    --config-summary-top: calc(var(--config-nav-top) + var(--config-nav-height) + 16px);
     --summary-bar-height: 96px;
   }
 
@@ -18,36 +21,25 @@
 
   .site-nav--solid {
     position: fixed;
-    top: 0;
+    top: var(--config-nav-top);
     left: 50%;
     z-index: 10;
-    width: 100%;
-    min-height: 72px;
+    width: min(1180px, calc(100% - 40px));
+    min-height: var(--config-nav-height);
     margin: 0;
     transform: translateX(-50%);
-    border: 0;
-    border-radius: 0;
-    background: rgba(255, 255, 255, 0.96);
-    color: #111827;
-    box-shadow: 0 1px 0 rgba(17, 24, 39, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius);
+    background: var(--dark);
+    color: #fff;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
   }
 
-  .site-nav--solid .brand span,
-  .site-nav--solid .nav-links a {
-    color: rgba(17, 24, 39, 0.68);
-  }
-
-  .site-nav--solid .nav-links a:hover,
-  .site-nav--solid .nav-links a.active {
-    color: #111827;
-    background: rgba(17, 24, 39, 0.06);
-  }
-
   .config-background {
     position: fixed;
-    inset: 72px 0 0;
+    inset: 0;
     z-index: 0;
     overflow: hidden;
     background:
@@ -79,8 +71,8 @@
     z-index: 1;
     max-width: 1440px;
     margin: 0 auto;
-    min-height: calc(100vh - 72px);
-    padding: calc(72px + var(--summary-bar-height) + 36px) 32px 40px;
+    min-height: calc(100vh - var(--config-summary-top));
+    padding: calc(var(--config-summary-top) + var(--summary-bar-height) + 36px) 32px 40px;
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(390px, 448px);
     gap: 40px;
@@ -89,10 +81,15 @@
 
   @media (max-width: 980px) {
     .config-layout { grid-template-columns: 1fr; }
-    .config-layout { padding: calc(72px + var(--summary-bar-height) + 36px) 16px 28px; }
+    .config-layout { padding: calc(var(--config-summary-top) + var(--summary-bar-height) + 36px) 16px 28px; }
     .config-spacer { min-height: 40vh; }
     .config-column,
     .config-spacer { grid-column: 1; }
+    .config-panel-stack {
+      max-height: calc(100vh - var(--config-summary-top) - var(--summary-bar-height) - 40px);
+      margin-top: 0;
+      transform: none;
+    }
     .config-background img {
       object-position: center center;
     }
@@ -116,6 +113,17 @@
     grid-column: 2;
   }
 
+  .config-panel-stack {
+    position: relative;
+    height: var(--config-panel-stack-height, auto);
+    max-height: calc(100vh - var(--config-summary-top) - var(--summary-bar-height) - 72px);
+    min-height: 295px;
+    margin-top: 189px;
+    overflow: hidden;
+    transform: translateX(38px);
+    transition: height 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
   .panel {
     background: var(--config-rail);
     border-radius: var(--radius-lg);
@@ -130,6 +138,55 @@
     background: rgba(255, 255, 255, 0.28);
     border-color: rgba(255, 255, 255, 0.26);
     box-shadow: 0 18px 60px rgba(15, 23, 42, 0.08);
+    box-sizing: border-box;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    min-height: 295px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
+    transform: translateY(100%);
+    transition: transform 0.62s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.42s ease;
+  }
+
+  .config-options-panel.active {
+    border-color: rgba(17, 24, 39, 0.22);
+    position: relative;
+    opacity: 1;
+    pointer-events: auto;
+    visibility: visible;
+    transform: translateY(0);
+  }
+
+  .config-options-panel.is-transitioning {
+    position: absolute;
+    top: 0;
+    left: 0;
+    visibility: visible;
+    pointer-events: none;
+  }
+
+  .config-options-panel.enter-from-bottom {
+    transform: translateY(100%);
+  }
+
+  .config-options-panel.enter-from-top {
+    transform: translateY(-100%);
+  }
+
+  .config-options-panel.exit-to-top {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+
+  .config-options-panel.exit-to-bottom {
+    opacity: 0;
+    transform: translateY(100%);
   }
 
   .config-spacer {
@@ -239,9 +296,10 @@
 
   .summary-row {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 4px;
     padding: 0 18px;
     border-right: 1px solid rgba(17, 24, 39, 0.12);
     border-bottom: 0;
@@ -258,15 +316,16 @@
 
   .summary-value {
     font-weight: 700;
-    text-align: right;
+    text-align: left;
   }
 
   .price-tag {
     display: flex;
     flex-direction: column;
     min-width: 170px;
-    padding-right: 24px;
-    border-right: 1px solid rgba(17, 24, 39, 0.12);
+    padding-left: 24px;
+    border-left: 1px solid rgba(17, 24, 39, 0.12);
+    text-align: right;
   }
 
   .price-tag span {
@@ -301,20 +360,21 @@
 
   .summary-panel {
     position: fixed;
-    top: 72px;
+    top: var(--config-summary-top);
     left: 50%;
     z-index: 9;
     width: 100%;
     min-height: var(--summary-bar-height);
     margin: 0;
     padding: 14px 32px;
+    background: rgba(255, 255, 255, 0.28);
     transform: translateX(-50%);
     border-width: 0 0 1px;
-    border-color: rgba(17, 24, 39, 0.1);
+    border-color: rgba(255, 255, 255, 0.26);
     border-radius: 0;
-    box-shadow: 0 1px 0 rgba(17, 24, 39, 0.08);
+    box-shadow: 0 18px 60px rgba(15, 23, 42, 0.08);
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr) minmax(210px, 280px);
+    grid-template-columns: minmax(0, 1fr) auto minmax(210px, 280px);
     gap: 24px;
     align-items: center;
   }
@@ -329,6 +389,10 @@
 
   .summary-action {
     min-width: 0;
+    align-self: center;
+    position: relative;
+    display: flex;
+    align-items: center;
   }
 
   @media (max-width: 760px) {
@@ -345,10 +409,11 @@
 
     .price-tag {
       min-width: 0;
-      padding-right: 0;
+      padding-left: 0;
       padding-bottom: 10px;
-      border-right: 0;
+      border-left: 0;
       border-bottom: 1px solid rgba(17, 24, 39, 0.1);
+      text-align: left;
     }
 
     .price-main {
@@ -386,8 +451,12 @@
   }
 
   #status {
-    margin-top: 14px;
-    min-height: 20px;
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    margin-top: 0;
+    min-height: 0;
     text-align: center;
     font-weight: 600;
     font-size: 0.9rem;
@@ -401,11 +470,6 @@
 <div class="placeholder" id="placeholder">Lade Vorschau ...</div>
 
 <div class="panel summary-panel">
-  <div class="price-tag">
-    <span id="modelNameDisplay">Modell laden...</span>
-    <div class="price-main" id="price">0,00 EUR</div>
-  </div>
-
   <div class="summary-grid">
     <div class="summary-row">
       <div class="summary-key">Exterieur</div>
@@ -421,6 +485,11 @@
     </div>
   </div>
 
+  <div class="price-tag">
+    <span id="modelNameDisplay">Modell laden...</span>
+    <div class="price-main" id="price">0,00 EUR</div>
+  </div>
+
   <div class="summary-action">
     <button class="add-btn" id="addBtn" disabled>Konfiguration abschließen</button>
     <div id="status"></div>
@@ -430,20 +499,26 @@
 <div class="config-layout">
   <div class="config-spacer"></div>
   <div class="config-column">
-    <div class="panel config-options-panel">
-      <h1>Konfiguration</h1>
+    <div class="config-panel-stack" id="configPanelStack" aria-label="Konfigurationsschritte">
+      <section class="panel config-options-panel" data-view="front">
+        <h1>Modell</h1>
+        <div class="config-btn-group" id="modelBtns"></div>
+      </section>
 
-      <div class="section-label">Modell</div>
-      <div class="config-btn-group" id="modelBtns"></div>
+      <section class="panel config-options-panel" data-view="front">
+        <h1>Exterieur-Farbe</h1>
+        <div class="color-group" id="colorBtns"></div>
+      </section>
 
-      <div class="section-label">Exterieur-Farbe</div>
-      <div class="color-group" id="colorBtns"></div>
+      <section class="panel config-options-panel" data-view="interior">
+        <h1>Interieur</h1>
+        <div class="option-group" id="interiorBtns"></div>
+      </section>
 
-      <div class="section-label">Interieur</div>
-      <div class="option-group" id="interiorBtns"></div>
-
-      <div class="section-label">Felgen</div>
-      <div class="option-group" id="wheelsBtns"></div>
+      <section class="panel config-options-panel" data-view="wheels">
+        <h1>Felgen</h1>
+        <div class="option-group" id="wheelsBtns"></div>
+      </section>
     </div>
 
   </div>
@@ -480,6 +555,39 @@
       style: "currency",
       currency: "EUR"
     });
+  }
+
+  function displayText(value) {
+    return String(value || "")
+      .replace(/Weiss/g, "Weiß")
+      .replace(/weiss/g, "weiß")
+      .replace(/Raeder/g, "Räder")
+      .replace(/raeder/g, "räder")
+      .replace(/Auffaellig/g, "Auffällig")
+      .replace(/auffaellig/g, "auffällig")
+      .replace(/faellig/g, "fällig")
+      .replace(/Praezise/g, "Präzise")
+      .replace(/Praeziser/g, "Präziser")
+      .replace(/praezise/g, "präzise")
+      .replace(/Hoeher/g, "Höher")
+      .replace(/Hoehere/g, "Höhere")
+      .replace(/hoeher/g, "höher")
+      .replace(/Oberflaechen/g, "Oberflächen")
+      .replace(/oberflaechen/g, "oberflächen")
+      .replace(/Luxurioes/g, "Luxuriös")
+      .replace(/luxurioes/g, "luxuriös")
+      .replace(/Weitlaeufig/g, "Weitläufig")
+      .replace(/weitlaeufig/g, "weitläufig")
+      .replace(/Repraesentativ/g, "Repräsentativ")
+      .replace(/repraesentativ/g, "repräsentativ")
+      .replace(/grossflaechig/g, "großflächig")
+      .replace(/Grossflaechig/g, "Großflächig")
+      .replace(/Souveraen/g, "Souverän")
+      .replace(/souveraen/g, "souverän")
+      .replace(/Einpraegsam/g, "Einprägsam")
+      .replace(/einpraegsam/g, "einprägsam")
+      .replace(/moeglich/g, "möglich")
+      .replace(/Moeglich/g, "Möglich");
   }
 
   function normalizeText(value) {
@@ -632,6 +740,110 @@
     updateImage();
   }
 
+  function initializeConfigPanelScroll() {
+    const stack = document.getElementById("configPanelStack");
+    const panels = Array.from(document.querySelectorAll(".config-options-panel"));
+    if (!stack || !panels.length) return;
+
+    let activeIndex = Math.max(0, panels.findIndex((panel) => panel.dataset.view === state.selection.view));
+    let lastSwitchAt = 0;
+    let touchStartY = null;
+    let isAnimating = false;
+
+    function setStackHeight(panel) {
+      stack.style.setProperty("--config-panel-stack-height", `${panel.offsetHeight}px`);
+    }
+
+    function activatePanel(index, direction = 0) {
+      const nextIndex = Math.max(0, Math.min(index, panels.length - 1));
+      const nextPanel = panels[nextIndex];
+      const currentPanel = panels[activeIndex];
+      if (!nextPanel) return;
+      if (nextIndex === activeIndex || direction === 0 || !currentPanel) {
+        panels.forEach((entry) => {
+          entry.classList.remove(
+            "active",
+            "is-transitioning",
+            "enter-from-bottom",
+            "enter-from-top",
+            "exit-to-top",
+            "exit-to-bottom"
+          );
+        });
+        nextPanel.classList.add("active");
+        activeIndex = nextIndex;
+        setStackHeight(nextPanel);
+        setActiveView(nextPanel.dataset.view || "front");
+        return;
+      }
+
+      isAnimating = true;
+      setStackHeight(nextPanel);
+      currentPanel.classList.add("is-transitioning", direction > 0 ? "exit-to-top" : "exit-to-bottom");
+      nextPanel.classList.add(
+        "active",
+        "is-transitioning",
+        direction > 0 ? "enter-from-bottom" : "enter-from-top"
+      );
+      setActiveView(nextPanel.dataset.view || "front");
+
+      window.requestAnimationFrame(() => {
+        nextPanel.classList.remove("enter-from-bottom", "enter-from-top");
+      });
+
+      window.setTimeout(() => {
+        currentPanel.classList.remove("active", "is-transitioning", "exit-to-top", "exit-to-bottom");
+        nextPanel.classList.remove("is-transitioning");
+        activeIndex = nextIndex;
+        isAnimating = false;
+      }, 640);
+    }
+
+    function switchPanel(direction) {
+      if (isAnimating) return;
+      const now = Date.now();
+      if (now - lastSwitchAt < 720) return;
+      const nextIndex = activeIndex + direction;
+      if (nextIndex < 0 || nextIndex >= panels.length) return;
+      lastSwitchAt = now;
+      activatePanel(nextIndex, direction);
+    }
+
+    function refreshActivePanelHeight() {
+      const panel = panels[activeIndex];
+      if (panel) setStackHeight(panel);
+    }
+
+    window.addEventListener("resize", refreshActivePanelHeight);
+
+    function cleanupPanelScroll() {
+      window.removeEventListener("resize", refreshActivePanelHeight);
+    }
+
+    stack.addEventListener("panel-scroll-cleanup", cleanupPanelScroll, { once: true });
+
+    stack.addEventListener("wheel", (event) => {
+      if (Math.abs(event.deltaY) < 20) return;
+      event.preventDefault();
+      switchPanel(event.deltaY > 0 ? 1 : -1);
+    }, { passive: false });
+
+    stack.addEventListener("touchstart", (event) => {
+      touchStartY = event.touches[0] ? event.touches[0].clientY : null;
+    }, { passive: true });
+
+    stack.addEventListener("touchend", (event) => {
+      if (touchStartY === null) return;
+      const touchEndY = event.changedTouches[0] ? event.changedTouches[0].clientY : touchStartY;
+      const deltaY = touchStartY - touchEndY;
+      touchStartY = null;
+      if (Math.abs(deltaY) < 30) return;
+      switchPanel(deltaY > 0 ? 1 : -1);
+    }, { passive: true });
+
+    activatePanel(activeIndex);
+  }
+
   async function fetchOptionsForModel(modelId) {
     const encodedModelId = encodeURIComponent(modelId);
     const [colors, interiors, wheels] = await Promise.all([
@@ -667,6 +879,7 @@
       await recalculate();
       setActiveView(state.selection.view);
       syncBrowserUrl(true);
+      initializeConfigPanelScroll();
     } catch (err) {
       console.error(err);
       document.getElementById("placeholder").textContent = "Fehler beim Laden";
@@ -723,7 +936,7 @@
       window.history.replaceState(null, "", targetUrl);
       return;
     }
-    window.location.assign(targetUrl);
+    window.history.pushState(null, "", targetUrl);
   }
 
   async function navigateToModel(model) {
@@ -749,7 +962,7 @@
     state.models.forEach((model) => {
       const btn = document.createElement("button");
       btn.className = "config-btn" + (state.selection.modelId === model.id ? " active" : "");
-      btn.textContent = model.name;
+      btn.textContent = displayText(model.name);
       btn.addEventListener("click", async () => {
         if (state.selection.modelId === model.id) return;
         await navigateToModel(model);
@@ -766,13 +979,15 @@
       wrapper.className = "swatch-wrapper" + (state.selection.colorId === color.id ? " active" : "");
       wrapper.innerHTML = `
         <span class="swatch" style="background:${colorFromName(color.name)}"></span>
-        <span class="swatch-label">${color.name}</span>
+        <span class="swatch-label">${displayText(color.name)}</span>
       `;
       wrapper.addEventListener("click", () => {
         if (state.selection.colorId === color.id) return;
         state.selection.colorId = color.id;
+        renderColorButtons();
         setActiveView("front");
         syncBrowserUrl(false);
+        recalculate();
       });
       container.appendChild(wrapper);
     });
@@ -784,12 +999,14 @@
     state.interiors.forEach((interior) => {
       const btn = document.createElement("button");
       btn.className = "option-btn" + (state.selection.interiorId === interior.id ? " active" : "");
-      btn.textContent = `${interior.name} (+${formatPrice(interior.price)})`;
+      btn.textContent = `${displayText(interior.name)} (+${formatPrice(interior.price)})`;
       btn.addEventListener("click", () => {
         if (state.selection.interiorId === interior.id) return;
         state.selection.interiorId = interior.id;
+        renderInteriorButtons();
         setActiveView("interior");
         syncBrowserUrl(false);
+        recalculate();
       });
       container.appendChild(btn);
     });
@@ -801,12 +1018,14 @@
     state.wheels.forEach((wheel) => {
       const btn = document.createElement("button");
       btn.className = "option-btn" + (state.selection.wheelsId === wheel.id ? " active" : "");
-      btn.textContent = `${wheel.name} (+${formatPrice(wheel.price)})`;
+      btn.textContent = `${displayText(wheel.name)} (+${formatPrice(wheel.price)})`;
       btn.addEventListener("click", () => {
         if (state.selection.wheelsId === wheel.id) return;
         state.selection.wheelsId = wheel.id;
+        renderWheelsButtons();
         setActiveView("wheels");
         syncBrowserUrl(false);
+        recalculate();
       });
       container.appendChild(btn);
     });
@@ -853,11 +1072,11 @@
     }
 
     document.getElementById("modelNameDisplay").textContent =
-      `${cfg.model.name} ${cfg.model.packageName || ""}`.trim();
+      displayText(`${cfg.model.name} ${cfg.model.packageName || ""}`.trim());
     document.getElementById("price").textContent = formatPrice(cfg.totalPrice);
-    document.getElementById("selectedColor").textContent = cfg.color ? cfg.color.name : "-";
-    document.getElementById("selectedInterior").textContent = cfg.interior ? cfg.interior.name : "-";
-    document.getElementById("selectedWheels").textContent = cfg.wheels ? cfg.wheels.name : "-";
+    document.getElementById("selectedColor").textContent = cfg.color ? displayText(cfg.color.name) : "-";
+    document.getElementById("selectedInterior").textContent = cfg.interior ? displayText(cfg.interior.name) : "-";
+    document.getElementById("selectedWheels").textContent = cfg.wheels ? displayText(cfg.wheels.name) : "-";
 
     addBtn.disabled = false;
     updateImage();
@@ -906,15 +1125,15 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           type: "car",
-          name: `${cfg.model.name} ${cfg.model.packageName || ""}`.trim(),
+          name: displayText(`${cfg.model.name} ${cfg.model.packageName || ""}`.trim()),
           price: cfg.totalPrice,
           imageUrl: cfg.previewImages.front,
           quantity: 1,
           details: {
             modelId: cfg.model.id,
-            color: cfg.color ? cfg.color.name : null,
-            interior: cfg.interior ? cfg.interior.name : null,
-            wheels: cfg.wheels ? cfg.wheels.name : null
+            color: cfg.color ? displayText(cfg.color.name) : null,
+            interior: cfg.interior ? displayText(cfg.interior.name) : null,
+            wheels: cfg.wheels ? displayText(cfg.wheels.name) : null
           }
         })
       });
