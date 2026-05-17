@@ -5,117 +5,144 @@
      replaces CI's default shadow on this view. */
 
   :root {
-    --radius-lg: 24px;
-    --radius-md: 12px;
-    --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+    --radius-lg: 2px;
+    --radius-md: 2px;
+    --shadow: 0 24px 80px rgba(15, 23, 42, 0.12);
+    --config-rail: rgba(255, 255, 255, 0.92);
+    --summary-bar-height: 96px;
+  }
+
+  body {
+    background: #f4f4f4;
+  }
+
+  .site-nav--solid {
+    position: fixed;
+    top: 0;
+    left: 50%;
+    z-index: 10;
+    width: 100%;
+    min-height: 72px;
+    margin: 0;
+    transform: translateX(-50%);
+    border: 0;
+    border-radius: 0;
+    background: rgba(255, 255, 255, 0.96);
+    color: #111827;
+    box-shadow: 0 1px 0 rgba(17, 24, 39, 0.1);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+  }
+
+  .site-nav--solid .brand span,
+  .site-nav--solid .nav-links a {
+    color: rgba(17, 24, 39, 0.68);
+  }
+
+  .site-nav--solid .nav-links a:hover,
+  .site-nav--solid .nav-links a.active {
+    color: #111827;
+    background: rgba(17, 24, 39, 0.06);
+  }
+
+  .config-background {
+    position: fixed;
+    inset: 72px 0 0;
+    z-index: 0;
+    overflow: hidden;
+    background:
+      linear-gradient(180deg, #f7f7f7 0%, #eeeeee 54%, #e5e5e5 54%, #f5f5f5 100%);
+  }
+
+  .config-background::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent 0%, transparent 58%, rgba(244, 244, 244, 0.24) 100%);
+    pointer-events: none;
+  }
+
+  .config-background img {
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center center;
+    display: block;
+    filter: saturate(1.12) contrast(1.04);
+    opacity: 0;
+    transition: opacity 0.35s ease;
   }
 
   .config-layout {
-    max-width: 1280px;
+    position: relative;
+    z-index: 1;
+    max-width: 1440px;
     margin: 0 auto;
-    padding: 20px;
+    min-height: calc(100vh - 72px);
+    padding: calc(72px + var(--summary-bar-height) + 36px) 32px 40px;
     display: grid;
-    grid-template-columns: 1.2fr 0.8fr;
-    gap: 32px;
+    grid-template-columns: minmax(0, 1fr) minmax(390px, 448px);
+    gap: 40px;
     align-items: start;
   }
 
   @media (max-width: 980px) {
     .config-layout { grid-template-columns: 1fr; }
-    .preview-column { position: static; }
-  }
-
-  .preview-column {
-    position: sticky;
-    top: 100px;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-  }
-
-  .car-stage {
-    background: #fff;
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-    box-shadow: var(--shadow);
-    border: 1px solid var(--line);
-  }
-
-  .stage-image-wrap {
-    width: 100%;
-    min-height: 520px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
-    padding: 20px;
-  }
-
-  .car-stage img {
-    width: 100%;
-    max-width: 900px;
-    height: auto;
-    display: block;
-    transition: opacity 0.25s ease;
+    .config-layout { padding: calc(72px + var(--summary-bar-height) + 36px) 16px 28px; }
+    .config-spacer { min-height: 40vh; }
+    .config-column,
+    .config-spacer { grid-column: 1; }
+    .config-background img {
+      object-position: center center;
+    }
   }
 
   .placeholder {
-    color: var(--muted);
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    color: #6b7280;
     font-weight: 600;
     text-align: center;
-  }
-
-  .view-tabs {
-    display: flex;
-    justify-content: center;
-    gap: 6px;
-    padding: 14px;
-    background: #f1f5f9;
-    flex-wrap: wrap;
-  }
-
-  .view-tab {
-    padding: 8px 16px;
-    border-radius: 999px;
-    border: none;
-    background: transparent;
-    font-size: 0.85rem;
-    font-weight: 600;
-    cursor: pointer;
-    font-family: inherit;
-  }
-
-  .view-tab.active {
-    background: #fff;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   }
 
   .config-column {
     display: flex;
     flex-direction: column;
     gap: 20px;
+    grid-column: 2;
   }
 
   .panel {
-    background: #fff;
+    background: var(--config-rail);
     border-radius: var(--radius-lg);
-    padding: 28px;
+    padding: 26px 28px;
     box-shadow: var(--shadow);
-    border: 1px solid var(--line);
+    border: 1px solid rgba(17, 24, 39, 0.08);
+    backdrop-filter: blur(22px);
+    -webkit-backdrop-filter: blur(22px);
   }
 
-  .price-panel { padding: 24px 28px; }
+  .config-options-panel {
+    background: rgba(255, 255, 255, 0.28);
+    border-color: rgba(255, 255, 255, 0.26);
+    box-shadow: 0 18px 60px rgba(15, 23, 42, 0.08);
+  }
+
+  .config-spacer {
+    min-height: 1px;
+    grid-column: 1;
+    padding-top: 10px;
+  }
 
   .config-layout h1 {
-    font-size: 2.3rem;
-    font-weight: 800;
-    letter-spacing: -0.02em;
+    font-size: 1.9rem;
+    font-weight: 700;
+    letter-spacing: 0;
     margin: 0 0 8px;
-  }
-
-  .subtitle {
-    color: var(--muted);
-    margin-bottom: 24px;
   }
 
   .section-label {
@@ -123,8 +150,8 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    color: var(--muted);
-    margin: 22px 0 12px;
+    color: #4b5563;
+    margin: 26px 0 12px;
   }
 
   .config-btn-group,
@@ -134,13 +161,19 @@
     gap: 10px;
   }
 
+  .config-btn-group {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .config-btn,
   .option-btn {
-    padding: 12px 18px;
-    border: 1px solid var(--line);
+    min-height: 48px;
+    padding: 12px 14px;
+    border: 1px solid rgba(17, 24, 39, 0.14);
     border-radius: var(--radius-md);
-    background: #fff;
-    font-weight: 600;
+    background: rgba(255, 255, 255, 0.84);
+    font-weight: 700;
     cursor: pointer;
     transition: 0.2s;
     font-family: inherit;
@@ -149,15 +182,15 @@
 
   .config-btn:hover,
   .option-btn:hover {
-    border-color: var(--accent);
+    border-color: #111827;
   }
 
   .config-btn.active,
   .option-btn.active {
-    background: var(--ink);
+    background: #111827;
     color: #fff;
-    border-color: var(--ink);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-color: #111827;
+    box-shadow: none;
   }
 
   .color-group {
@@ -170,17 +203,18 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 8px 12px 8px 8px;
-    border: 1px solid var(--line);
-    border-radius: 999px;
+    min-height: 44px;
+    padding: 7px 12px 7px 7px;
+    border: 1px solid rgba(17, 24, 39, 0.14);
+    border-radius: var(--radius-md);
     cursor: pointer;
     transition: 0.2s;
-    background: #fff;
+    background: rgba(255, 255, 255, 0.84);
   }
 
   .swatch-wrapper.active {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(28, 105, 212, 0.12);
+    border-color: #111827;
+    box-shadow: inset 0 -3px 0 #1c69d4;
   }
 
   .swatch {
@@ -199,8 +233,8 @@
 
   .summary-grid {
     display: grid;
-    grid-template-columns: 1fr;
-    gap: 14px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0;
   }
 
   .summary-row {
@@ -208,16 +242,17 @@
     align-items: center;
     justify-content: space-between;
     gap: 16px;
-    padding: 12px 0;
-    border-bottom: 1px solid var(--line);
+    padding: 0 18px;
+    border-right: 1px solid rgba(17, 24, 39, 0.12);
+    border-bottom: 0;
   }
 
   .summary-row:last-child {
-    border-bottom: none;
+    border-right: none;
   }
 
   .summary-key {
-    color: var(--muted);
+    color: #4b5563;
     font-weight: 600;
   }
 
@@ -229,28 +264,34 @@
   .price-tag {
     display: flex;
     flex-direction: column;
-    margin-bottom: 12px;
+    min-width: 170px;
+    padding-right: 24px;
+    border-right: 1px solid rgba(17, 24, 39, 0.12);
   }
 
   .price-tag span {
-    font-size: 0.9rem;
-    color: var(--muted);
-    font-weight: 500;
+    font-size: 0.82rem;
+    color: #4b5563;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
   }
 
   .price-main {
-    font-size: 2.2rem;
-    font-weight: 800;
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1.1;
   }
 
   .add-btn {
     width: 100%;
-    padding: 18px;
+    min-height: 54px;
+    padding: 0 18px;
     border-radius: var(--radius-md);
     border: none;
-    background: var(--accent);
+    background: #1c69d4;
     color: #fff;
-    font-size: 1.05rem;
+    font-size: 0.98rem;
     font-weight: 700;
     cursor: pointer;
     transition: 0.2s;
@@ -258,8 +299,84 @@
     font-family: inherit;
   }
 
+  .summary-panel {
+    position: fixed;
+    top: 72px;
+    left: 50%;
+    z-index: 9;
+    width: 100%;
+    min-height: var(--summary-bar-height);
+    margin: 0;
+    padding: 14px 32px;
+    transform: translateX(-50%);
+    border-width: 0 0 1px;
+    border-color: rgba(17, 24, 39, 0.1);
+    border-radius: 0;
+    box-shadow: 0 1px 0 rgba(17, 24, 39, 0.08);
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) minmax(210px, 280px);
+    gap: 24px;
+    align-items: center;
+  }
+
+  .summary-panel .summary-grid {
+    min-width: 0;
+  }
+
+  .summary-panel .add-btn {
+    margin-top: 0;
+  }
+
+  .summary-action {
+    min-width: 0;
+  }
+
+  @media (max-width: 760px) {
+    :root {
+      --summary-bar-height: 184px;
+    }
+
+    .summary-panel {
+      min-height: var(--summary-bar-height);
+      padding: 12px 16px;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .price-tag {
+      min-width: 0;
+      padding-right: 0;
+      padding-bottom: 10px;
+      border-right: 0;
+      border-bottom: 1px solid rgba(17, 24, 39, 0.1);
+    }
+
+    .price-main {
+      font-size: 1.55rem;
+    }
+
+    .summary-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .summary-row {
+      min-height: 24px;
+      padding: 3px 0;
+      border-right: 0;
+      border-bottom: 1px solid rgba(17, 24, 39, 0.1);
+    }
+
+    .summary-row:last-child {
+      border-bottom: none;
+    }
+
+    .summary-panel .add-btn {
+      min-height: 44px;
+    }
+  }
+
   .add-btn:hover:not(:disabled) {
-    background: var(--accent-dark);
+    background: #1554ad;
     transform: translateY(-1px);
   }
 
@@ -278,34 +395,43 @@
   }
 </style>
 
-<div class="config-layout">
-  <div class="preview-column">
-    <div class="car-stage">
-      <div class="stage-image-wrap">
-        <img id="carImg" src="" alt="Auto Vorschau" style="display:none" />
-        <div class="placeholder" id="placeholder">Lade Vorschau ...</div>
-      </div>
+<div class="config-background" aria-hidden="true">
+  <img id="carImg" src="" alt="" />
+</div>
+<div class="placeholder" id="placeholder">Lade Vorschau ...</div>
 
-      <div class="view-tabs" id="viewTabs">
-        <button class="view-tab active" data-view="front">Exterieur</button>
-        <button class="view-tab" data-view="back">Heck</button>
-        <button class="view-tab" data-view="wheels">Felgen</button>
-        <button class="view-tab" data-view="interior">Interieur</button>
-      </div>
+<div class="panel summary-panel">
+  <div class="price-tag">
+    <span id="modelNameDisplay">Modell laden...</span>
+    <div class="price-main" id="price">0,00 EUR</div>
+  </div>
+
+  <div class="summary-grid">
+    <div class="summary-row">
+      <div class="summary-key">Exterieur</div>
+      <div class="summary-value" id="selectedColor">-</div>
     </div>
-
-    <div class="panel price-panel">
-      <div class="price-tag">
-        <span id="modelNameDisplay">Modell laden...</span>
-        <div class="price-main" id="price">0,00 EUR</div>
-      </div>
+    <div class="summary-row">
+      <div class="summary-key">Interieur</div>
+      <div class="summary-value" id="selectedInterior">-</div>
+    </div>
+    <div class="summary-row">
+      <div class="summary-key">Felgen</div>
+      <div class="summary-value" id="selectedWheels">-</div>
     </div>
   </div>
 
+  <div class="summary-action">
+    <button class="add-btn" id="addBtn" disabled>Konfiguration abschließen</button>
+    <div id="status"></div>
+  </div>
+</div>
+
+<div class="config-layout">
+  <div class="config-spacer"></div>
   <div class="config-column">
-    <div class="panel">
-      <h1>BMW konfigurieren</h1>
-      <p class="subtitle">Wählen Sie Modell, Exterieur-Farbe, Interieur und Felgen.</p>
+    <div class="panel config-options-panel">
+      <h1>Konfiguration</h1>
 
       <div class="section-label">Modell</div>
       <div class="config-btn-group" id="modelBtns"></div>
@@ -320,25 +446,6 @@
       <div class="option-group" id="wheelsBtns"></div>
     </div>
 
-    <div class="panel">
-      <div class="summary-grid">
-        <div class="summary-row">
-          <div class="summary-key">Exterieur</div>
-          <div class="summary-value" id="selectedColor">-</div>
-        </div>
-        <div class="summary-row">
-          <div class="summary-key">Interieur</div>
-          <div class="summary-value" id="selectedInterior">-</div>
-        </div>
-        <div class="summary-row">
-          <div class="summary-key">Felgen</div>
-          <div class="summary-value" id="selectedWheels">-</div>
-        </div>
-      </div>
-
-      <button class="add-btn" id="addBtn" disabled>Konfiguration abschließen</button>
-      <div id="status"></div>
-    </div>
   </div>
 </div>
 
@@ -519,9 +626,6 @@
 
   function setActiveView(view) {
     state.selection.view = view;
-    document.querySelectorAll(".view-tab").forEach((tab) => {
-      tab.classList.toggle("active", tab.dataset.view === view);
-    });
     if (state.selection.modelId) {
       window.history.replaceState(null, "", `${window.location.pathname}#${view}`);
     }
@@ -707,12 +811,6 @@
       container.appendChild(btn);
     });
   }
-
-  document.querySelectorAll(".view-tab").forEach((tab) => {
-    tab.addEventListener("click", () => {
-      setActiveView(tab.dataset.view);
-    });
-  });
 
   async function recalculate() {
     if (!state.selection.modelId) return;
