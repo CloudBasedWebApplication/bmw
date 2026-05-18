@@ -5,9 +5,9 @@
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "test": "node test/recommendation.smoke.js",
-    "smoke:recommendation:live": "node test/recommendation.live-smoke.js",
-    "smoke:ai": "node test/recommendation.compose-smoke.js"
+    "test": "node --test ../../tests/unit/ai-feature/*.test.js",
+    "smoke:recommendation:live": "node ../../tests/smoke/live/ai-recommendation.live-smoke.js",
+    "smoke:ai": "node ../../tests/smoke/compose/ai-recommendation.smoke.js"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

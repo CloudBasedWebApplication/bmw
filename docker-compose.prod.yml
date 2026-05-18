@@ -1,0 +1,19 @@
+services:
+  api-gateway:
+    volumes: !reset []
+
+  web-shop-frontend:
+    ports: !override
+      - "3007:3000"
+    volumes: !reset []
+
+  web-shop-backend:
+    volumes: !reset []
+
+  minio:
+    ports: !reset []
+    volumes:
+      - minio_data:/data
+
+volumes:
+  minio_data:
