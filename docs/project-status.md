@@ -2,7 +2,7 @@
 
 ## 1. Document Metadata
 
-**Last updated:** 2026-05-17
+**Last updated:** 2026-05-18
 
 **Scope:** This document describes implementation reality — what is built, why choices were made, and what remains open. For target behavior see [PRD.md](./PRD.md). For responsibility design see [architecture.md](./architecture.md). For task ownership see [team-collaboration-breakdown.md](./team-collaboration-breakdown.md).
 
@@ -150,8 +150,6 @@ This boundary is intended to remain valid if the current shared database is late
 
 #### Confirmed Gaps
 
-**Merch recommendation landing URL.** The product-detail route exists, but AI still emits `/merch-shop?product=<id>` rather than the canonical `/merch-shop/:productId` or slug URL. Deep-link precision should be finished by switching the AI URL builder to the product-detail route.
-
 **Official configurator resolution.** AI currently builds a configurator link from structured model/options. If strict PRD wording requires the AI service to resolve an official configuration result before responding, it should call the configurator resolution endpoint as a final validation step.
 
 ---
@@ -187,11 +185,11 @@ The full stack runs locally via Docker Compose with `docker compose up --build`.
 | `merch-shop` | build: `./services/merch-shop` | internal 3002 | Product catalog and MinIO-backed merchandise image URLs |
 | `ai-feature` | build: `./services/ai-feature` | internal 3004 | Gemini integration |
 | `shopping-cart` | build: `./services/shopping-cart` | internal 3005 | Cart state (Redis) |
-| `mysql` | `mysql:8.4.8` | 3306 | Persistent domain data |
-| `mysql-seed` | build inline | — | One-shot seed runner, exits after seeding |
-| `redis` | `redis:7.4.2` | 6379 | Cart session storage |
-| `minio` | `minio/minio` | internal 9000 / debug 9001 | Object storage (images); console at 9001 |
-| `minio-init` | `minio/mc` | — | One-shot bucket creator + image sync |
+| `mysql` | `mysql:8.4` | 3306 | Persistent domain data |
+| `mysql-seed` | `mysql:8.4` | — | One-shot seed runner, exits after seeding |
+| `redis` | `redis:8-alpine` | 6379 | Cart session storage |
+| `minio` | `minio/minio:RELEASE.2025-09-07T16-13-09Z` | internal 9000 / debug 9001 | Object storage (images); console at 9001 |
+| `minio-init` | `minio/mc:RELEASE.2025-08-13T08-35-41Z` | — | One-shot bucket creator + image sync |
 
 **MySQL.** All service tables currently live in the shared `bmw_app` database (see Decision Log entry 5). The PRD target schema (§7.1) specifies `configurator_db` (owned by `car-configurator`) and `merchandise_db` (owned by `merch-shop`). Cross-schema queries are not permitted even in the shared setup.
 
@@ -262,13 +260,11 @@ Phase 2 validation covers no runtime browser path using the legacy MinIO URL con
 
 ---
 
-### AI merch recommendation landing URL — Open
+### AI merch recommendation landing URL — Implemented
 
 **Parties:** `ai-feature` (link generator) → `web-shop-backend` merch detail route (route target)
 
-**Current state:** AI links still use `/merch-shop?product=<id>`, while the canonical product-detail route is `/merch-shop/:productId` or a product slug.
-
-**Required:** Update AI link generation to target the canonical product-detail route.
+**Current state:** AI merch recommendation links target the canonical `/merch-shop/:productId` product-detail route.
 
 ---
 
@@ -362,6 +358,17 @@ Phase 2 validation covers no runtime browser path using the legacy MinIO URL con
 
 ---
 
+### 9. Runtime and dependency version policy
+
+**Date:** 2026-05-18
+**Context:** Review feedback called out the security risk of stale or overly fixed dependency and runtime versions.
+**Decision:** Keep dependencies and runtime images on current supported major or LTS-line versions, but do not use `latest`. Node service Dockerfiles use `node:24-alpine`; Docker Compose uses `mysql:8.4` and `redis:8-alpine`; MinIO keeps explicit release tags. Node services commit `package-lock.json` and Docker builds use `npm ci`.
+**Rationale:** Supported major lines receive maintenance updates, while avoiding uncontrolled breaking changes from `latest`. Lock files make npm resolution reproducible and audits make security maintenance explicit.
+**Consequences:** Dependency upgrades are deliberate changes that require `npm audit --omit=dev`, service tests, Docker build validation, and smoke testing.
+**Status:** Standing.
+
+---
+
 ## 7. Issues
 
 Append-only. When an issue is resolved, change Status to `Resolved` — do not delete the row. New issues take the next sequential number.
@@ -375,6 +382,6 @@ Append-only. When an issue is resolved, change Status to `Resolved` — do not d
 | 3 | Cart quantity update | shopping-cart, api-gateway | §6.5 | Medium | Users had no way to change item quantities without removing and re-adding | Resolved |
 | 4 | Destinations hardcoded in frontend | home, api-gateway | §6.3 | Medium | Destination data was embedded in the EJS template rather than served from the gateway | Resolved |
 | 5 | No checkout / order submission | shopping-cart | §3 (out of scope) | Out of Scope | Cart has no payment or order flow; confirmed not in v1 scope | Out of Scope |
-| 6 | AI merch links use listing query URL | ai-feature, web-shop-backend | §6.2, §6.4 | Medium | Product details exist, but AI recommendations still target `/merch-shop?product=<id>` instead of `/merch-shop/:productId` | Open |
+| 6 | AI merch links use listing query URL | ai-feature, web-shop-backend | §6.2, §6.4 | Medium | AI recommendations now target the canonical `/merch-shop/:productId` route | Resolved |
 | 7 | AI car recommendation not officially resolved before response | ai-feature, car-configurator | §6.4 | Medium | AI returns a configurator link from structured options; strict official-result semantics would require a final configurator API validation step | Open |
 | 8 | Gateway still contains page-rendering routes | web-shop-backend, api-gateway | §5, architecture §4.1-4.2 | Medium | Responsibility split is documented but gateway still duplicated EJS browser routes | Resolved |

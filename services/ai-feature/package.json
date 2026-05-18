@@ -10,7 +10,7 @@
     "smoke:ai": "node test/recommendation.compose-smoke.js"
   },
   "dependencies": {
-    "express": "^4.21.2",
-    "@google/genai": "^1.10.0"
+    "@google/genai": "^2.4.0",
+    "express": "^5.2.1"
   }
 }

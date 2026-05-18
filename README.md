@@ -113,6 +113,12 @@ docker compose up --build
 This starts the web-shop frontend/backend, gateway, all microservices, MySQL, Redis, MinIO, and the MinIO bootstrap container.
 Host port `3000` belongs to `web-shop-frontend`; `web-shop-backend`, `api-gateway`, and domain microservices are internal. The backend reaches the gateway through `API_GATEWAY_URL`.
 
+### Runtime and dependency version policy
+
+Docker images use supported major or LTS-line tags instead of `latest`; for example Node services build on `node:24-alpine`, MySQL uses `mysql:8.4`, and Redis uses `redis:8-alpine`. This keeps the project on maintained version lines without allowing future deployments to pull arbitrary breaking changes.
+
+Node services commit `package-lock.json` and Docker builds run `npm ci`, so the installed dependency graph is reproducible. Dependency maintenance should be done through explicit npm upgrades followed by `npm audit --omit=dev`, service tests, Docker build validation, and smoke testing.
+
 ### 3. Open the app
 
 After the containers are healthy, open [http://localhost:3000](http://localhost:3000).
@@ -121,6 +127,20 @@ After the containers are healthy, open [http://localhost:3000](http://localhost:
 
 ```powershell
 docker compose down
+```
+
+### Smoke test
+
+After the stack is running, a Windows-friendly smoke test can validate the browser entrypoint, API forwarding, configurator data, merch data, and fresh-session cart persistence:
+
+```powershell
+.\scripts\smoke-test.ps1 -SkipAi
+```
+
+When `GEMINI_API_KEY` is configured, run the full smoke test:
+
+```powershell
+.\scripts\smoke-test.ps1
 ```
 
 ### When to restart vs. recreate a container

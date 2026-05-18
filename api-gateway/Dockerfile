@@ -1,9 +1,9 @@
-FROM node:22-alpine
+FROM node:24-alpine
 
 WORKDIR /app/api-gateway
 
-COPY api-gateway/package.json api-gateway/package-lock.json* ./
-RUN npm install
+COPY api-gateway/package.json api-gateway/package-lock.json ./
+RUN npm ci
 
 COPY api-gateway/src ./src
 

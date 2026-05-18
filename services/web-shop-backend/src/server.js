@@ -196,7 +196,7 @@ async function forwardToApiGateway(req, res) {
   }
 }
 
-app.all("/api/*", forwardToApiGateway);
+app.all(/^\/api(?:\/.*)?$/, forwardToApiGateway);
 
 app.get("/health", (_req, res) => {
   res.json({
