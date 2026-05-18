@@ -16,7 +16,8 @@ const AI = process.env.AI_URL || "http://ai-feature:3004";
 
 app.use((req, res, next) => {
   if (!req.cookies.sessionId) {
-    res.cookie("sessionId", crypto.randomUUID(), { httpOnly: true });
+    req.cookies.sessionId = crypto.randomUUID();
+    res.cookie("sessionId", req.cookies.sessionId, { httpOnly: true });
   }
   next();
 });
@@ -119,7 +120,7 @@ app.get("/api/configurator/models", (_req, res) => {
   proxyJson(res, () => fetch(`${CONFIGURATOR}/models`));
 });
 
-app.get("/api/configurator/assets/*", (req, res) => {
+app.get(/^\/api\/configurator\/assets\/.+$/, (req, res) => {
   const assetPath = normalizeAssetPathFromRequest(req, "/api/configurator/assets");
 
   if (!assetPath) {
@@ -235,7 +236,7 @@ app.get("/api/merch/products", (_req, res) => {
   proxyJson(res, () => fetch(`${MERCH}/products`));
 });
 
-app.get("/api/merch/assets/*", (req, res) => {
+app.get(/^\/api\/merch\/assets\/.+$/, (req, res) => {
   const assetPath = normalizeAssetPathFromRequest(req, "/api/merch/assets");
 
   if (!assetPath) {

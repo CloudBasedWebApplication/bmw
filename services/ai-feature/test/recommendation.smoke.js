@@ -53,7 +53,7 @@ function run() {
       imageUrl: "https://example.com/sweatshirt.jpg",
       price: null,
       reason: "Passt zum sportlichen Look",
-      url: "/merch-shop?product=5",
+      url: "/merch-shop/5",
     }],
     carModel: "X5",
     carColor: "Blue",

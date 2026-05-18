@@ -80,7 +80,7 @@ async function run() {
   for (const item of recommendation.merchLinks) {
     assert.equal(typeof item.id, "number");
     assert.ok(productsById.has(item.id), `recommended merch product ${item.id} should exist`);
-    assert.equal(item.url, `/merch-shop?product=${item.id}`);
+    assert.equal(item.url, `/merch-shop/${item.id}`);
     assert.ok(item.title, `recommended merch product ${item.id} should include title`);
   }
 

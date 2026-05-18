@@ -89,7 +89,7 @@ Aktuell akzeptierte Vereinfachungen bleiben bestehen:
 |---|---|---|---|---|---|
 | API / Contract | `Abgeschlossen` | `★★★` | Prompt/Template und strukturiertes Gemini Response-Schema verwenden. | — | Frontend konsumiert stabile Felder statt frei schwankender Modelltexte. |
 | Data Boundary | `Abgeschlossen` | `★★★` | Domain-Daten nur ueber `car-configurator` und `merch-shop` APIs beziehen, kein direkter MySQL-Zugriff. | — | AI bleibt Integrations-/Orchestrierungsservice ohne Datenbank-Ownership. |
-| Integration / Connectivity | `Offen` | `★★` | Merch URLs von `/merch-shop?product=<id>` auf kanonische Detailroute umstellen. | Bestehende Merch Detail Route. | AI-Merch-Empfehlungen sind echte Deep Links. |
+| Integration / Connectivity | `Abgeschlossen` | `★★` | Merch URLs von `/merch-shop?product=<id>` auf kanonische Detailroute umstellen. | Bestehende Merch Detail Route. | AI-Merch-Empfehlungen sind echte Deep Links. |
 | Integration / Connectivity | `Offen` | `★★` | Optional: Car Recommendations vor der Antwort ueber Configurator API offiziell validieren. | Entscheidung zum PRD-Akzeptanzniveau. | AI-Antworten enthalten nur offiziell aufloesbare Konfigurationen. |
 
 ## 4. Moduluebergreifende Vertragsaufgaben

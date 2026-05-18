@@ -334,7 +334,7 @@ function sendJsonError(res, status, message, details) {
 
 app.get("/health", (_req, res) => res.json({ ok: true }));
 
-app.get("/assets/*", async (req, res) => {
+app.get(/^\/assets\/(.+)$/, async (req, res) => {
   const objectKey = normalizeConfiguratorAssetKey(req.params[0]);
 
   if (!objectKey) {

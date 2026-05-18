@@ -56,7 +56,7 @@ async function loadProducts() {
 
 app.get("/health", (_req, res) => res.json({ ok: true }));
 
-app.get("/assets/*", async (req, res) => {
+app.get(/^\/assets\/(.+)$/, async (req, res) => {
   const objectKey = normalizeMerchAssetKey(req.params[0]);
 
   if (!objectKey) {
