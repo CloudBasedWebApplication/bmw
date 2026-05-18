@@ -2,7 +2,11 @@ const assert = require("node:assert/strict");
 const { once } = require("node:events");
 const { spawn } = require("node:child_process");
 const http = require("node:http");
+const path = require("node:path");
 const test = require("node:test");
+
+const repoRoot = path.resolve(__dirname, "..", "..", "..");
+const serviceDir = path.join(repoRoot, "api-gateway");
 
 function listen(server) {
   return new Promise((resolve) => {
@@ -81,7 +85,7 @@ async function startGateway(configuratorUrl, merchUrl, cartUrl = "http://127.0.0
   await new Promise((resolve) => portProbe.close(resolve));
 
   const child = spawn(process.execPath, ["src/server.js"], {
-    cwd: process.cwd(),
+    cwd: serviceDir,
     env: {
       ...process.env,
       PORT: String(port),

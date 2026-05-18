@@ -4,7 +4,7 @@ const test = require("node:test");
 const {
   buildMerchAssetUrl,
   normalizeMerchAssetKey,
-} = require("../src/asset-paths");
+} = require("../../../services/merch-shop/src/asset-paths");
 
 test("product image URLs are owned API asset paths", () => {
   assert.equal(

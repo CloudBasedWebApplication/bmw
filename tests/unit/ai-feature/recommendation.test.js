@@ -1,11 +1,12 @@
 const assert = require("node:assert/strict");
+const test = require("node:test");
 
 const {
   buildRecommendationResponse,
   coerceRecommendationPayload,
-} = require("../src/recommendation");
+} = require("../../../services/ai-feature/src/recommendation");
 
-function run() {
+test("recommendation payloads are normalized into deterministic links", () => {
   const payload = coerceRecommendationPayload({
     text: "Empfehlung für ein sportliches Modell und ein Merch-Produkt.",
     carRecommendation: { model: "3", color: "Black" },
@@ -69,7 +70,4 @@ function run() {
     });
   }, /merchItems is invalid/);
 
-  console.log("recommendation smoke test passed");
-}
-
-run();
+});

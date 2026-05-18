@@ -5,6 +5,9 @@ const http = require("node:http");
 const path = require("node:path");
 const test = require("node:test");
 
+const repoRoot = path.resolve(__dirname, "..", "..", "..");
+const serviceDir = path.join(repoRoot, "services", "web-shop-backend");
+
 function listen(server) {
   return new Promise((resolve) => {
     server.listen(0, "127.0.0.1", () => resolve(server.address().port));
@@ -56,12 +59,12 @@ async function startBackend() {
   await new Promise((resolve) => portProbe.close(resolve));
 
   const child = spawn(process.execPath, ["src/server.js"], {
-    cwd: process.cwd(),
+    cwd: serviceDir,
     env: {
       ...process.env,
       PORT: String(port),
       API_GATEWAY_URL: `http://127.0.0.1:${apiGatewayPort}`,
-      REPO_ROOT: path.resolve(process.cwd(), "..", ".."),
+      REPO_ROOT: repoRoot,
     },
     stdio: "ignore",
   });

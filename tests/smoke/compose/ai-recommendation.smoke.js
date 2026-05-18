@@ -2,7 +2,7 @@ const { spawnSync } = require("node:child_process");
 const path = require("node:path");
 
 const repoRoot = path.resolve(__dirname, "../../..");
-const liveSmokeScript = path.join(__dirname, "recommendation.live-smoke.js");
+const liveSmokeScript = path.join(repoRoot, "tests", "smoke", "live", "ai-recommendation.live-smoke.js");
 const healthUrls = [
   process.env.WEB_HEALTH_URL || "http://localhost:3000/health",
   process.env.AI_HEALTH_URL || "http://localhost:3004/health",

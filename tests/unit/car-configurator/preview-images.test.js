@@ -4,7 +4,7 @@ const test = require("node:test");
 const {
   buildConfiguratorAssetUrl,
   normalizeConfiguratorAssetKey,
-} = require("../src/asset-paths");
+} = require("../../../services/car-configurator/src/asset-paths");
 
 test("configurator image URLs are owned API asset paths", () => {
   assert.equal(
