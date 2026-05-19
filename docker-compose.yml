@@ -44,7 +44,6 @@ services:
     environment:
       PORT: 3006
       API_GATEWAY_URL: http://api-gateway:3000
-      CODESPACE_NAME: ${CODESPACE_NAME:-}
       GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY}
     depends_on:
       - api-gateway
@@ -58,7 +57,6 @@ services:
       - "3001"
     environment:
       PORT: 3001
-      CODESPACE_NAME: ${CODESPACE_NAME:-}
       MYSQL_HOST: ${MYSQL_HOST}
       MYSQL_PORT: ${MYSQL_PORT}
       MYSQL_USER: ${MYSQL_USER}
@@ -77,7 +75,6 @@ services:
       - "3002"
     environment:
       PORT: 3002
-      CODESPACE_NAME: ${CODESPACE_NAME:-}
       MYSQL_HOST: ${MYSQL_HOST}
       MYSQL_PORT: ${MYSQL_PORT}
       MYSQL_USER: ${MYSQL_USER}
