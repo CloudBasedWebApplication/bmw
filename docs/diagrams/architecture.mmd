@@ -9,6 +9,7 @@ flowchart LR
         merchandise["Merch Shop Service"]
         ai["AI Feature Service"]
         cart["Shopping Cart Service"]
+        route["Route Service\nroute destinations"]
     end
 
     subgraph data["Data Stores"]
@@ -30,6 +31,7 @@ flowchart LR
     gateway --> merchandise
     gateway --> ai
     gateway --> cart
+    gateway --> route
 
     user --> googlemaps
 
@@ -44,6 +46,9 @@ flowchart LR
     ai --> merchandise
 
     cart --> redis
+    route --> mysql
+
+    route -. "future server-side route calculation" .-> googlemaps
 
     cart -. "stores car snapshot" .-> configurator
     cart -. "stores merchandise snapshot" .-> merchandise

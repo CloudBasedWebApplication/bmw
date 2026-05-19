@@ -27,7 +27,7 @@ This PRD describes the intended product behavior and target architecture for the
 
 - One unified web entry path through `services/web-shop-frontend/` and `services/web-shop-backend/`
 - One API gateway in `api-gateway/` for API proxying and session-oriented support endpoints
-- Four backend services: `car-configurator`, `merch-shop`, `ai-feature`, `shopping-cart`
+- Five backend services: `car-configurator`, `merch-shop`, `ai-feature`, `route-service`, `shopping-cart`
 - MySQL for persistent domain data
 - Redis for cart state
 - MinIO for image storage
@@ -71,7 +71,7 @@ All inter-service calls are synchronous HTTP REST. No message queue. Key call ch
 - `ai-feature` → `configurator` (to resolve official car config result)
 - `ai-feature` → `merchandise` (to fetch product catalog for context)
 - Browser same-origin `/api/cart/*` → `web-shop-frontend` → `web-shop-backend` → `api-gateway` → `shopping-cart` (add car snapshot or merchandise item)
-- Browser same-origin `/api/destinations` → `web-shop-frontend` → `web-shop-backend` → `api-gateway` destinations endpoint (to fetch predefined route targets)
+- Browser same-origin `/api/destinations` → `web-shop-frontend` → `web-shop-backend` → `api-gateway` → `route-service` (to fetch predefined route targets)
 
 ### Cart Session
 
@@ -83,10 +83,11 @@ No login. Cart state is keyed by a session ID (generated client-side or by a coo
 |---|---|
 | `web-shop-frontend` | Serves `/static`, exposes the browser-facing app port, and forwards non-static requests |
 | `web-shop-backend` | Serves EJS pages and forwards same-origin `/api/*` calls |
-| `api-gateway` | Proxies API calls to backend services and owns API support endpoints |
+| `api-gateway` | Proxies API calls to backend services and owns API support proxy routes |
 | `car-configurator` | Configuration logic and price calculation |
 | `merch-shop` | Product catalog |
 | `ai-feature` | Gemini integration and recommendation logic |
+| `route-service` | Predefined BMW route destination data |
 | `shopping-cart` | Cart state management |
 | `mysql` | Single MySQL instance with per-service schemas |
 | `redis` | Cart state store |
@@ -127,17 +128,19 @@ Product detail requirements:
 - The web application must provide a product-detail experience that can be opened directly from a link.
 - AI recommendations for merch must resolve to that detail experience rather than only to the generic listing page.
 
-### 6.3 Route Planning (client-side via Maps JS API)
+### 6.3 Route Planning (route-service destinations, client-side Maps JS API)
 
-- No standalone road service; route planning runs entirely in the browser
-- `web-shop-backend` injects the Maps API key into the EJS template at render time; `api-gateway` exposes an endpoint returning the hardcoded store/showroom destination list
+- `route-service` owns predefined BMW destinations in MySQL and exposes them through the gateway
+- route calculation and map rendering currently remain client-side via Google Maps JavaScript API
+- future server-side route calculation, route history, ETA policy, and provider abstraction belong in `route-service`
+- `web-shop-backend` injects the Maps API key into the EJS template at render time; `api-gateway` exposes `/api/destinations` by proxying `route-service`
 - The browser loads Maps JS API, calls `DirectionsService` to calculate the route, and renders it with `DirectionsRenderer`
 - No backend call to Google Maps at runtime
 
 Destination list requirements:
 
 - The list of supported BMW destinations is product-owned data, even if the entries are static in v1.
-- The frontend must obtain that list from `api-gateway` through an internal endpoint.
+- The frontend must obtain that list from `api-gateway` through an internal endpoint backed by `route-service`.
 - The endpoint payload must include enough data to render the selector and route target, such as `id`, `name`, and `destination` or equivalent address data.
 
 ### 6.4 AI Assistant (`ai-feature`)
@@ -190,8 +193,9 @@ Quantity update requirements:
 |---|---|---|
 | `configurator_db` | `car-configurator` | model definitions (2 models), option definitions per model, valid combinations, image paths, price data, rationale metadata |
 | `merchandise_db` | `merch-shop` | product catalog, prices, metadata |
+| `bmw_route_service` | `route-service` | predefined BMW route destinations |
 
-`ai-feature` and `shopping-cart` have no MySQL schemas. Route planning is currently handled at the web layer rather than in a standalone service.
+`ai-feature` and `shopping-cart` have no MySQL schemas. Current route calculation is still handled client-side by Google Maps JavaScript API, while predefined route destination data is owned by `route-service`.
 
 ### 7.2 Redis
 

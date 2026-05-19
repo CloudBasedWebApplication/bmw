@@ -22,6 +22,7 @@ flowchart LR
         merchandise["Merch Shop Service"]
         ai["AI Feature Service"]
         cart["Shopping Cart Service"]
+        route["Route Service\nroute destinations"]
     end
 
     subgraph data["Data Stores"]
@@ -43,6 +44,7 @@ flowchart LR
     gateway --> merchandise
     gateway --> ai
     gateway --> cart
+    gateway --> route
 
     user --> googlemaps
 
@@ -57,6 +59,9 @@ flowchart LR
     ai --> merchandise
 
     cart --> redis
+    route --> mysql
+
+    route -. "future server-side route calculation" .-> googlemaps
 
     cart -. "stores car snapshot" .-> configurator
     cart -. "stores merchandise snapshot" .-> merchandise
@@ -71,7 +76,7 @@ The architecture follows a simple microservice structure:
 - one browser-facing web-shop frontend for `/static`, `/health`, and request forwarding
 - one web-shop backend for EJS page rendering and same-origin API forwarding
 - one API gateway for API request forwarding
-- four backend domain services
+- five backend domain services
 - one relational database for persistent business data
 - one cache store for cart state
 - one object storage service for configurator images
@@ -118,7 +123,6 @@ The `api-gateway` service provides the API-facing entry point for the frontend.
 Its responsibilities are:
 
 - proxy API requests to backend services
-- provide internal product-owned support data such as the predefined route destination list
 - maintain the session cookie used for cart tracking
 
 It intentionally does not render EJS pages and does not serve static assets.
@@ -149,18 +153,20 @@ Its responsibilities are:
 - support cart addition and display use cases
 - provide stable product identifiers suitable for direct linking from AI recommendations and the web application
 
-### 4.6 Route Planning
+### 4.6 Route Service And Route Planning
 
-There is no standalone road service. Route planning runs entirely in the browser using the Google Maps JavaScript API.
+The `route-service` owns route-planning support data in the `bmw_route_service` MySQL schema and is the designated service boundary for future route-domain behavior.
 
-- the `web-shop-backend` injects the Maps API key server-side into the EJS template
-- the browser loads Maps JS API and uses `DirectionsService` and `DirectionsRenderer`
-- the `api-gateway` holds a hardcoded list of store and showroom destinations, returned via `/api/destinations`
-- no backend call is made to Google Maps at runtime
+Its current responsibilities are:
 
-Google Maps is the source of truth for route calculation, distance, duration, and map rendering. The application does not own route-calculation domain logic; it only provides a curated list of predefined BMW destinations for the browser-side route planning experience.
+- return predefined BMW route destinations through `GET /destinations`
+- keep destination data out of the API gateway and presentation layer
+- read predefined active destinations from its own `destinations` table
+- provide the future owner for server-side route calculation, route history, ETA policy, service-area rules, and map-provider abstraction
 
-A dedicated `location-service` or `route-destination-service` is therefore intentionally not introduced in the current scope. Such a service would only move a small static destination list out of the gateway while the actual route planning behavior would still depend on the client-side Google Maps APIs. Keeping the destination list as gateway support data avoids over-engineering and keeps the service boundaries aligned with real domain ownership.
+In the current scope, route calculation and map rendering still run in the browser through Google Maps JavaScript API. The `web-shop-backend` injects the browser API key into the EJS template, the browser loads Maps JS API, and the browser uses `DirectionsService` and `DirectionsRenderer`.
+
+The API gateway exposes `GET /api/destinations` and proxies it to `route-service`. The gateway does not own destination data and does not connect to MySQL.
 
 ### 4.7 AI Feature Service
 
@@ -205,8 +211,9 @@ MySQL stores persistent business data:
 - pricing information
 - rationale metadata
 - merchandise catalog data
+- predefined BMW route destinations
 
-The first version uses a table-driven lookup model instead of a complex rules engine. MySQL is accessed by the domain services that own the data, currently `car-configurator` and `merch-shop`. If those services later move to separate service-owned databases, the database topology remains hidden behind their APIs. The `ai-feature` service has no direct database dependency and consumes domain data only through those service APIs.
+The first version uses a table-driven lookup model instead of a complex rules engine. MySQL is accessed by the domain services that own the data, currently `car-configurator`, `merch-shop`, and `route-service`. If those services later move to separate service-owned databases, the database topology remains hidden behind their APIs. The `ai-feature` service has no direct database dependency and consumes domain data only through those service APIs.
 
 ### 5.2 Redis
 
@@ -231,6 +238,7 @@ The implemented Phase 2 route contracts are:
 
 - `car-configurator` owns the schema `bmw_car_configurator` (models, options, configurations, prices, image keys).
 - `merch-shop` owns the schema `bmw_merch_shop` (merchandise products).
+- `route-service` owns the schema `bmw_route_service` (predefined BMW route destinations).
 - Both schema names are fixed architecture constants and must not be configured via environment variables.
 - Services must not query tables owned by other services directly.
 - Local development may still run one shared MySQL instance in Docker Compose, but ownership is enforced logically by separate schemas with fixed names.
@@ -293,9 +301,13 @@ Its role is to:
 ### 7.4 Route Planning Flow
 
 1. the user opens the route planning page through `web-shop-frontend`; the browser loads Maps JS API with the key injected by `web-shop-backend`
-2. the frontend fetches the destination list through `/api/destinations`
-3. the user selects a destination; the browser calls `DirectionsService` directly
-4. `DirectionsRenderer` draws the route on the map in the browser
+2. the browser fetches `/api/destinations` through `web-shop-frontend`
+3. `web-shop-backend` forwards the request to `api-gateway`
+4. `api-gateway` proxies the request to `route-service`
+5. `route-service` reads active predefined BMW destinations from `bmw_route_service.destinations`
+6. `route-service` returns predefined BMW destinations
+7. the user selects a destination; the browser calls Google Maps `DirectionsService` directly
+8. `DirectionsRenderer` draws the route on the map in the browser
 
 ## 8. Key Design Decisions
 
@@ -312,7 +324,7 @@ The architecture reflects the following agreed decisions:
 - AI recommendation is implemented through a service-to-service flow, not a direct frontend-to-Gemini shortcut
 - AI recommendation should use a stable prompt/template plus structured output contract
 - cart stores snapshots for display stability
-- route planning runs client-side via Maps JS API; Google Maps owns route calculation, while `api-gateway` only serves the predefined destination list as support data
+- route planning runs client-side via Maps JS API; Google Maps owns current route calculation, while `route-service` owns predefined destination data and future route-domain behavior
 - Phase 2 keeps images in MinIO, but only the owning domain services may read MinIO objects for browser-visible image delivery
 - Phase 2 removes the MinIO API host port `9000`; the MinIO console port `9001` may remain host-exposed for local infrastructure/debug access
 - Phase 2 deletes the legacy `/minio/*` URL contract and validates all browser image paths through `/api/configurator/assets/*` or `/api/merch/assets/*`
