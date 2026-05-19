@@ -67,7 +67,7 @@ flowchart LR
     cart -. "stores merchandise snapshot" .-> merchandise
 ```
 
-The Mermaid source is also stored separately in `docs/diagrams/architecture.mmd`.
+The Mermaid source is also stored separately in `docs/architecture.mmd`.
 
 ## 3. Architecture Overview
 
