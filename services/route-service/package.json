@@ -1,0 +1,14 @@
+{
+  "name": "route-service",
+  "version": "1.0.0",
+  "private": true,
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "mysql2": "^3.15.3"
+  }
+}

@@ -18,8 +18,8 @@ Das Projekt hat jetzt eine getrennte Browser- und API-Schicht:
 
 - `services/web-shop-frontend` ist der einzige host-exponierte App-Container, serviert `/static` und leitet alle anderen Browser-Requests an `web-shop-backend` weiter.
 - `services/web-shop-backend` rendert die EJS-Seiten und leitet `/api/*` same-origin an `api-gateway` weiter.
-- `api-gateway` proxyt APIs, setzt die Cart-Session-Cookie und stellt produktnahe Support-Endpunkte wie `/api/destinations` bereit.
-- `car-configurator`, `merch-shop`, `ai-feature` und `shopping-cart` bilden die Backend-Dienste.
+- `api-gateway` proxyt APIs, setzt die Cart-Session-Cookie und leitet `/api/destinations` an `route-service` weiter.
+- `car-configurator`, `merch-shop`, `ai-feature`, `route-service` und `shopping-cart` bilden die Backend-Dienste.
 - MySQL, Redis und MinIO sind ueber Docker Compose integriert.
 
 Bereits erledigt und nicht mehr als Next-Phase-Arbeit zu planen:
@@ -32,7 +32,7 @@ Bereits erledigt und nicht mehr als Next-Phase-Arbeit zu planen:
 
 Aktuell akzeptierte Vereinfachungen bleiben bestehen:
 
-- Gemeinsame Nutzung von `bmw_app`, mit Service Ownership per Konvention
+- Service-eigene MySQL-Schemas fuer Configurator, Merch und Route-Destinationen
 - Keine Authentifizierung und kein Checkout
 - Configurator bleibt im Rahmen des vorhandenen Options- und Datenmodells
 - AI ist ein Orchestrierungsdienst und besitzt kein Datenbankschema
@@ -55,7 +55,7 @@ Aktuell akzeptierte Vereinfachungen bleiben bestehen:
 | Catalog | Status | Komplexitaet | Aufgabe | Abhaengigkeit | Sichtbares Ergebnis |
 |---|---|---|---|---|---|
 | API / Contract | `Abgeschlossen` | `★★` | Configurator-, Merch-, Cart- und AI-APIs proxien. | — | Frontend-Flows bleiben same-origin und serviceunabhaengig. |
-| API / Contract | `Abgeschlossen` | `★` | `/api/destinations` bereitstellen. | — | Route Planning konsumiert Backend-gelieferte Ziel-Daten. |
+| API / Contract | `Abgeschlossen` | `★` | `/api/destinations` als Proxy zu `route-service` bereitstellen. | route-service. | Route Planning konsumiert service-owned Ziel-Daten ueber denselben Browservertrag. |
 | Session | `Abgeschlossen` | `★` | Cart-Session-Cookie fuer anonyme Warenkoerbe setzen. | — | Cart-Zustand ist pro Browser-Session getrennt. |
 | Maintenance | `Abgeschlossen` | `★` | Alte page-rendering Routen im Gateway entfernt. | `web-shop-backend` deckt alle Browser-Routen ab. | Gateway bleibt klar API-fokussiert. |
 
@@ -83,7 +83,15 @@ Aktuell akzeptierte Vereinfachungen bleiben bestehen:
 | Page / UI | `Abgeschlossen` | `★★` | Quantity Controls und Total-Aktualisierung auf der Cart-Seite. | — | Mengen- und Preisanderungen sind direkt sichtbar. |
 | API / Contract | `Spaetere Erweiterung` | `★` | Quantity-Policy fuer Car Items explizit festlegen. | Produktentscheidung. | Team kann klar sagen, ob Car Items immer Quantity 1 bleiben. |
 
-### 3.6 `ai-feature`
+### 3.6 `route-service`
+
+| Catalog | Status | Komplexitaet | Aufgabe | Abhaengigkeit | Sichtbares Ergebnis |
+|---|---|---|---|---|---|
+| API / Contract | `Abgeschlossen` | `★` | `GET /destinations` fuer aktive BMW-Ziele bereitstellen. | MySQL Seed. | Gateway kann `/api/destinations` an den owning service proxien. |
+| Data / Storage | `Abgeschlossen` | `★★` | `bmw_route_service.destinations` mit BMW-Zielen besitzen und seed-en. | Docker Compose `mysql-seed`. | Ziel-Daten liegen nicht mehr im Gateway-Code. |
+| Spaetere Erweiterung | `Spaetere Erweiterung` | `★★` | Server-side route calculation, route history, ETA policy und Provider-Abstraktion hier buendeln. | Produktentscheidung. | Route-Domain-Verhalten hat eine klare kuenftige Service-Grenze. |
+
+### 3.7 `ai-feature`
 
 | Catalog | Status | Komplexitaet | Aufgabe | Abhaengigkeit | Sichtbares Ergebnis |
 |---|---|---|---|---|---|
