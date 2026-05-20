@@ -560,7 +560,8 @@
         const id       = Number(l.id);
         const category = escapeHtml(l.subtitle || "Lifestyle & Merch");
 
-        const productUrl = escapeHtml(l.url || `/merch-shop/${id}`);
+        const safeProductPath = (typeof l.url === "string" && l.url.startsWith("/merch-shop/")) ? l.url : `/merch-shop/${id}`;
+        const productUrl = escapeHtml(safeProductPath);
         merchHtml += `
           <a class="merch-product-card" href="${productUrl}" aria-label="${title} im Merch Shop ansehen">
             <div class="merch-product-img">
