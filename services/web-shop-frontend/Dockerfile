@@ -6,7 +6,6 @@ COPY services/web-shop-frontend/package.json services/web-shop-frontend/package-
 RUN npm ci
 
 COPY services/web-shop-frontend/src /app/services/web-shop-frontend/src
-COPY services/web-shop-frontend/test /app/services/web-shop-frontend/test
 COPY web /app/web
 
 EXPOSE 3000

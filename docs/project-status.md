@@ -2,7 +2,7 @@
 
 ## 1. Document Metadata
 
-**Last updated:** 2026-05-18
+**Last updated:** 2026-05-19
 
 **Scope:** This document describes implementation reality — what is built, why choices were made, and what remains open. For target behavior see [PRD.md](./PRD.md). For responsibility design see [architecture.md](./architecture.md). For task ownership see [team-collaboration-breakdown.md](./team-collaboration-breakdown.md).
 
@@ -19,7 +19,7 @@ Update this document in the same PR that changes the code it describes.
 
 ## 2. Project Background
 
-This is a course project for a cloud web application, built around an automotive platform. The core purpose is to demonstrate service decomposition, containerized local development, and integration with external infrastructure — database, object storage, cache, an AI API, and a map API. The product has one browser-facing web app, one API gateway, four backend microservices, and three infrastructure services, all orchestrated locally with Docker Compose.
+This is a course project for a cloud web application, built around an automotive platform. The core purpose is to demonstrate service decomposition, containerized local development, and integration with external infrastructure — database, object storage, cache, an AI API, and a map API. The product has one browser-facing web app, one API gateway, five backend microservices, and three infrastructure services, all orchestrated locally with Docker Compose.
 
 The current implementation has a complete working skeleton. All major pages are reachable through `services/web-shop-frontend`, which forwards page/API requests to `services/web-shop-backend`; browser API calls then flow through `api-gateway`. The main user journeys work end to end, and the infrastructure layer (MySQL, Redis, MinIO) is integrated. Several design choices were deliberately simplified, including the shared MySQL database and reduced configurator parameter depth. Phase 2 image delivery is complete: product images remain in MinIO, but browser-visible access flows through service-owned API asset routes. The AI service now returns structured recommendation links instead of a free-form string.
 
@@ -56,7 +56,7 @@ The gateway is the API-facing entry point for browser requests. It manages the s
 
 `GET /health` reports only gateway service status. Route and page discovery belongs to `services/web-shop-backend` documentation or route definitions rather than gateway health.
 
-`GET /api/destinations` returns the list of BMW route targets as JSON. This endpoint makes destination data backend-owned product data: the route-planning page fetches it at runtime and no longer embeds the list in the EJS template. Future additions or changes to destinations require only a server-side update.
+`GET /api/destinations` proxies to `route-service`, which owns the predefined BMW route target data in MySQL. The gateway keeps the browser-facing same-origin endpoint stable but does not own the destination list and does not connect to MySQL.
 
 #### Accepted Simplifications
 
@@ -158,7 +158,7 @@ This boundary is intended to remain valid if the current shared database is late
 
 #### What Is Working
 
-The customer home page uses the Google Maps JavaScript API, loaded in the browser with a key injected by the web app at render time. On page load, the destination dropdown is populated by a fetch to `GET /api/destinations`, which returns the BMW locations from the gateway. The user selects a destination, clicks "Route berechnen," and the browser uses geolocation and `DirectionsService` to calculate and render the driving route. Distance and duration are shown in an info badge.
+The customer home page uses the Google Maps JavaScript API, loaded in the browser with a key injected by the web app at render time. On page load, the destination dropdown is populated by a fetch to `GET /api/destinations`, which returns the BMW locations through the gateway from `route-service`. The user selects a destination, clicks "Route berechnen," and the browser uses geolocation and `DirectionsService` to calculate and render the driving route. Distance and duration are shown in an info badge.
 
 The Google Maps API key is configured in `.env` (`GOOGLE_MAPS_API_KEY`) and injected into the EJS template server-side. If the key is absent or empty, the page shows a clear "API-Key erforderlich" fallback state instead of a broken map.
 
@@ -169,6 +169,24 @@ None. This module's intended behavior per PRD §6.3 is fully implemented.
 #### Confirmed Gaps
 
 None.
+
+---
+
+### 3.8 route-service
+
+#### What Is Working
+
+`route-service` owns predefined BMW route destinations in the `bmw_route_service` MySQL schema. It exposes `GET /destinations` for active destination rows ordered by display priority and `GET /health` for service status. The API gateway keeps the public `/api/destinations` route and proxies it to this service.
+
+The current implementation stores the BMW Welt München destination in `infrastructure/mysql/init/03_route_service.sql`. Docker Compose runs that seed script through `mysql-seed` and grants the application user access to `bmw_route_service`.
+
+#### Accepted Simplifications
+
+Route calculation and map rendering remain browser-side through Google Maps JavaScript API. `route-service` owns destination support data now and is the intended future boundary for server-side route calculation, route history, ETA policy, and map-provider abstraction.
+
+#### Confirmed Gaps
+
+None that block the current user journey.
 
 ---
 
@@ -184,6 +202,7 @@ The full stack runs locally via Docker Compose with `docker compose up --build`.
 | `car-configurator` | build: `./services/car-configurator` | internal 3001 | Config logic, MinIO image, price |
 | `merch-shop` | build: `./services/merch-shop` | internal 3002 | Product catalog and MinIO-backed merchandise image URLs |
 | `ai-feature` | build: `./services/ai-feature` | internal 3004 | Gemini integration |
+| `route-service` | build: `./services/route-service` | internal 3007 | Predefined BMW route destinations |
 | `shopping-cart` | build: `./services/shopping-cart` | internal 3005 | Cart state (Redis) |
 | `mysql` | `mysql:8.4` | 3306 | Persistent domain data |
 | `mysql-seed` | `mysql:8.4` | — | One-shot seed runner, exits after seeding |
@@ -191,7 +210,7 @@ The full stack runs locally via Docker Compose with `docker compose up --build`.
 | `minio` | `minio/minio:RELEASE.2025-09-07T16-13-09Z` | internal 9000 / debug 9001 | Object storage (images); console at 9001 |
 | `minio-init` | `minio/mc:RELEASE.2025-08-13T08-35-41Z` | — | One-shot bucket creator + image sync |
 
-**MySQL.** All service tables currently live in the shared `bmw_app` database (see Decision Log entry 5). The PRD target schema (§7.1) specifies `configurator_db` (owned by `car-configurator`) and `merchandise_db` (owned by `merch-shop`). Cross-schema queries are not permitted even in the shared setup.
+**MySQL.** Service-owned schemas are seeded through `mysql-seed`: `bmw_car_configurator`, `bmw_merch_shop`, and `bmw_route_service`. Cross-schema queries are not permitted; each service reads only its own schema.
 
 **Redis.** Cart state is stored at `cart:{sessionId}` as a JSON-serialized array of item objects. TTL is 24 hours. Session ID is assigned by the gateway as a cookie on first API request.
 
@@ -231,13 +250,13 @@ Phase 2 validation covers no runtime browser path using the legacy MinIO URL con
 
 ### Destinations payload — Implemented
 
-**Parties:** `api-gateway` (producer) → route-planning page (consumer)
+**Parties:** `route-service` (producer) → `api-gateway` (proxy) → route-planning page (consumer)
 
 **Endpoint:** `GET /api/destinations`
 
 **Payload:**
 ```json
-[{ "label": "string", "value": "string (Google Maps query)" }]
+[{ "id": "string", "name": "string", "address": "string", "destination": "string", "label": "string", "value": "string (Google Maps query)" }]
 ```
 
 ---
@@ -292,13 +311,13 @@ Phase 2 validation covers no runtime browser path using the legacy MinIO URL con
 
 ---
 
-### 3. Client-side route planning via Google Maps JS API
+### 3. Client-side route planning via Google Maps JS API and route-service destinations
 
 **Date:** Project start  
 **Context:** Route calculation requires a mapping service. A backend proxy would add latency and complexity for a feature that does not need server-side data.  
-**Decision:** Route calculation and rendering run entirely in the browser using the Google Maps JS API. The backend only injects the API key and serves the destination list.  
+**Decision:** Route calculation and rendering run entirely in the browser using the Google Maps JS API. The backend injects the API key, while `route-service` owns the predefined destination list behind gateway endpoint `/api/destinations`.  
 **Rationale:** Keeps the backend out of the runtime Maps call. The browser is better positioned to use the user's geolocation directly.  
-**Consequences:** The Maps API key is visible in the rendered HTML (acceptable for a course project). Route data is not stored or logged.  
+**Consequences:** The Maps API key is visible in the rendered HTML (acceptable for a course project). Route data is not stored or logged. Destination support data is no longer owned by the gateway.  
 **Status:** Standing.
 
 ---

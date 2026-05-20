@@ -5,18 +5,19 @@ services:
       dockerfile: api-gateway/Dockerfile
     expose:
       - "3000"
-    env_file: .env
     environment:
       PORT: 3000
       CONFIGURATOR_URL: http://car-configurator:3001
       MERCH_URL: http://merch-shop:3002
       CART_URL: http://shopping-cart:3005
       AI_URL: http://ai-feature:3004
+      ROUTE_URL: http://route-service:3007
     depends_on:
       - car-configurator
       - merch-shop
       - shopping-cart
       - ai-feature
+      - route-service
     volumes:
       - ./api-gateway/src:/app/api-gateway/src
 
@@ -26,7 +27,6 @@ services:
       dockerfile: services/web-shop-frontend/Dockerfile
     ports:
       - "3000:3000"
-    env_file: .env
     environment:
       PORT: 3000
       WEB_SHOP_BACKEND_URL: http://web-shop-backend:3006
@@ -41,11 +41,10 @@ services:
       dockerfile: services/web-shop-backend/Dockerfile
     expose:
       - "3006"
-    env_file: .env
     environment:
       PORT: 3006
       API_GATEWAY_URL: http://api-gateway:3000
-      CODESPACE_NAME: ${CODESPACE_NAME:-}
+      GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY}
     depends_on:
       - api-gateway
     volumes:
@@ -56,10 +55,15 @@ services:
       context: ./services/car-configurator
     expose:
       - "3001"
-    env_file: .env
     environment:
       PORT: 3001
-      CODESPACE_NAME: ${CODESPACE_NAME:-}
+      MYSQL_HOST: ${MYSQL_HOST}
+      MYSQL_PORT: ${MYSQL_PORT}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT}
+      MINIO_PORT: ${MINIO_PORT}
+      MINIO_BUCKET: ${MINIO_BUCKET}
     depends_on:
       mysql-seed:
         condition: service_completed_successfully
@@ -69,10 +73,15 @@ services:
       context: ./services/merch-shop
     expose:
       - "3002"
-    env_file: .env
     environment:
       PORT: 3002
-      CODESPACE_NAME: ${CODESPACE_NAME:-}
+      MYSQL_HOST: ${MYSQL_HOST}
+      MYSQL_PORT: ${MYSQL_PORT}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT}
+      MINIO_PORT: ${MINIO_PORT}
+      MINIO_BUCKET: ${MINIO_BUCKET}
     depends_on:
       mysql-seed:
         condition: service_completed_successfully
@@ -82,9 +91,10 @@ services:
       context: ./services/shopping-cart
     expose:
       - "3005"
-    env_file: .env
     environment:
       PORT: 3005
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
     depends_on:
       - redis
 
@@ -93,20 +103,34 @@ services:
       context: ./services/ai-feature
     expose:
       - "3004"
-    env_file: .env
     environment:
       PORT: 3004
       CONFIGURATOR_URL: http://car-configurator:3001
       MERCH_URL: http://merch-shop:3002
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
       GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash}
       GEMINI_FALLBACK_MODEL: ${GEMINI_FALLBACK_MODEL:-gemini-2.5-flash-lite}
     depends_on:
       - car-configurator
       - merch-shop
 
+  route-service:
+    build:
+      context: ./services/route-service
+    expose:
+      - "3007"
+    environment:
+      PORT: 3007
+      MYSQL_HOST: ${MYSQL_HOST}
+      MYSQL_PORT: ${MYSQL_PORT}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    depends_on:
+      mysql-seed:
+        condition: service_completed_successfully
+
   mysql:
     image: mysql:8.4
-    env_file: .env
     environment:
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
@@ -123,7 +147,6 @@ services:
 
   mysql-seed:
     image: mysql:8.4
-    env_file: .env
     depends_on:
       mysql:
         condition: service_healthy
@@ -133,7 +156,8 @@ services:
       /bin/sh -c "
       mysql -h mysql -u root -p${MYSQL_ROOT_PASSWORD} < /seed/01_merch_shop.sql &&
       mysql -h mysql -u root -p${MYSQL_ROOT_PASSWORD} < /seed/02_car_configurator.sql &&
-      mysql -h mysql -u root -p${MYSQL_ROOT_PASSWORD} -e \"CREATE USER IF NOT EXISTS '${MYSQL_USER}'@'%' IDENTIFIED BY '${MYSQL_PASSWORD}'; GRANT ALL PRIVILEGES ON bmw_merch_shop.* TO '${MYSQL_USER}'@'%'; GRANT ALL PRIVILEGES ON bmw_car_configurator.* TO '${MYSQL_USER}'@'%'; FLUSH PRIVILEGES;\"
+      mysql -h mysql -u root -p${MYSQL_ROOT_PASSWORD} < /seed/03_route_service.sql &&
+      mysql -h mysql -u root -p${MYSQL_ROOT_PASSWORD} -e \"CREATE USER IF NOT EXISTS '${MYSQL_USER}'@'%' IDENTIFIED BY '${MYSQL_PASSWORD}'; GRANT ALL PRIVILEGES ON bmw_merch_shop.* TO '${MYSQL_USER}'@'%'; GRANT ALL PRIVILEGES ON bmw_car_configurator.* TO '${MYSQL_USER}'@'%'; GRANT ALL PRIVILEGES ON bmw_route_service.* TO '${MYSQL_USER}'@'%'; FLUSH PRIVILEGES;\"
       "
 
   redis:
@@ -142,7 +166,6 @@ services:
   minio:
     image: minio/minio:RELEASE.2025-09-07T16-13-09Z
     command: server /data --console-address ":9001"
-    env_file: .env
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
@@ -159,7 +182,6 @@ services:
 
   minio-init:
     image: minio/mc:RELEASE.2025-08-13T08-35-41Z
-    env_file: .env
     depends_on:
       minio:
         condition: service_healthy

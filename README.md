@@ -17,6 +17,7 @@ bmw/
 │  ├─ car-configurator/
 │  ├─ merch-shop/
 │  ├─ ai-feature/
+│  ├─ route-service/
 │  └─ shopping-cart/
 ├─ assets/
 │  └─ configurator/
@@ -36,7 +37,7 @@ Contains the API proxy and support endpoints.
 
 - `api-gateway/src/`: API proxy routes, health/support endpoints, and session-cookie handling
 
-This directory keeps backend service URLs internal. It forwards API requests to the owning microservices and manages the anonymous cart session cookie. The `/api/destinations` endpoint is gateway support data for predefined BMW route targets, not a separate Route Planning microservice.
+This directory keeps backend service URLs internal. It forwards API requests to the owning microservices and manages the anonymous cart session cookie. The `/api/destinations` endpoint is routed to `route-service`, which owns predefined BMW route targets in its own MySQL schema.
 
 ### `web/`
 
@@ -54,6 +55,7 @@ Contains the split web-shop presentation layer and backend microservices.
 - `services/car-configurator/`: resolves selected options into a pre-generated image, validates combinations, and calculates price
 - `services/merch-shop/`: provides merchandise catalog and product detail data
 - `services/ai-feature/`: integrates Gemini, generates recommendations, and calls the configurator service
+- `services/route-service/`: owns predefined BMW route destinations in MySQL and exposes them to the gateway
 - `services/shopping-cart/`: stores and returns unified cart state for both car configurations and merchandise
 
 ### `assets/`

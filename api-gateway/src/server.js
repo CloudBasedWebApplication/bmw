@@ -13,6 +13,7 @@ const CONFIGURATOR = process.env.CONFIGURATOR_URL || "http://car-configurator:30
 const MERCH = process.env.MERCH_URL || "http://merch-shop:3002";
 const CART = process.env.CART_URL || "http://shopping-cart:3005";
 const AI = process.env.AI_URL || "http://ai-feature:3004";
+const ROUTE = process.env.ROUTE_URL || "http://route-service:3007";
 
 app.use((req, res, next) => {
   if (!req.cookies.sessionId) {
@@ -23,17 +24,6 @@ app.use((req, res, next) => {
 });
 
 // ── API proxy routes ─────────────────────────────────────────────────────────
-
-const DESTINATIONS = [
-  {
-    id: "bmw-welt",
-    name: "BMW Welt München",
-    address: "Am Olympiapark 1, 80809 München",
-    destination: "BMW Welt München, Am Olympiapark 1, 80809 München, Germany",
-    label: "BMW Welt München",
-    value: "BMW Welt München, Am Olympiapark 1, 80809 München, Germany",
-  },
-];
 
 async function proxyJson(res, request) {
   try {
@@ -113,7 +103,7 @@ app.get("/health", (_req, res) => {
 });
 
 app.get("/api/destinations", (_req, res) => {
-  res.json(DESTINATIONS);
+  proxyJson(res, () => fetch(`${ROUTE}/destinations`));
 });
 
 app.get("/api/configurator/models", (_req, res) => {
@@ -260,4 +250,8 @@ app.post("/api/ai/recommend", (req, res) => {
   );
 });
 
-app.listen(port, () => console.log(`API gateway listening on port ${port}`));
+if (require.main === module) {
+  app.listen(port, () => console.log(`API gateway listening on port ${port}`));
+}
+
+module.exports = app;
