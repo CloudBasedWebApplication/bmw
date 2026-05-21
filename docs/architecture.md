@@ -2,92 +2,194 @@
 
 ## 1. Purpose
 
-This document describes the high-level architecture of the BMW cloud web app course project. It summarizes the agreed system boundaries, service responsibilities, main data flow, and infrastructure dependencies.
+This document describes the high-level architecture of the BMW cloud web app course project. It summarises the agreed system boundaries, service responsibilities, main data flow, and infrastructure dependencies. Architectural decisions are documented with canonical pattern names, workload classification, state model, and consistency choices as required for the CBWAD module (sources: Fehling et al. 2014, Fowler 2002, Hohpe & Woolf 2003, NIST SP 800-145).
 
-The system is designed around a split web-shop presentation layer, one API gateway, and multiple backend microservices. The first version is optimized for local Docker-based development and demonstration, while still keeping service ownership clear.
+The system is designed around a split web-shop presentation layer, one API routing proxy, and multiple backend domain services, all running locally via Docker Compose.
 
-For product-level expected behavior, refer to `docs/PRD.md`. This architecture document focuses on responsibility boundaries and request/data flow rather than delivery status.
+For product-level expected behaviour, refer to `docs/PRD.md`. This architecture document focuses on responsibility boundaries, request/data flow, and architectural decisions.
 
 ## 2. Architecture Diagram
 
 ```mermaid
 flowchart LR
-    user["User"]
-    frontend["Web Shop Frontend\n/static + browser entry proxy"]
-    backendPresentation["Web Shop Backend\nEJS page rendering + /api proxy"]
-    gateway["API Gateway\nAPI proxying"]
+    user["User\n(Browser)"]
 
-    subgraph backend["Microservices"]
-        configurator["Car Configurator Service"]
-        merchandise["Merch Shop Service"]
-        ai["AI Feature Service"]
-        cart["Shopping Cart Service"]
-        route["Route Service\nroute destinations"]
+    subgraph presentation["Presentation Tier"]
+        frontend["web-shop-frontend\nStateless Component"]
+        webbackend["web-shop-backend\nStateless Component · EJS Rendering"]
     end
 
-    subgraph data["Data Stores"]
-        mysql["MySQL"]
-        redis["Redis"]
-        minio["MinIO"]
+    subgraph business["Business Logic Tier"]
+        gateway["api-gateway\nRouting Proxy + Session Cookie"]
+        subgraph services["Domain Services"]
+            configurator["car-configurator\nStateless Component"]
+            merchandise["merch-shop\nStateless Component"]
+            ai["ai-feature\nStateless Component"]
+            cart["shopping-cart\nStateless Component"]
+            route["route-service\nStateless Component"]
+        end
+    end
+
+    subgraph data["Data Tier"]
+        mysql["MySQL\nDBaaS · Application State\nCP / Strict Consistency"]
+        redis["Redis\nCache aaS · Session State\nAP / Eventual Consistency"]
+        minio["MinIO\nBlob Storage aaS"]
     end
 
     subgraph external["External APIs"]
-        gemini["Gemini API"]
-        googlemaps["Google Maps API"]
+        gemini["Gemini API\n(SaaS)"]
+        googlemaps["Google Maps JS API\n(SaaS · browser-side only)"]
     end
 
-    user --> frontend
-    frontend --> backendPresentation
-    backendPresentation --> gateway
+    user -- "HTTP" --> frontend
+    frontend -- "HTTP" --> webbackend
+    webbackend -- "HTTP/REST" --> gateway
 
-    gateway --> configurator
-    gateway --> merchandise
-    gateway --> ai
-    gateway --> cart
-    gateway --> route
+    gateway -- "HTTP/REST" --> configurator
+    gateway -- "HTTP/REST" --> merchandise
+    gateway -- "HTTP/REST" --> ai
+    gateway -- "HTTP/REST" --> cart
+    gateway -- "HTTP/REST" --> route
 
-    user --> googlemaps
+    user -- "HTTPS" --> googlemaps
 
-    configurator --> mysql
-    configurator --> minio
+    configurator -- "SQL" --> mysql
+    configurator -- "S3 API" --> minio
 
-    merchandise --> mysql
-    merchandise --> minio
+    merchandise -- "SQL" --> mysql
+    merchandise -- "S3 API" --> minio
 
-    ai --> gemini
-    ai --> configurator
-    ai --> merchandise
+    ai -- "HTTPS" --> gemini
+    ai -- "HTTP/REST" --> configurator
+    ai -- "HTTP/REST" --> merchandise
 
-    cart --> redis
-    route --> mysql
-
-    route -. "future server-side route calculation" .-> googlemaps
-
-    cart -. "stores car snapshot" .-> configurator
-    cart -. "stores merchandise snapshot" .-> merchandise
+    cart -- "Redis API" --> redis
+    route -- "SQL" --> mysql
 ```
 
 The Mermaid source is also stored separately in `docs/architecture.mmd`.
 
-## 3. Architecture Overview
+## 3. Architectural Decisions
 
-The architecture follows a simple microservice structure:
+### 3.1 Workload Classification
 
-- one browser-facing web-shop frontend for `/static`, `/health`, and request forwarding
-- one web-shop backend for EJS page rendering and same-origin API forwarding
-- one API gateway for API request forwarding
-- five backend domain services
-- one relational database for persistent business data
-- one cache store for cart state
-- one object storage service for configurator images
-- one backend AI integration through the `ai-feature` service
-- one client-side map integration through the Google Maps JavaScript API
+**Workload type: Continuously Changing** (Fehling et al.)
 
-The web-shop frontend is the only browser-facing application container in local development. It serves shared static assets and forwards page/API requests to the web-shop backend. Browser API calls use same-origin `/api/*` routes, which pass through the web-shop backend to the API gateway. Business truth remains in the backend services.
+Users interact in real time: they configure cars, add items to the cart, and issue AI queries at unpredictable intervals. The Presentation and Business Logic Tiers must therefore support horizontal scaling in a production deployment. The Data Tier is the anticipated bottleneck; the Stateless Component Pattern on all application layers and cache-aside reads mitigate upstream pressure.
+
+### 3.2 Architectural Style
+
+**Problem:** How should the system be decomposed to allow independent development, deployment, and scaling of the car configurator, merch shop, AI recommendation, cart, and route planning domains?
+
+**Context:** Five distinct bounded domains, a single development team, no initial production traffic requirement, local Docker Compose target.
+
+**Considered options:**
+
+- **Monolithic Architecture** — single Node.js/Express application for all domains. Rejected: the five domains have different data ownership, different scaling profiles (AI calls are heavy; route lookups are light), and the course objective is to demonstrate cloud-native decomposition. A monolith would prevent independent scaling and couple unrelated domains.
+- **Microservice Architecture** (Richardson / microservices.io) — each service with its own database, communicating via REST or messaging. Preferred structurally; partially constrained by the local development infrastructure (see deviation note below).
+- **SOA with ESB** (Fehling et al.) — rejected: an Enterprise Service Bus would introduce a central bottleneck and violate the "smart endpoints, dumb pipes" principle already in place.
+
+**Decision:** The system uses a **combination of architectural styles** as is standard for modern cloud applications (Fehling et al.):
+
+1. **Client-Server Architecture, Variant 1** (Fowler 2002): the browser is a thin client; all business logic, pricing, and validation execute server-side.
+2. **Three-Tier Cloud Application** (Fehling et al.): the system is structured as Presentation Tier, Business Logic Tier, and Data Tier, each independently scalable.
+3. **Microservice Architecture principles** (Richardson): domain-aligned service boundaries, smart endpoints / dumb pipes, no cross-schema queries, independent deployability per service.
+
+**Deviation from pure Microservice Architecture (first-version constraint):** `car-configurator`, `merch-shop`, and `route-service` share one MySQL container, separated only by schema (`bmw_car_configurator`, `bmw_merch_shop`, `bmw_route_service`). This is a deployment convenience. The application-layer coupling discipline of Microservices is maintained: no service queries another service's tables, and schema names are architecture constants that cannot be overridden via environment variables. In a production deployment, each schema would migrate to a dedicated managed database instance (DBaaS).
+
+**Consequences:**
+- All services are independently deployable and testable.
+- Domain ownership is enforced at the application layer; the shared MySQL instance is a deployment detail, not an architectural coupling.
+- The shared MySQL instance is a single point of failure in the current setup, mitigated in production by per-service managed databases.
+
+### 3.3 State Classification and Session State Patterns
+
+**All application components are Stateless Components** (Fehling et al.): no component holds Session or Application State internally. All state is externalised to the Data Tier.
+
+| Component | Classification | Externalised to |
+|---|---|---|
+| web-shop-frontend | Stateless Component | — |
+| web-shop-backend | Stateless Component | — |
+| api-gateway | Stateless Component | Session ID via cookie (see below) |
+| car-configurator | Stateless Component | Application State → MySQL + MinIO |
+| merch-shop | Stateless Component | Application State → MySQL + MinIO |
+| ai-feature | Stateless Component | — (reads context per request, no stored state) |
+| shopping-cart | Stateless Component | Session State → Redis |
+| route-service | Stateless Component | Application State → MySQL |
+
+**Cart: Database Session State Pattern** (Fowler 2002)
+
+Cart contents are Session Data (transient, no final business relevance). The `shopping-cart` service implements the Database Session State Pattern: cart state is stored in Redis under the key `cart:<sessionId>`. All backend instances are interchangeable — any instance can serve any cart request because no instance holds cart state internally.
+
+**Session ID transport: Client Session State Pattern** (Fowler 2002)
+
+The session ID is the only value the server sends to the client. The `api-gateway` mints a UUID on first request and delivers it as an `httpOnly` cookie. The browser returns the cookie on subsequent requests. This is the Client Session State Pattern applied to the session identifier.
+
+The Database Session State Pattern is always combined with the Client Session State Pattern for the ID transfer (Fowler 2002).
+
+### 3.4 CAP Theorem and Consistency Model
+
+For each distributed stateful store (Brewer 2000 / Fehling et al.):
+
+**MySQL — CP (Strict Consistency)**
+
+MySQL is a single-instance relational store. All reads return the most recently committed write. It is used for Application Data (product catalogue, car configurations, prices, destinations) because this data has final business relevance and must be identical across all service instances.
+
+> Strict Consistency: all clients reading a data item at a given time receive identical data (Fehling et al.).
+
+**Redis — AP (Eventual Consistency)**
+
+Redis is deployed as a single-node in-memory store. Under normal operation it returns the latest value. Under partition, availability is prioritised over consistency. Stale cart reads are tolerable because cart contents are Session Data; the business impact of a briefly stale cart is low and the user can re-add items.
+
+> Eventual Consistency is acceptable for shopping cart state; it is not acceptable for Application Data such as prices or available configurations (Fehling et al.).
+
+### 3.5 Scaling Strategy
+
+**Problem:** How does the system handle increased user load?
+
+**Decision:** Horizontal Scaling (scale out) is the target strategy for the Presentation and Business Logic Tiers, enabled directly by the Stateless Component Pattern. Vertical Scaling (scale up) applies to the Data Tier in the current single-instance setup.
+
+| Tier | Scaling axis | Trigger |
+|---|---|---|
+| Presentation Tier | Horizontal | Request volume |
+| Business Logic Tier | Horizontal | Request volume |
+| Data Tier (MySQL) | Vertical (current); read replicas (production) | Query volume |
+| Data Tier (Redis) | Vertical (current); Redis Cluster (production) | Cache throughput |
+
+No sticky sessions are required because all application components are Stateless Components (Fehling et al.).
+
+**Elasticity Engine:** Not implemented in the Docker Compose setup. In a production CaaS or PaaS deployment, the container platform's autoscaler (e.g., Kubernetes HPA) acts as the Elasticity Engine, triggered by CPU or request-count metrics (Fehling et al.).
+
+**Load balancers:** Not present in the current deployment. In a scaled deployment, a platform-provided load balancer distributes requests across stateless instances in each tier.
+
+### 3.6 Cloud Service Model (NIST SP 800-145)
+
+| Component | Current model | Production target |
+|---|---|---|
+| All Node.js application services | **CaaS** — developer manages container image and code; platform manages scheduling | CaaS or PaaS on public cloud |
+| MySQL | **CaaS** (local container) | **DBaaS** (e.g., Cloud SQL, Amazon RDS) |
+| Redis | **CaaS** (local container) | **Cache aaS** (e.g., ElastiCache, Memorystore) |
+| MinIO | **CaaS** (local container) | **Blob Storage aaS** (e.g., Amazon S3, Google Cloud Storage) |
+| Gemini API | **SaaS** — consumed as a managed API | SaaS |
+| Google Maps JS API | **SaaS** — consumed client-side as a managed API | SaaS |
+
+The Docker Compose stack is a CaaS-class local environment. It does not constitute a production cloud deployment.
+
+### 3.7 Deployment Model (NIST SP 800-145)
+
+**Current: local private environment (Docker Compose on developer machine)**
+
+The system runs on a single developer machine. There is no public infrastructure, no external network exposure beyond localhost.
+
+**Production target: Public Cloud**
+
+All services would be deployed to a public cloud provider's managed container platform (CaaS or PaaS), with managed DBaaS and Cache aaS in the same region. No Hybrid Cloud or Multi-Cloud design is required; the Application Component Proxy Pattern (Fehling et al.) is therefore not needed.
 
 ## 4. Main Components
 
 ### 4.1 Web Shop Frontend
+
+**State:** Stateless Component (Fehling et al.) — no internal state.
 
 The `services/web-shop-frontend` service provides the browser-facing entry point.
 
@@ -102,6 +204,8 @@ It does not render EJS pages and does not call domain microservices directly.
 
 ### 4.2 Web Shop Backend
 
+**State:** Stateless Component (Fehling et al.) — no internal state.
+
 The `services/web-shop-backend` service provides server-side rendering and browser request mediation behind the frontend proxy.
 
 Its responsibilities are:
@@ -110,24 +214,27 @@ Its responsibilities are:
 - keep existing page routes stable for the browser
 - forward same-origin `/api/*` requests to the API gateway
 - fetch merch list/detail data for SSR through the API gateway at `/api/merch/products` and `/api/merch/products/:productId`
+- inject the Google Maps API key into the route planning EJS template at render time
 - mediate same-origin API asset requests through the gateway instead of exposing a presentation-tier MinIO proxy
 
-The web-shop backend does not own configuration validity, official pricing, AI recommendation logic, cart persistence rules, or merch catalog truth. It has no direct `MERCH_URL` dependency.
+The web-shop backend does not own configuration validity, official pricing, AI recommendation logic, cart persistence rules, or merch catalogue truth. It has no direct `MERCH_URL` dependency.
 
-The Home page is part of this presentation layer. It is not a microservice because it is a browser-facing page rendered by `web-shop-backend`, not an independently deployable backend capability with its own business rules or data ownership.
+### 4.3 API Gateway (Routing Proxy with Session Management)
 
-### 4.3 API Gateway
+**State:** Stateless Component (Fehling et al.) — no internal state. The session ID cookie is the only session artefact it produces; cart state lives in Redis.
 
-The `api-gateway` service provides the API-facing entry point for the frontend.
+The `api-gateway` service is the HTTP routing layer between the presentation tier and the domain services.
 
 Its responsibilities are:
 
-- proxy API requests to backend services
-- maintain the session cookie used for cart tracking
+- route API requests to backend domain services (HTTP/REST)
+- mint and propagate the `sessionId` cookie used by `shopping-cart` (Client Session State Pattern, Fowler 2002)
 
-It intentionally does not render EJS pages and does not serve static assets.
+**Scope note:** The current implementation is an API routing proxy with session management. It does not implement authentication/authorisation or response aggregation. A full API Gateway Pattern (Fehling et al.) would add auth, rate limiting, and cross-service response aggregation; these are deferred to production scope (see section 9).
 
-### 4.4 Configurator Service
+### 4.4 Car Configurator Service
+
+**State:** Stateless Component (Fehling et al.) — Application State externalised to MySQL (configurations, prices, image keys) and MinIO (images).
 
 The configurator service is the source of truth for car configuration results.
 
@@ -135,7 +242,7 @@ Its responsibilities are:
 
 - support two car models; the user selects a model first, then configures options within that model
 - receive model and selected parameters, validate the combination
-- look up the image key in MySQL for the matching combination, then retrieve the image from MinIO
+- look up the image key in MySQL for the matching combination, then retrieve the image from MinIO via S3 API
 - calculate final price in the backend
 - return structured metadata such as advantages, disadvantages, and recommendation labels
 
@@ -143,201 +250,196 @@ The service does not generate images. It looks up a pre-uploaded image object in
 
 ### 4.5 Merch Shop Service
 
+**State:** Stateless Component (Fehling et al.) — Application State externalised to MySQL (product catalogue) and MinIO (product images).
+
 The merch shop service provides product information for the merchandise page.
 
 Its responsibilities are:
 
 - return product list and detail information
-- read merchandise data from MySQL
-- resolve merchandise image URLs from MinIO-backed object keys
+- read merchandise data from MySQL via SQL
+- resolve merchandise image URLs from MinIO-backed object keys via S3 API
 - support cart addition and display use cases
 - provide stable product identifiers suitable for direct linking from AI recommendations and the web application
 
-### 4.6 Route Service And Route Planning
+### 4.6 Route Service and Route Planning
 
-The `route-service` owns route-planning support data in the `bmw_route_service` MySQL schema and is the designated service boundary for future route-domain behavior.
+**State:** Stateless Component (Fehling et al.) — Application State externalised to MySQL (destination records).
+
+The `route-service` owns route-planning support data in the `bmw_route_service` MySQL schema. It does not calculate routes in the current implementation.
 
 Its current responsibilities are:
 
 - return predefined BMW route destinations through `GET /destinations`
 - keep destination data out of the API gateway and presentation layer
-- read predefined active destinations from its own `destinations` table
+- read predefined active destinations from its own `destinations` table via SQL
 - provide the future owner for server-side route calculation, route history, ETA policy, service-area rules, and map-provider abstraction
 
-In the current scope, route calculation and map rendering still run in the browser through Google Maps JavaScript API. The `web-shop-backend` injects the browser API key into the EJS template, the browser loads Maps JS API, and the browser uses `DirectionsService` and `DirectionsRenderer`.
-
-The API gateway exposes `GET /api/destinations` and proxies it to `route-service`. The gateway does not own destination data and does not connect to MySQL.
+In the current scope, route calculation is provided by the external Google Maps JavaScript API (SaaS), which is loaded and called from the browser. The `web-shop-backend` injects the browser API key into the EJS template; the browser calls `DirectionsService` with the user's current position and the selected BMW destination. Google Maps returns the route geometry, travel distance, and travel duration, and `DirectionsRenderer` renders the returned route on the map.
 
 ### 4.7 AI Feature Service
+
+**State:** Stateless Component (Fehling et al.) — no database, no stored state between requests. Context is fetched from domain services per request.
 
 The AI feature service is a global shopping assistant accessible from any page. It handles both car configuration recommendations and merchandise recommendations.
 
 Its responsibilities are:
 
 - accept user natural-language prompts
-- fetch relevant context through service APIs: configuration options from `car-configurator` and merchandise catalog data from `merch-shop`
-- send structured context and a stable prompt/template to Gemini
+- fetch relevant context through service APIs via HTTP/REST: configuration options from `car-configurator` and merchandise catalogue data from `merch-shop`
+- send structured context and a stable prompt/template to Gemini via HTTPS
 - receive structured recommendation output and rationale from Gemini
-- use configurator APIs, not direct SQL, whenever car configuration data or official validation is needed
 - return recommendations as links and structured merchandise recommendation items
 
-This service is an integration/orchestration service. It does not own a database schema, connect to MySQL, or query another service's tables directly. If AI needs additional domain data, the owning service must expose it through a service endpoint. Official pricing, configuration validity, and image truth remain in the configurator service; merchandise catalog truth remains in the merch shop service.
-
-This boundary also protects `ai-feature` from a future split from one shared database into service-owned databases. Database names, schemas, credentials, containers, and migration strategy are internal details of `car-configurator` and `merch-shop`. `ai-feature` depends on their HTTP API contracts; it should only need changes if those endpoint URLs, response fields, response semantics, or service availability change.
+This service is an integration/orchestration service. It does not own a database schema, connect to MySQL, or query another service's tables directly. Official pricing, configuration validity, and image truth remain in the configurator service; merchandise catalogue truth remains in the merch shop service.
 
 ### 4.8 Shopping Cart Service
+
+**State:** Stateless Component (Fehling et al.) — Session State externalised to Redis via the Database Session State Pattern (Fowler 2002). The service holds no cart data internally.
 
 The cart service manages the unified cart.
 
 Its responsibilities are:
 
-- store cart state in Redis
+- store and retrieve cart state from Redis using key `cart:<sessionId>` via Redis API
 - aggregate both car configurations and merchandise items
-- store displayable snapshots rather than only raw identifiers
+- store displayable snapshots rather than only raw identifiers, so cart items render without a fresh configurator call
 - support quantity changes for merchandise items as part of standard cart editing
-
-For car items, the cart should persist enough snapshot data to show the selected result without requiring a fresh configurator lookup for every render.
 
 ## 5. Data Stores
 
-### 5.1 MySQL
+### 5.1 MySQL — DBaaS, Application State, CP / Strict Consistency
 
-MySQL stores persistent business data:
+**Storage family:** Database as a Service (DBaaS) — Fehling et al.
 
-- configuration option definitions
-- option values
-- valid configuration combinations
-- combination image paths or URLs
-- pricing information
+MySQL stores Application Data (persistent, final business relevance):
+
+- configuration option definitions, values, and valid combinations
+- combination image keys and pricing information
 - rationale metadata
-- merchandise catalog data
+- merchandise catalogue data
 - predefined BMW route destinations
 
-The first version uses a table-driven lookup model instead of a complex rules engine. MySQL is accessed by the domain services that own the data, currently `car-configurator`, `merch-shop`, and `route-service`. If those services later move to separate service-owned databases, the database topology remains hidden behind their APIs. The `ai-feature` service has no direct database dependency and consumes domain data only through those service APIs.
+MySQL is the appropriate storage primitive for this data because it is structured, schema-bound, requires complex queries, and demands Strict Consistency (CP — Fehling et al., Brewer 2000). The `car-configurator`, `merch-shop`, and `route-service` each own a dedicated schema; no cross-schema queries are permitted.
 
-### 5.2 Redis
+### 5.2 Redis — Cache aaS, Session State, AP / Eventual Consistency
 
-Redis stores shopping cart state. It is used because the cart is session-oriented and needs low-latency updates for add, remove, quantity update, and display operations.
+**Storage family:** Cache as a Service (Cache aaS) — Fehling et al.
 
-### 5.3 MinIO
+Redis stores shopping cart state (Session Data — transient, no final business relevance). It is the backing store for the Database Session State Pattern (Fowler 2002).
 
-MinIO stores pre-generated configurator and merchandise images. It is used because these images are binary assets rather than relational records. Browser-visible product image delivery is owned by the services that own the image references.
+**Cache invalidation strategy: TTL-based.** Cart keys expire after 24 hours (`CART_TTL = 86400 s`). No write-through or cache-aside strategy is required because Redis is the primary (and only) store for cart data, not a cache in front of a durable store.
 
-Phase 2 keeps the image objects in MinIO, but removes presentation-tier direct access to MinIO. Browser-visible image requests must flow through the application and service boundary:
+Redis is chosen because the key-value access pattern (`cart:<sessionId>` → JSON array) matches its data model exactly, and in-memory access latency is appropriate for per-request cart reads and writes. Eventual Consistency (AP) is acceptable: the business impact of a briefly stale cart is low.
 
-`Browser -> web-shop-frontend -> web-shop-backend -> api-gateway -> owning service -> MinIO`
+### 5.3 MinIO — Blob Storage aaS
 
-The implemented Phase 2 route contracts are:
+**Storage family:** Blob Storage as a Service (Blob Storage aaS) — Fehling et al.
 
-- `GET /api/configurator/assets/*` for configurator-owned images
-- `GET /api/merch/assets/*` for merchandise-owned images
+MinIO stores pre-generated configurator and merchandise images as binary objects. Object storage is the correct primitive for unstructured large objects; storing binaries in the relational database would be incorrect (Fehling et al.).
 
-`car-configurator` and `merch-shop` own the MinIO reads for their image prefixes and stream image responses back through the gateway. The gateway uses a binary/streaming proxy path for these routes, preserving response status, `content-type`, cache headers where present, and response body. The legacy browser-facing `/minio/*` URL contract is removed, not kept as a compatibility redirect.
+Browser-visible image delivery flows through the owning domain service:
+
+```
+Browser → web-shop-frontend → web-shop-backend → api-gateway → owning service (S3 API) → MinIO
+```
+
+The implemented route contracts are:
+
+- `GET /api/configurator/assets/*` — images owned by `car-configurator`
+- `GET /api/merch/assets/*` — images owned by `merch-shop`
 
 ### 5.4 Database Ownership
 
-- `car-configurator` owns the schema `bmw_car_configurator` (models, options, configurations, prices, image keys).
-- `merch-shop` owns the schema `bmw_merch_shop` (merchandise products).
-- `route-service` owns the schema `bmw_route_service` (predefined BMW route destinations).
-- Both schema names are fixed architecture constants and must not be configured via environment variables.
+- `car-configurator` owns `bmw_car_configurator` (models, options, configurations, prices, image keys).
+- `merch-shop` owns `bmw_merch_shop` (merchandise products).
+- `route-service` owns `bmw_route_service` (predefined BMW route destinations).
+- Schema names are fixed architecture constants; they must not be configured via environment variables.
 - Services must not query tables owned by other services directly.
-- Local development may still run one shared MySQL instance in Docker Compose, but ownership is enforced logically by separate schemas with fixed names.
 
 ## 6. External Integrations
 
-### 6.1 Gemini API
+### 6.1 Gemini API (SaaS)
 
-Gemini is used only by the AI feature service.
+Consumed only by the `ai-feature` service over HTTPS. Gemini interprets natural-language user intent, recommends structured configuration parameters, and generates rationale. It is a SaaS dependency (NIST SP 800-145); the `ai-feature` service is responsible for prompt construction, response parsing, and fallback handling.
 
-Its role is to:
+### 6.2 Google Maps JavaScript API (SaaS, browser-side)
 
-- interpret natural-language user intent
-- recommend structured configuration parameters
-- generate recommendation rationale and trade-off explanations
-- emit structured merchandise recommendation items for the frontend recommendation panel
-
-### 6.2 Google Maps JavaScript API
-
-The Maps JS API is loaded client-side in the browser. The API key is injected into the EJS template by `web-shop-backend` at render time and restricted by HTTP referrer in Google Cloud Console.
-
-Its role is to:
-
-- render an interactive map in the browser
-- calculate routes from the user's current location to a selected store destination via `DirectionsService`
-- display the route on the map via `DirectionsRenderer`
+Loaded client-side in the browser. The API key is injected into the EJS template by `web-shop-backend` at render time and restricted by HTTP referrer in Google Cloud Console. No backend call to Google Maps occurs at runtime. The browser sends the current user position and selected BMW destination to Google Maps `DirectionsService`; Google Maps calculates the route, distance, and travel duration. `DirectionsRenderer` renders the returned route in the browser. This is a SaaS dependency consumed by the browser (NIST SP 800-145).
 
 ## 7. Main Request Flows
 
 ### 7.1 Standard Configurator Flow
 
-1. the user selects configuration options in the browser
-2. the browser calls `/api/configurator/...` on `web-shop-frontend`
-3. `web-shop-frontend` forwards to `web-shop-backend`
-4. `web-shop-backend` forwards to the API gateway
-5. the API gateway forwards the request to the configurator service
-4. the configurator service validates the selection
-5. the configurator service resolves the image and price
-6. the frontend displays the official result
+1. The user selects configuration options in the browser.
+2. The browser calls `/api/configurator/...` on `web-shop-frontend` via HTTP.
+3. `web-shop-frontend` forwards to `web-shop-backend` via HTTP.
+4. `web-shop-backend` forwards to `api-gateway` via HTTP/REST.
+5. `api-gateway` forwards to `car-configurator` via HTTP/REST.
+6. `car-configurator` validates the selection, resolves the image key from MySQL (SQL), fetches the image from MinIO (S3 API), calculates the price.
+7. The result is returned through the chain to the browser.
 
 ### 7.2 AI Recommendation Flow
 
-1. the user enters a natural-language request
-2. the frontend calls `/api/ai/recommend`
-3. the API gateway forwards the request to the AI feature service
-4. the AI feature service reads relevant context
-5. the AI feature service calls Gemini
-6. Gemini returns structured recommendation output and rationale
-7. the AI feature service maps the structured output to supported configurator and merch targets
-8. the frontend opens the recommended configuration or merch product through the normal web/API flows
+1. The user enters a natural-language request.
+2. The browser calls `/api/ai/recommend` via HTTP.
+3. `api-gateway` forwards to `ai-feature` via HTTP/REST.
+4. `ai-feature` fetches context from `car-configurator` and `merch-shop` via HTTP/REST.
+5. `ai-feature` calls Gemini via HTTPS with structured context and a stable prompt template.
+6. Gemini returns structured recommendation output and rationale.
+7. `ai-feature` maps the output to configurator and merch-shop targets and returns links.
+8. The browser navigates to the recommended configuration or product via the normal web flows.
 
 ### 7.3 Cart Flow
 
-1. the frontend sends a selected car configuration or merchandise item to `/api/cart/...`
-2. the API gateway forwards the request to the cart service
-3. the cart service stores a snapshot in Redis
-4. the frontend may update merchandise quantity through the cart API
-5. the frontend reads the aggregated cart through the cart API
+1. The browser sends a selected car configuration or merchandise item to `/api/cart/...` via HTTP.
+2. `api-gateway` reads the `sessionId` cookie and forwards to `shopping-cart` via HTTP/REST with the session ID in the path.
+3. `shopping-cart` reads the current cart from Redis (Redis API), applies the change, writes back.
+4. Cart reads, quantity updates, and item removal follow the same path.
 
 ### 7.4 Route Planning Flow
 
-1. the user opens the route planning page through `web-shop-frontend`; the browser loads Maps JS API with the key injected by `web-shop-backend`
-2. the browser fetches `/api/destinations` through `web-shop-frontend`
-3. `web-shop-backend` forwards the request to `api-gateway`
-4. `api-gateway` proxies the request to `route-service`
-5. `route-service` reads active predefined BMW destinations from `bmw_route_service.destinations`
-6. `route-service` returns predefined BMW destinations
-7. the user selects a destination; the browser calls Google Maps `DirectionsService` directly
-8. `DirectionsRenderer` draws the route on the map in the browser
+1. The user opens the route planning page; `web-shop-backend` renders the EJS template and injects the Maps API key.
+2. The browser fetches `/api/destinations` via HTTP.
+3. `web-shop-backend` forwards to `api-gateway` via HTTP/REST.
+4. `api-gateway` proxies to `route-service` via HTTP/REST.
+5. `route-service` reads active predefined BMW destinations from MySQL (SQL) and returns them.
+6. The user selects a destination; the browser calls Google Maps `DirectionsService` directly via HTTPS with the current user position and selected BMW destination.
+7. Google Maps calculates the route, distance, and travel duration and returns the result to the browser.
+8. `DirectionsRenderer` draws the returned route on the map in the browser.
 
 ## 8. Key Design Decisions
 
-The architecture reflects the following agreed decisions:
+The architecture reflects the following agreed decisions (pattern sources cited where applicable):
 
-- one unified browser entry is used instead of multiple frontend applications
-- static asset serving and SSR are split between `services/web-shop-frontend` and `services/web-shop-backend`
-- `api-gateway` is kept focused on API proxying and request forwarding
-- the configurator uses pre-generated images instead of live rendering
-- pre-generated images are stored in MinIO
-- backend services own business truth
-- AI is an orchestration service with no database ownership; it uses configurator and merch APIs for domain data
-- configuration pricing is calculated in the backend
-- AI recommendation is implemented through a service-to-service flow, not a direct frontend-to-Gemini shortcut
-- AI recommendation should use a stable prompt/template plus structured output contract
-- cart stores snapshots for display stability
-- route planning runs client-side via Maps JS API; Google Maps owns current route calculation, while `route-service` owns predefined destination data and future route-domain behavior
-- Phase 2 keeps images in MinIO, but only the owning domain services may read MinIO objects for browser-visible image delivery
-- Phase 2 removes the MinIO API host port `9000`; the MinIO console port `9001` may remain host-exposed for local infrastructure/debug access
-- Phase 2 deletes the legacy `/minio/*` URL contract and validates all browser image paths through `/api/configurator/assets/*` or `/api/merch/assets/*`
+- **Stateless Component Pattern** (Fehling et al.) applied to all services; all state is externalised to the Data Tier. Enables horizontal scaling without sticky sessions.
+- **Database Session State Pattern + Client Session State Pattern** (Fowler 2002) for the shopping cart; Redis as the backing Cache aaS (Fehling et al.).
+- **Three-Tier Cloud Application** (Fehling et al.) as the macro structure; Presentation, Business Logic, and Data Tier scale independently.
+- **Microservice principles** (Richardson) within the Business Logic Tier: domain-aligned boundaries, smart endpoints / dumb pipes, no cross-schema queries. Shared MySQL instance is a first-version deployment constraint, not an architectural coupling.
+- **Client-Server Variant 1** (Fowler 2002): browser as thin client; all business logic server-side.
+- One unified browser entry point (`web-shop-frontend`) instead of multiple frontend applications.
+- Static asset serving and SSR split between `web-shop-frontend` and `web-shop-backend`.
+- `api-gateway` handles routing and session cookie management; auth and aggregation are deferred (see section 9).
+- The configurator uses pre-generated images stored in MinIO (Blob Storage aaS); images are never generated at runtime.
+- Backend services own business truth; the presentation tier renders, not decides.
+- `ai-feature` is an orchestration service; it uses domain APIs for context and returns links, not raw data.
+- Configuration pricing is calculated in the backend; the browser never computes prices.
+- AI recommendation uses a service-to-service flow (`ai-feature` → `car-configurator` / `merch-shop`), not a direct frontend-to-Gemini shortcut.
+- Cart stores snapshots for display stability; cart items render without a live configurator call.
+- Route planning uses the Google Maps JS API (SaaS) from the browser for route, distance, and duration calculation; `route-service` owns predefined destination data and future route-domain behaviour.
+- Image delivery is owned by the domain service (`/api/configurator/assets/*`, `/api/merch/assets/*`); no presentation-tier direct MinIO access.
 
 ## 9. First-Version Constraints
 
-To keep the course project deliverable realistic, the first version intentionally stays simple:
+To keep the course project deliverable realistic, the first version intentionally omits:
 
-- no authentication system
-- no production order flow
-- no live rendering engine
-- no complex pricing rule engine
-- no arbitrary destination search requirement
-- no dedicated Nginx or edge proxy container in the first version
-
-These constraints reduce implementation cost while preserving architectural clarity.
+- No authentication or authorisation system; the `api-gateway` does not implement auth. A production deployment would add auth middleware, making the gateway a full API Gateway Pattern (Fehling et al.).
+- No production order flow.
+- No live rendering engine.
+- No complex pricing rule engine.
+- No arbitrary destination search requirement.
+- No dedicated Nginx or edge proxy container.
+- No load balancer; all tiers run as single instances. The Stateless Component Pattern ensures horizontal scaling is possible without architectural changes once a load balancer is added.
+- No Redis Cluster; the single Redis node is a practical constraint for local development. In production, Redis Cluster or a managed Cache aaS provides HA and removes the single point of failure.
+- Shared MySQL instance across three services (separate schemas); production target is per-service managed DBaaS.
+- Docker Compose is used only as a local CaaS-equivalent development environment, not as a production deployment platform.

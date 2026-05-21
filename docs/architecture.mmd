@@ -1,54 +1,54 @@
 flowchart LR
-    user["User"]
-    frontend["Web Shop Frontend\n/static + browser entry proxy"]
-    backendPresentation["Web Shop Backend\nEJS page rendering + /api proxy"]
-    gateway["API Gateway\nAPI proxying"]
+    user["User\n(Browser)"]
 
-    subgraph backend["Microservices"]
-        configurator["Car Configurator Service"]
-        merchandise["Merch Shop Service"]
-        ai["AI Feature Service"]
-        cart["Shopping Cart Service"]
-        route["Route Service\nroute destinations"]
+    subgraph presentation["Presentation Tier"]
+        frontend["web-shop-frontend\nStateless Component"]
+        webbackend["web-shop-backend\nStateless Component · EJS Rendering"]
     end
 
-    subgraph data["Data Stores"]
-        mysql["MySQL"]
-        redis["Redis"]
-        minio["MinIO"]
+    subgraph business["Business Logic Tier"]
+        gateway["api-gateway\nRouting Proxy + Session Cookie"]
+        subgraph services["Domain Services"]
+            configurator["car-configurator\nStateless Component"]
+            merchandise["merch-shop\nStateless Component"]
+            ai["ai-feature\nStateless Component"]
+            cart["shopping-cart\nStateless Component"]
+            route["route-service\nStateless Component"]
+        end
+    end
+
+    subgraph data["Data Tier"]
+        mysql["MySQL\nDBaaS · Application State\nCP / Strict Consistency"]
+        redis["Redis\nCache aaS · Session State\nAP / Eventual Consistency"]
+        minio["MinIO\nBlob Storage aaS"]
     end
 
     subgraph external["External APIs"]
-        gemini["Gemini API"]
-        googlemaps["Google Maps API"]
+        gemini["Gemini API\n(SaaS)"]
+        googlemaps["Google Maps JS API\n(SaaS · browser-side only)"]
     end
 
-    user --> frontend
-    frontend --> backendPresentation
-    backendPresentation --> gateway
+    user -- "HTTP" --> frontend
+    frontend -- "HTTP" --> webbackend
+    webbackend -- "HTTP/REST" --> gateway
 
-    gateway --> configurator
-    gateway --> merchandise
-    gateway --> ai
-    gateway --> cart
-    gateway --> route
+    gateway -- "HTTP/REST" --> configurator
+    gateway -- "HTTP/REST" --> merchandise
+    gateway -- "HTTP/REST" --> ai
+    gateway -- "HTTP/REST" --> cart
+    gateway -- "HTTP/REST" --> route
 
-    user --> googlemaps
+    user -- "HTTPS" --> googlemaps
 
-    configurator --> mysql
-    configurator --> minio
+    configurator -- "SQL" --> mysql
+    configurator -- "S3 API" --> minio
 
-    merchandise --> mysql
-    merchandise --> minio
+    merchandise -- "SQL" --> mysql
+    merchandise -- "S3 API" --> minio
 
-    ai --> gemini
-    ai --> configurator
-    ai --> merchandise
+    ai -- "HTTPS" --> gemini
+    ai -- "HTTP/REST" --> configurator
+    ai -- "HTTP/REST" --> merchandise
 
-    cart --> redis
-    route --> mysql
-
-    route -. "future server-side route calculation" .-> googlemaps
-
-    cart -. "stores car snapshot" .-> configurator
-    cart -. "stores merchandise snapshot" .-> merchandise
+    cart -- "Redis API" --> redis
+    route -- "SQL" --> mysql
