@@ -388,8 +388,81 @@
     scrollbar-width: thin;
   }
 
-  .merch-grid .card {
+  .merch-grid .merch-card {
     scroll-snap-align: start;
+  }
+
+  .merch-preview-section .merch-card {
+    position: relative;
+    display: block;
+    height: clamp(260px, 32vw, 380px);
+    border-radius: 12px;
+    overflow: hidden;
+    background: #f1f5f9;
+    color: #fff;
+    text-decoration: none;
+    cursor: pointer;
+    transition: transform 0.22s ease, box-shadow 0.22s ease;
+  }
+
+  .merch-preview-section .merch-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.14);
+  }
+
+  .merch-preview-section .merch-card-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.6s ease;
+  }
+
+  .merch-preview-section .merch-card:hover .merch-card-img {
+    transform: scale(1.06);
+  }
+
+  .merch-preview-section .merch-card-overlay {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    padding: 56px 20px 20px;
+    background: linear-gradient(to top, rgba(5, 10, 18, 0.88) 0%, rgba(5, 10, 18, 0.42) 55%, transparent 100%);
+    color: #fff;
+    transition: padding-bottom 0.25s ease;
+  }
+
+  .merch-preview-section .merch-card:hover .merch-card-overlay {
+    padding-bottom: 68px;
+  }
+
+  .merch-preview-section .merch-card-category {
+    display: block;
+    margin-bottom: 5px;
+    color: rgba(255, 255, 255, 0.62);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .merch-preview-section .merch-card-name {
+    display: -webkit-box;
+    margin: 0 0 5px;
+    overflow: hidden;
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.2;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .merch-preview-section .merch-card-price {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1rem;
+    font-weight: 800;
   }
 
   .heritage-section {
@@ -855,6 +928,10 @@
       grid-auto-columns: minmax(260px, 82vw);
     }
 
+    .merch-preview-section .merch-card {
+      height: clamp(220px, 60vw, 300px);
+    }
+
     .stage-index {
       top: 28px;
       left: 18px;
@@ -1033,13 +1110,12 @@
 
       <div class="merch-grid" data-merch-carousel>
         <% merchPreviewProducts.forEach(function(product) { %>
-          <a class="card card--product" href="/merch-shop/<%= product.slug %>">
-            <img class="card-image" src="<%= merchImageBase %>/<%= product.image %>" alt="<%= product.name %> <%= product.variant %>" loading="lazy">
-            <div class="card-body">
-              <span class="card-kicker"><%= product.category %> / <%= product.variant %></span>
-              <h3 class="card-title"><%= product.name %></h3>
-              <p class="card-text"><%= product.description %></p>
-              <span class="card-price"><%= product.price %></span>
+          <a class="merch-card" href="/merch-shop/<%= product.slug %>">
+            <img class="merch-card-img" src="<%= merchImageBase %>/<%= product.image %>" alt="<%= product.name %> <%= product.variant %>" loading="lazy">
+            <div class="merch-card-overlay">
+              <span class="merch-card-category"><%= product.category %></span>
+              <h3 class="merch-card-name"><%= product.name %> <%= product.variant %></h3>
+              <span class="merch-card-price"><%= product.price %></span>
             </div>
           </a>
         <% }) %>
@@ -1597,7 +1673,7 @@
     function getMerchCardStep() {
       if (!merchCarousel) return 280;
 
-      const firstCard = merchCarousel.querySelector('.card');
+      const firstCard = merchCarousel.querySelector('.merch-card');
       if (!firstCard) return Math.max(280, merchCarousel.clientWidth * 0.82);
 
       const styles = window.getComputedStyle(merchCarousel);
