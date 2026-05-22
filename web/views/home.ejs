@@ -1257,6 +1257,8 @@
           let animationFrame = null;
           let destinations = [];
           let currentLocationOrigin = null;
+          let routeResultCache = null;
+          const ROUTE_CACHE_TTL_MS = 60000;
 
           function svgDataUrl(svg) {
             return "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg);
@@ -1501,6 +1503,31 @@
             return currentLocationOrigin;
           }
 
+          function coordinateValue(position, key) {
+            const value = position && position[key];
+            return typeof value === "function" ? value.call(position) : value;
+          }
+
+          function routeCacheKey(origin, destination) {
+            const lat = Number(coordinateValue(origin, "lat")).toFixed(5);
+            const lng = Number(coordinateValue(origin, "lng")).toFixed(5);
+            const destinationKey = destination.destination || destination.value || destination.id || destination.name;
+            return `${lat},${lng}|${destinationKey}`;
+          }
+
+          function cachedRouteResult(cacheKey) {
+            if (!routeResultCache || routeResultCache.key !== cacheKey) {
+              return null;
+            }
+
+            if (Date.now() - routeResultCache.createdAt > ROUTE_CACHE_TTL_MS) {
+              routeResultCache = null;
+              return null;
+            }
+
+            return routeResultCache.result;
+          }
+
           function formatDuration(seconds) {
             const totalMinutes = Math.max(1, Math.round(seconds / 60));
             const hours = Math.floor(totalMinutes / 60);
@@ -1509,6 +1536,40 @@
             if (!hours) return `${minutes} min`;
             if (!minutes) return `${hours}h`;
             return `${hours}h ${minutes} min`;
+          }
+
+          function renderRouteResult(result, destination) {
+            directionsRenderer.setDirections(result);
+            const route = result.routes[0];
+            const leg = route.legs[0];
+
+            document.getElementById("resultDistance").textContent = leg.distance ? leg.distance.text : "-";
+            document.getElementById("resultDuration").textContent = leg.duration ? formatDuration(leg.duration.value) : "-";
+            updateDestinationMarker(leg.end_location, destination.name || destination.label);
+
+            if (route.bounds) {
+              map.fitBounds(route.bounds, { top: 380, right: 120, bottom: 160, left: 120 });
+              google.maps.event.addListenerOnce(map, "idle", () => animateCar(route.overview_path));
+            } else {
+              animateCar(route.overview_path);
+            }
+          }
+
+          function requestRoute(origin, destination) {
+            return new Promise((resolve, reject) => {
+              directionsService.route({
+                origin,
+                destination: destination.destination || destination.value,
+                travelMode: google.maps.TravelMode.DRIVING,
+              }, (result, status) => {
+                if (status === "OK") {
+                  resolve(result);
+                  return;
+                }
+
+                reject(new Error(`Route calculation failed: ${status}`));
+              });
+            });
           }
 
           async function calculateRoute() {
@@ -1524,35 +1585,29 @@
 
             try {
               const origin = await resolveOrigin();
+              const cacheKey = routeCacheKey(origin, destination);
+              const cachedResult = cachedRouteResult(cacheKey);
 
-              directionsService.route({
-                origin,
-                destination: destination.destination || destination.value,
-                travelMode: google.maps.TravelMode.DRIVING,
-              }, (result, status) => {
-                routeBtn.disabled = false;
-                routeBtn.textContent = "Route berechnen";
+              if (cachedResult) {
+                renderRouteResult(cachedResult, destination);
+                return;
+              }
 
-                if (status === "OK") {
-                  directionsRenderer.setDirections(result);
-                  const route = result.routes[0];
-                  const leg = route.legs[0];
-
-                  document.getElementById("resultDistance").textContent = leg.distance ? leg.distance.text : "-";
-                  document.getElementById("resultDuration").textContent = leg.duration ? formatDuration(leg.duration.value) : "-";
-                  updateDestinationMarker(leg.end_location, destination.name || destination.label);
-
-                  if (route.bounds) {
-                    map.fitBounds(route.bounds, { top: 380, right: 120, bottom: 160, left: 120 });
-                    google.maps.event.addListenerOnce(map, "idle", () => animateCar(route.overview_path));
-                  } else {
-                    animateCar(route.overview_path);
-                  }
-                }
-              });
+              const result = await requestRoute(origin, destination);
+              routeResultCache = {
+                key: cacheKey,
+                createdAt: Date.now(),
+                result,
+              };
+              renderRouteResult(result, destination);
             } catch (err) {
-              routeBtn.disabled = false;
               routeBtn.textContent = "Route starten";
+              return;
+            } finally {
+              routeBtn.disabled = false;
+              if (routeBtn.textContent === "Route wird berechnet") {
+                routeBtn.textContent = "Route berechnen";
+              }
             }
           }
 
