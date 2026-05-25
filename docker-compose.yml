@@ -59,8 +59,8 @@ services:
       PORT: 3001
       MYSQL_HOST: ${MYSQL_HOST}
       MYSQL_PORT: ${MYSQL_PORT}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_USER: ${DBE_CLOUDDEV_CONFIGURATOR}
+      MYSQL_PASSWORD: ${DBE_CLOUDDEV_CONFIGURATOR_PASSWORD}
       MINIO_ENDPOINT: ${MINIO_ENDPOINT}
       MINIO_PORT: ${MINIO_PORT}
       MINIO_BUCKET: ${MINIO_BUCKET}
@@ -77,8 +77,8 @@ services:
       PORT: 3002
       MYSQL_HOST: ${MYSQL_HOST}
       MYSQL_PORT: ${MYSQL_PORT}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_USER: ${DBE_CLOUDDEV_MERCH}
+      MYSQL_PASSWORD: ${DBE_CLOUDDEV_MERCH_PASSWORD}
       MINIO_ENDPOINT: ${MINIO_ENDPOINT}
       MINIO_PORT: ${MINIO_PORT}
       MINIO_BUCKET: ${MINIO_BUCKET}
@@ -123,8 +123,8 @@ services:
       PORT: 3007
       MYSQL_HOST: ${MYSQL_HOST}
       MYSQL_PORT: ${MYSQL_PORT}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_USER: ${DBE_CLOUDDEV_ROUTE}
+      MYSQL_PASSWORD: ${DBE_CLOUDDEV_ROUTE_PASSWORD}
     depends_on:
       mysql-seed:
         condition: service_completed_successfully
@@ -132,8 +132,6 @@ services:
   mysql:
     image: mysql:8.4
     environment:
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
@@ -157,7 +155,7 @@ services:
       mysql -h mysql -u root -p${MYSQL_ROOT_PASSWORD} < /seed/01_merch_shop.sql &&
       mysql -h mysql -u root -p${MYSQL_ROOT_PASSWORD} < /seed/02_car_configurator.sql &&
       mysql -h mysql -u root -p${MYSQL_ROOT_PASSWORD} < /seed/03_route_service.sql &&
-      mysql -h mysql -u root -p${MYSQL_ROOT_PASSWORD} -e \"CREATE USER IF NOT EXISTS '${MYSQL_USER}'@'%' IDENTIFIED BY '${MYSQL_PASSWORD}'; GRANT ALL PRIVILEGES ON bmw_merch_shop.* TO '${MYSQL_USER}'@'%'; GRANT ALL PRIVILEGES ON bmw_car_configurator.* TO '${MYSQL_USER}'@'%'; GRANT ALL PRIVILEGES ON bmw_route_service.* TO '${MYSQL_USER}'@'%'; FLUSH PRIVILEGES;\"
+      mysql -h mysql -u root -p${MYSQL_ROOT_PASSWORD} -e \"CREATE USER IF NOT EXISTS '${DBE_CLOUDDEV_MERCH}'@'%' IDENTIFIED BY '${DBE_CLOUDDEV_MERCH_PASSWORD}'; CREATE USER IF NOT EXISTS '${DBE_CLOUDDEV_CONFIGURATOR}'@'%' IDENTIFIED BY '${DBE_CLOUDDEV_CONFIGURATOR_PASSWORD}'; CREATE USER IF NOT EXISTS '${DBE_CLOUDDEV_ROUTE}'@'%' IDENTIFIED BY '${DBE_CLOUDDEV_ROUTE_PASSWORD}'; GRANT ALL PRIVILEGES ON bmw_merch_shop.* TO '${DBE_CLOUDDEV_MERCH}'@'%'; GRANT ALL PRIVILEGES ON bmw_car_configurator.* TO '${DBE_CLOUDDEV_CONFIGURATOR}'@'%'; GRANT ALL PRIVILEGES ON bmw_route_service.* TO '${DBE_CLOUDDEV_ROUTE}'@'%'; FLUSH PRIVILEGES;\"
       "
 
   redis:
