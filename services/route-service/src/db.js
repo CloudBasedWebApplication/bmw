@@ -8,7 +8,7 @@ function requiredEnv(name) {
 }
 
 const pool = mysql.createPool({
-  host: process.env.MYSQL_HOST || "mysql",
+  host: requiredEnv("MYSQL_HOST"),
   port: process.env.MYSQL_PORT || 3306,
   user: requiredEnv("MYSQL_USER"),
   password: requiredEnv("MYSQL_PASSWORD"),

@@ -57,7 +57,7 @@ services:
       - "3001"
     environment:
       PORT: 3001
-      MYSQL_HOST: ${MYSQL_HOST}
+      MYSQL_HOST: mysql-configurator
       MYSQL_PORT: ${MYSQL_PORT}
       MYSQL_USER: ${DBE_CLOUDDEV_CONFIGURATOR}
       MYSQL_PASSWORD: ${DBE_CLOUDDEV_CONFIGURATOR_PASSWORD}
@@ -65,7 +65,7 @@ services:
       MINIO_PORT: ${MINIO_PORT}
       MINIO_BUCKET: ${MINIO_BUCKET}
     depends_on:
-      mysql-seed:
+      mysql-configurator-seed:
         condition: service_completed_successfully
 
   merch-shop:
@@ -75,7 +75,7 @@ services:
       - "3002"
     environment:
       PORT: 3002
-      MYSQL_HOST: ${MYSQL_HOST}
+      MYSQL_HOST: mysql-merch
       MYSQL_PORT: ${MYSQL_PORT}
       MYSQL_USER: ${DBE_CLOUDDEV_MERCH}
       MYSQL_PASSWORD: ${DBE_CLOUDDEV_MERCH_PASSWORD}
@@ -83,7 +83,7 @@ services:
       MINIO_PORT: ${MINIO_PORT}
       MINIO_BUCKET: ${MINIO_BUCKET}
     depends_on:
-      mysql-seed:
+      mysql-merch-seed:
         condition: service_completed_successfully
 
   shopping-cart:
@@ -121,42 +121,103 @@ services:
       - "3007"
     environment:
       PORT: 3007
-      MYSQL_HOST: ${MYSQL_HOST}
+      MYSQL_HOST: mysql-route
       MYSQL_PORT: ${MYSQL_PORT}
       MYSQL_USER: ${DBE_CLOUDDEV_ROUTE}
       MYSQL_PASSWORD: ${DBE_CLOUDDEV_ROUTE_PASSWORD}
     depends_on:
-      mysql-seed:
+      mysql-route-seed:
         condition: service_completed_successfully
 
-  mysql:
+  mysql-configurator:
     image: mysql:8.4
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DBE_CLOUDDEV_CONFIGURATOR_ROOT_PASSWORD}
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${DBE_CLOUDDEV_CONFIGURATOR_ROOT_PASSWORD}"]
       interval: 5s
       timeout: 5s
       retries: 20
       start_period: 10s
     volumes:
-      - mysql_data:/var/lib/mysql
-      - ./infrastructure/mysql/init:/docker-entrypoint-initdb.d
+      - mysql_configurator_data:/var/lib/mysql
 
-  mysql-seed:
+  mysql-configurator-seed:
     image: mysql:8.4
     depends_on:
-      mysql:
+      mysql-configurator:
         condition: service_healthy
+    environment:
+      MYSQL_HOST: mysql-configurator
+      ROOT_PASSWORD: ${DBE_CLOUDDEV_CONFIGURATOR_ROOT_PASSWORD}
+      APP_USER: ${DBE_CLOUDDEV_CONFIGURATOR}
+      APP_PASSWORD: ${DBE_CLOUDDEV_CONFIGURATOR_PASSWORD}
+      APP_DATABASE: bmw_car_configurator
+      SEED_FILE: /seed/02_car_configurator.sql
     volumes:
       - ./infrastructure/mysql/init:/seed:ro
-    entrypoint: >
-      /bin/sh -c "
-      mysql -h mysql -u root -p${MYSQL_ROOT_PASSWORD} < /seed/01_merch_shop.sql &&
-      mysql -h mysql -u root -p${MYSQL_ROOT_PASSWORD} < /seed/02_car_configurator.sql &&
-      mysql -h mysql -u root -p${MYSQL_ROOT_PASSWORD} < /seed/03_route_service.sql &&
-      mysql -h mysql -u root -p${MYSQL_ROOT_PASSWORD} -e \"CREATE USER IF NOT EXISTS '${DBE_CLOUDDEV_MERCH}'@'%' IDENTIFIED BY '${DBE_CLOUDDEV_MERCH_PASSWORD}'; CREATE USER IF NOT EXISTS '${DBE_CLOUDDEV_CONFIGURATOR}'@'%' IDENTIFIED BY '${DBE_CLOUDDEV_CONFIGURATOR_PASSWORD}'; CREATE USER IF NOT EXISTS '${DBE_CLOUDDEV_ROUTE}'@'%' IDENTIFIED BY '${DBE_CLOUDDEV_ROUTE_PASSWORD}'; GRANT ALL PRIVILEGES ON bmw_merch_shop.* TO '${DBE_CLOUDDEV_MERCH}'@'%'; GRANT ALL PRIVILEGES ON bmw_car_configurator.* TO '${DBE_CLOUDDEV_CONFIGURATOR}'@'%'; GRANT ALL PRIVILEGES ON bmw_route_service.* TO '${DBE_CLOUDDEV_ROUTE}'@'%'; FLUSH PRIVILEGES;\"
-      "
+      - ./infrastructure/mysql/seed-service.sh:/seed-service.sh:ro
+    entrypoint: ["/bin/sh", "/seed-service.sh"]
+
+  mysql-merch:
+    image: mysql:8.4
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DBE_CLOUDDEV_MERCH_ROOT_PASSWORD}
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${DBE_CLOUDDEV_MERCH_ROOT_PASSWORD}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    volumes:
+      - mysql_merch_data:/var/lib/mysql
+
+  mysql-merch-seed:
+    image: mysql:8.4
+    depends_on:
+      mysql-merch:
+        condition: service_healthy
+    environment:
+      MYSQL_HOST: mysql-merch
+      ROOT_PASSWORD: ${DBE_CLOUDDEV_MERCH_ROOT_PASSWORD}
+      APP_USER: ${DBE_CLOUDDEV_MERCH}
+      APP_PASSWORD: ${DBE_CLOUDDEV_MERCH_PASSWORD}
+      APP_DATABASE: bmw_merch_shop
+      SEED_FILE: /seed/01_merch_shop.sql
+    volumes:
+      - ./infrastructure/mysql/init:/seed:ro
+      - ./infrastructure/mysql/seed-service.sh:/seed-service.sh:ro
+    entrypoint: ["/bin/sh", "/seed-service.sh"]
+
+  mysql-route:
+    image: mysql:8.4
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DBE_CLOUDDEV_ROUTE_ROOT_PASSWORD}
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${DBE_CLOUDDEV_ROUTE_ROOT_PASSWORD}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    volumes:
+      - mysql_route_data:/var/lib/mysql
+
+  mysql-route-seed:
+    image: mysql:8.4
+    depends_on:
+      mysql-route:
+        condition: service_healthy
+    environment:
+      MYSQL_HOST: mysql-route
+      ROOT_PASSWORD: ${DBE_CLOUDDEV_ROUTE_ROOT_PASSWORD}
+      APP_USER: ${DBE_CLOUDDEV_ROUTE}
+      APP_PASSWORD: ${DBE_CLOUDDEV_ROUTE_PASSWORD}
+      APP_DATABASE: bmw_route_service
+      SEED_FILE: /seed/03_route_service.sql
+    volumes:
+      - ./infrastructure/mysql/init:/seed:ro
+      - ./infrastructure/mysql/seed-service.sh:/seed-service.sh:ro
+    entrypoint: ["/bin/sh", "/seed-service.sh"]
 
   redis:
     image: redis:8-alpine
@@ -201,4 +262,6 @@ services:
       "
 
 volumes:
-  mysql_data:
+  mysql_configurator_data:
+  mysql_merch_data:
+  mysql_route_data:

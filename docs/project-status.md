@@ -2,7 +2,7 @@
 
 ## 1. Document Metadata
 
-**Last updated:** 2026-05-19
+**Last updated:** 2026-05-25
 
 **Scope:** This document describes implementation reality — what is built, why choices were made, and what remains open. For target behavior see [PRD.md](./PRD.md). For responsibility design see [architecture.md](./architecture.md). For task ownership see [team-collaboration-breakdown.md](./team-collaboration-breakdown.md).
 
@@ -19,9 +19,9 @@ Update this document in the same PR that changes the code it describes.
 
 ## 2. Project Background
 
-This is a course project for a cloud web application, built around an automotive platform. The core purpose is to demonstrate service decomposition, containerized local development, and integration with external infrastructure — database, object storage, cache, an AI API, and a map API. The product has one browser-facing web app, one API gateway, five backend microservices, and three infrastructure services, all orchestrated locally with Docker Compose.
+This is a course project for a cloud web application, built around an automotive platform. The core purpose is to demonstrate service decomposition, containerized local development, and integration with external infrastructure — databases, object storage, cache, an AI API, and a map API. The product has one browser-facing web app, one API gateway, five backend microservices, and service-owned infrastructure, all orchestrated locally with Docker Compose.
 
-The current implementation has a complete working skeleton. All major pages are reachable through `services/web-shop-frontend`, which forwards page/API requests to `services/web-shop-backend`; browser API calls then flow through `api-gateway`. The main user journeys work end to end, and the infrastructure layer (MySQL, Redis, MinIO) is integrated. Several design choices were deliberately simplified, including the shared MySQL database and reduced configurator parameter depth. Phase 2 image delivery is complete: product images remain in MinIO, but browser-visible access flows through service-owned API asset routes. The AI service now returns structured recommendation links instead of a free-form string.
+The current implementation has a complete working skeleton. All major pages are reachable through `services/web-shop-frontend`, which forwards page/API requests to `services/web-shop-backend`; browser API calls then flow through `api-gateway`. The main user journeys work end to end, and the infrastructure layer (three service-owned MySQL instances, Redis, MinIO) is integrated. Several design choices were deliberately simplified, including reduced configurator parameter depth. Phase 2 image delivery is complete: product images remain in MinIO, but browser-visible access flows through service-owned API asset routes. The AI service now returns structured recommendation links instead of a free-form string.
 
 
 ---
@@ -142,7 +142,7 @@ The response is returned to the frontend as structured recommendation links: a c
 
 `ai-feature` is an integration/orchestration service. It does not own a MySQL schema, does not depend on `mysql2`, and does not query `car-configurator` or `merch-shop` tables directly. Additional AI data needs should be solved through new or extended service endpoints in the owning service.
 
-This boundary is intended to remain valid if the current shared database is later decomposed into service-owned databases. `ai-feature` should depend on `CONFIGURATOR_URL`, `MERCH_URL`, and the HTTP response contracts of those services, not on database schema names, credentials, containers, or migration details.
+This boundary remains valid with service-owned databases. `ai-feature` should depend on `CONFIGURATOR_URL`, `MERCH_URL`, and the HTTP response contracts of those services, not on database schema names, credentials, containers, or migration details.
 
 #### Accepted Simplifications
 
@@ -178,7 +178,7 @@ None.
 
 `route-service` owns predefined BMW route destinations in the `bmw_route_service` MySQL schema. It exposes `GET /destinations` for active destination rows ordered by display priority and `GET /health` for service status. The API gateway keeps the public `/api/destinations` route and proxies it to this service.
 
-The current implementation stores the BMW Welt München destination in `infrastructure/mysql/init/03_route_service.sql`. Docker Compose runs that seed script through `mysql-seed` and grants the application user access to `bmw_route_service`.
+The current implementation stores the BMW Welt München destination in `infrastructure/mysql/init/03_route_service.sql`. Docker Compose runs that seed script through `mysql-route-seed` against `mysql-route` and grants the route-service application user access to `bmw_route_service`.
 
 #### Accepted Simplifications
 
@@ -204,17 +204,21 @@ The full stack runs locally via Docker Compose with `docker compose up --build`.
 | `ai-feature` | build: `./services/ai-feature` | internal 3004 | Gemini integration |
 | `route-service` | build: `./services/route-service` | internal 3007 | Predefined BMW route destinations |
 | `shopping-cart` | build: `./services/shopping-cart` | internal 3005 | Cart state (Redis) |
-| `mysql` | `mysql:8.4` | 3306 | Persistent domain data |
-| `mysql-seed` | `mysql:8.4` | — | One-shot seed runner, exits after seeding |
+| `mysql-configurator` | `mysql:8.4` | internal 3306 | Configurator persistent domain data |
+| `mysql-configurator-seed` | `mysql:8.4` | — | One-shot configurator seed runner, exits after seeding |
+| `mysql-merch` | `mysql:8.4` | internal 3306 | Merchandise persistent domain data |
+| `mysql-merch-seed` | `mysql:8.4` | — | One-shot merchandise seed runner, exits after seeding |
+| `mysql-route` | `mysql:8.4` | internal 3306 | Route destination persistent domain data |
+| `mysql-route-seed` | `mysql:8.4` | — | One-shot route seed runner, exits after seeding |
 | `redis` | `redis:8-alpine` | 6379 | Cart session storage |
 | `minio` | `minio/minio:RELEASE.2025-09-07T16-13-09Z` | internal 9000 / debug 9001 | Object storage (images); console at 9001 |
 | `minio-init` | `minio/mc:RELEASE.2025-08-13T08-35-41Z` | — | One-shot bucket creator + image sync |
 
-**MySQL.** Service-owned schemas are seeded through `mysql-seed`: `bmw_car_configurator`, `bmw_merch_shop`, and `bmw_route_service`. Cross-schema queries are not permitted; each service reads only its own schema.
+**MySQL.** Persistent relational data is split across three service-owned MySQL instances: `mysql-configurator` seeds `bmw_car_configurator` through `mysql-configurator-seed`, `mysql-merch` seeds `bmw_merch_shop` through `mysql-merch-seed`, and `mysql-route` seeds `bmw_route_service` through `mysql-route-seed`. Cross-service queries are not permitted; each service reads only its own database instance and schema.
 
 **Redis.** Cart state is stored at `cart:{sessionId}` as a JSON-serialized array of item objects. TTL is 24 hours. Session ID is assigned by the gateway as a cookie on first API request.
 
-**MinIO.** The `configurator-images` bucket holds all product images. Configurator images are uploaded under the `configurator/` prefix; merch images under `merch-shop/`; home/static support images are mirrored under `home/` but the Home page now uses `/static/images/<file>` from `web/public/images`. Images are pre-uploaded using `minio-init` on stack start, or manually re-synced with `docker compose run --rm minio-init`. Use ASCII-only filenames for merch assets to keep object keys stable across encodings.
+**MinIO.** The `configurator-images` bucket is shared object storage for configurator and merchandise image objects. Configurator images are uploaded under the `configurator/` prefix; merch images under `merch-shop/`; home/static support images are mirrored under `home/` but the Home page now uses `/static/images/<file>` from `web/public/images`. Images are pre-uploaded using `minio-init` on stack start, or manually re-synced with `docker compose run --rm minio-init`. Use ASCII-only filenames for merch assets to keep object keys stable across encodings.
 
 **Phase 2 image boundary decision — implemented.** Images remain stored in MinIO, but browser-visible image delivery is owned by the service that owns the image reference. Configurator images are exposed through `GET /api/configurator/assets/*`; merchandise images are exposed through `GET /api/merch/assets/*`. The request path is `Browser -> web-shop-frontend -> web-shop-backend -> api-gateway -> owning service -> MinIO`. The legacy `/minio/*` browser URL was deleted without a compatibility redirect. MinIO API port `9000` is no longer host-exposed; only console port `9001` remains exposed for local infrastructure/debug use.
 
@@ -333,14 +337,14 @@ Phase 2 validation covers no runtime browser path using the legacy MinIO URL con
 
 ---
 
-### 5. Shared `bmw_app` MySQL database
+### 5. Historical shared `bmw_app` MySQL database
 
 **Date:** Project start  
-**Context:** Per-service MySQL schemas require more setup overhead and a more complex Docker Compose configuration.  
-**Decision:** All service tables currently share a single `bmw_app` database instance. Cross-schema queries are still prohibited; each service may only query its own tables.  
-**Rationale:** Reduces local development complexity for the initial skeleton. The service ownership rules are enforced by convention.  
-**Consequences:** Schema isolation is not enforced by the database engine. Migration to per-service schemas (PRD §7.1 target) will require data migration work when the time comes.  
-**Status:** Revisable. Acceptable until a later task explicitly requires schema isolation.
+**Context:** Earlier local development used one MySQL container to reduce setup overhead before database isolation was implemented.
+**Decision:** This historical approach placed service tables in one local database instance while still prohibiting cross-service queries by convention.
+**Rationale:** It reduced local development complexity for the initial skeleton.
+**Consequences:** This no longer describes the current topology; service-owned MySQL containers now enforce the boundary at the container level.
+**Status:** Superseded on 2026-05-25 by service-owned MySQL containers: `mysql-configurator`, `mysql-merch`, and `mysql-route`.
 
 ---
 

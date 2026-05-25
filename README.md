@@ -103,7 +103,7 @@ MinIO API port `9000` is Docker-internal only. Browser-visible product image URL
 After changing `.env`, recreate the affected containers:
 
 ```bash
-docker compose up -d car-configurator merch-shop
+docker compose up -d --build
 ```
 
 ### 2. Start the full local stack
@@ -112,7 +112,7 @@ docker compose up -d car-configurator merch-shop
 docker compose up --build
 ```
 
-This starts the web-shop frontend/backend, gateway, all microservices, MySQL, Redis, MinIO, and the MinIO bootstrap container.
+This starts the web-shop frontend/backend, gateway, all microservices, three service-owned MySQL instances with their seed containers, Redis, MinIO, and the MinIO bootstrap container.
 Host port `3000` belongs to `web-shop-frontend`; `web-shop-backend`, `api-gateway`, and domain microservices are internal. The backend reaches the gateway through `API_GATEWAY_URL`.
 
 ### Runtime and dependency version policy
@@ -173,10 +173,10 @@ Those routes flow through `web-shop-frontend`, `web-shop-backend`, and `api-gate
 3. Start the infrastructure:
 
 ```bash
-docker compose up -d mysql redis minio minio-init
+docker compose up -d mysql-configurator mysql-configurator-seed mysql-merch mysql-merch-seed mysql-route mysql-route-seed redis minio minio-init
 ```
 
-The `minio-init` service waits until MinIO is healthy, creates the bucket automatically, and syncs the images once on startup.
+The `minio-init` service waits until MinIO is healthy, creates the bucket automatically, and syncs the configurator and merchandise image objects once on startup. MinIO remains shared object storage for image objects; MySQL data is split across service-owned instances.
 
 4. If you want to re-sync the images later after adding or changing files:
 

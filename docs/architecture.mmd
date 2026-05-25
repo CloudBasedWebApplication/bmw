@@ -13,7 +13,9 @@ flowchart LR
     end
 
     subgraph data["Data Stores"]
-        mysql["MySQL"]
+        mysqlConfigurator["MySQL Configurator DB"]
+        mysqlMerch["MySQL Merch DB"]
+        mysqlRoute["MySQL Route DB"]
         redis["Redis"]
         minio["MinIO"]
     end
@@ -35,10 +37,10 @@ flowchart LR
 
     user --> googlemaps
 
-    configurator --> mysql
+    configurator --> mysqlConfigurator
     configurator --> minio
 
-    merchandise --> mysql
+    merchandise --> mysqlMerch
     merchandise --> minio
 
     ai --> gemini
@@ -46,7 +48,7 @@ flowchart LR
     ai --> merchandise
 
     cart --> redis
-    route --> mysql
+    route --> mysqlRoute
 
     route -. "future server-side route calculation" .-> googlemaps
 
