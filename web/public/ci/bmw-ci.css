@@ -77,6 +77,13 @@ a {
   color: inherit;
 }
 
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
 img,
 video {
   max-width: 100%;

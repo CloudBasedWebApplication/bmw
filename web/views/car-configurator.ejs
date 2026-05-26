@@ -1548,8 +1548,9 @@
     height: 100%;
     min-width: 0;
     min-height: 58px;
-    padding: 9px 22px;
+    padding: 9px 22px 13px;
     justify-self: stretch;
+    overflow: visible;
   }
 
   .summary-panel .summary-row::before {
@@ -1563,8 +1564,9 @@
   .summary-panel .summary-value {
     display: block;
     font-size: 1.02rem;
-    line-height: 1.22;
+    line-height: 1.4;
     white-space: nowrap;
+    overflow: visible;
     overflow-wrap: normal;
     word-break: normal;
     text-overflow: clip;
@@ -1598,6 +1600,294 @@
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
     }
+  }
+
+  /* ── Panel design refinement ── */
+
+  .panel-eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 10px;
+    color: rgba(255, 255, 255, 0.36);
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+  }
+
+  .panel-eyebrow-rule {
+    flex: 1;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.12);
+    display: block;
+  }
+
+  .config-layout h1 {
+    font-size: clamp(1.55rem, 2.1vw, 2rem);
+    font-weight: 200;
+    letter-spacing: 0.03em;
+    margin: 0 0 20px;
+  }
+
+  .config-options-panel {
+    padding: 26px 0 26px;
+  }
+
+  .panel-eyebrow,
+  .panel-step-actions,
+  .config-final-actions,
+  .config-layout h1 {
+    padding-left: 26px;
+    padding-right: 26px;
+  }
+
+  .config-btn-group,
+  .option-group,
+  .color-group {
+    gap: 0;
+  }
+
+  .config-btn,
+  .option-btn,
+  .swatch-wrapper {
+    min-height: 58px;
+    padding: 12px 26px;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.78);
+    border: 0;
+    border-left: 2px solid transparent;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 0;
+    box-shadow: none;
+    transform: none !important;
+    transition: background 0.16s ease, border-left-color 0.16s ease, color 0.16s ease;
+  }
+
+  .config-btn-group > .config-btn:first-child,
+  .option-group > .option-btn:first-child,
+  .color-group > .swatch-wrapper:first-child {
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .config-btn::after,
+  .option-btn::after,
+  .swatch-wrapper::after {
+    display: none;
+  }
+
+  .config-btn:hover,
+  .option-btn:hover,
+  .swatch-wrapper:hover {
+    background: rgba(255, 255, 255, 0.04);
+    border-left-color: rgba(143, 192, 255, 0.45);
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+    box-shadow: none;
+  }
+
+  .config-btn.active,
+  .option-btn.active,
+  .swatch-wrapper.active {
+    background: rgba(28, 105, 212, 0.12);
+    color: #fff;
+    border-left: 2px solid var(--accent);
+    border-bottom-color: rgba(28, 105, 212, 0.2);
+    box-shadow: none;
+  }
+
+  .config-option-title {
+    font-size: 0.92rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+  }
+
+  .config-option-sub {
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 0.74rem;
+    font-weight: 400;
+    line-height: 1.3;
+  }
+
+  .swatch-option {
+    gap: 14px;
+  }
+
+  .swatch {
+    width: 28px;
+    height: 28px;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.24), 0 1px 4px rgba(0,0,0,0.3);
+  }
+
+  .swatch-label {
+    font-size: 0.92rem;
+    font-weight: 700;
+    gap: 3px;
+  }
+
+  .panel-step-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .panel-step-btn {
+    min-height: 42px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 0;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.48);
+    font-size: 0.63rem;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    transition: background 0.16s ease, border-color 0.16s ease, color 0.16s ease;
+    cursor: pointer;
+    font-family: inherit;
+  }
+
+  .panel-step-btn:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.28);
+    color: rgba(255, 255, 255, 0.82);
+    transform: none;
+  }
+
+  .panel-step-btn--primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+
+  .panel-step-btn--primary:hover:not(:disabled) {
+    background: var(--accent-dark);
+    border-color: var(--accent-dark);
+  }
+
+  .panel-step-btn:disabled {
+    opacity: 0.2;
+    cursor: not-allowed;
+  }
+
+  .config-final-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .config-buy-btn {
+    min-height: 44px;
+    margin-top: 0;
+    border-radius: 0;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.78);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    font-size: 0.63rem;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    transition: background 0.16s ease, border-color 0.16s ease, color 0.16s ease;
+  }
+
+  .config-buy-btn--primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+
+  .config-buy-btn--primary:hover:not(:disabled) {
+    background: var(--accent-dark);
+    border-color: var(--accent-dark);
+    color: #fff;
+    transform: none;
+  }
+
+  .config-buy-btn:not(.config-buy-btn--primary):hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.36);
+    color: #fff;
+    transform: none;
+  }
+
+  .config-buy-btn:disabled {
+    opacity: 0.24;
+    cursor: not-allowed;
+  }
+
+  .config-final-actions .completion-status {
+    grid-column: 1 / -1;
+    color: rgba(143, 192, 255, 0.9);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-align: center;
+    padding-top: 4px;
+  }
+
+  .panel-step-actions--single {
+    grid-template-columns: 1fr;
+  }
+
+  .config-order-summary {
+    padding: 0 26px;
+    margin-bottom: 6px;
+  }
+
+  .config-order-line {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 14px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .config-order-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.42);
+  }
+
+  .config-order-price {
+    font-size: 1.18rem;
+    font-weight: 200;
+    color: #fff;
+    letter-spacing: 0.02em;
+  }
+
+  /* Panel at 1/3 height: 1 flex-part above, 2 flex-parts below */
+  .config-column {
+    position: sticky;
+    top: calc(var(--config-nav-top) + var(--config-nav-height) + 16px);
+    height: calc(100vh - var(--config-nav-top) - var(--config-nav-height) - var(--summary-bar-height) - 32px);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 0;
+  }
+
+  .config-column::before {
+    content: "";
+    flex: 1 0 0;
+  }
+
+  .config-column::after {
+    content: "";
+    flex: 2 0 0;
+  }
+
+  .config-panel-stack {
+    position: relative;
+    top: auto;
+    flex: 0 0 auto;
+    max-height: calc(100% * 0.72);
+    margin-top: 0;
   }
 
 </style>
@@ -1640,9 +1930,7 @@
   <div class="config-column">
     <div class="config-panel-stack" id="configPanelStack" aria-label="Konfigurationsschritte">
       <section class="panel config-options-panel" data-view="front" data-summary-target="model">
-        <p class="panel-eyebrow">Schritt 01</p>
         <h1>Modell</h1>
-        <p class="panel-copy">Starte mit der Baureihe. Die Auswahl übernimmt Preis, Antrieb und verfügbare Ausstattungen.</p>
         <div class="config-btn-group" id="modelBtns"></div>
         <div class="panel-step-actions">
           <button class="panel-step-btn" type="button" data-panel-direction="-1" disabled>Zurück</button>
@@ -1651,9 +1939,8 @@
       </section>
 
       <section class="panel config-options-panel" data-view="front" data-summary-target="exterior">
-        <p class="panel-eyebrow">Schritt 02</p>
-        <h1>Exterieur-Farbe</h1>
-        <p class="panel-copy">Setze die Lackierung und sieh die Vorschau direkt auf der Fahrzeugbühne.</p>
+
+        <h1>Exterieur</h1>
         <div class="color-group" id="colorBtns"></div>
         <div class="panel-step-actions">
           <button class="panel-step-btn" type="button" data-panel-direction="-1">Zurück</button>
@@ -1662,9 +1949,8 @@
       </section>
 
       <section class="panel config-options-panel" data-view="interior" data-summary-target="interior">
-        <p class="panel-eyebrow">Schritt 03</p>
+
         <h1>Interieur</h1>
-        <p class="panel-copy">Wähle die Innenausstattung. Die Ansicht wechselt automatisch in den Innenraum.</p>
         <div class="option-group" id="interiorBtns"></div>
         <div class="panel-step-actions">
           <button class="panel-step-btn" type="button" data-panel-direction="-1">Zurück</button>
@@ -1673,17 +1959,31 @@
       </section>
 
       <section class="panel config-options-panel" data-view="wheels" data-summary-target="wheels">
-        <p class="panel-eyebrow">Schritt 04</p>
+
         <h1>Felgen</h1>
-        <p class="panel-copy">Runde die Konfiguration mit der passenden Radoption ab.</p>
         <div class="option-group" id="wheelsBtns"></div>
         <div class="panel-step-actions">
           <button class="panel-step-btn" type="button" data-panel-direction="-1">Zurück</button>
-          <button class="panel-step-btn panel-step-btn--primary" type="button" data-panel-direction="1" disabled>Weiter</button>
+          <button class="panel-step-btn panel-step-btn--primary" type="button" data-panel-direction="1">Weiter</button>
+        </div>
+      </section>
+
+      <section class="panel config-options-panel" data-view="front" data-summary-target="">
+
+        <h1>Bestellen</h1>
+        <div class="config-order-summary">
+          <div class="config-order-line">
+            <span class="config-order-label">Gesamtpreis</span>
+            <span class="config-order-price" id="step5Price">—</span>
+          </div>
         </div>
         <div class="config-final-actions">
-          <button class="add-btn config-buy-btn" type="button" data-buy-config disabled>Jetzt bestellen</button>
+          <button class="add-btn config-buy-btn config-buy-btn--primary" type="button" data-buy-config="checkout" disabled>Sofort kaufen</button>
+          <button class="add-btn config-buy-btn" type="button" data-buy-config="cart" disabled>In den Warenkorb</button>
           <div class="completion-status" data-add-status></div>
+        </div>
+        <div class="panel-step-actions panel-step-actions--single">
+          <button class="panel-step-btn" type="button" data-panel-direction="-1">Zurück</button>
         </div>
       </section>
 
@@ -2432,6 +2732,8 @@
     }
 
     document.getElementById("price").textContent = formatPrice(cfg.totalPrice);
+    const step5PriceEl = document.getElementById("step5Price");
+    if (step5PriceEl) step5PriceEl.textContent = formatPrice(cfg.totalPrice);
     setSummaryBadge("selectedModel", cfg.model ? displayText(cfg.model.name) : "");
     setSummaryBadge("selectedColor", cfg.color ? displayColorName(cfg.color.name) : "");
     setSummaryBadge("selectedInterior", cfg.interior ? displayText(cfg.interior.name) : "");
@@ -2520,7 +2822,7 @@
   }
 
   document.querySelectorAll("[data-buy-config]").forEach((button) => {
-    button.addEventListener("click", () => addConfigurationToCart({ checkout: true }));
+    button.addEventListener("click", () => addConfigurationToCart({ checkout: button.dataset.buyConfig === "checkout" }));
   });
 
   loadInitialData();
