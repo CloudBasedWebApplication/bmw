@@ -9,11 +9,18 @@ const {
 const app = express();
 const port = process.env.PORT || 3002;
 
+function requiredEnv(name) {
+  if (!process.env[name]) {
+    throw new Error(`${name} is required`);
+  }
+  return process.env[name];
+}
+
 const dbConfig = {
-  host: process.env.MYSQL_HOST || "mysql",
+  host: requiredEnv("MYSQL_HOST"),
   port: process.env.MYSQL_PORT || 3306,
-  user: process.env.MYSQL_USER || "bmw_user",
-  password: process.env.MYSQL_PASSWORD || "change_me",
+  user: requiredEnv("MYSQL_USER"),
+  password: requiredEnv("MYSQL_PASSWORD"),
   database: "bmw_merch_shop",
   charset: "utf8mb4",
 };

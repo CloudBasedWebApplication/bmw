@@ -14,7 +14,7 @@ This PRD describes the intended product behavior and target architecture for the
 |---|---|
 | Web Entry | `services/web-shop-frontend` + `services/web-shop-backend` with EJS (server-side rendering) + vanilla JS |
 | Backend | Node.js + Express |
-| Primary DB | MySQL (single instance, one schema per service) |
+| Primary DB | MySQL (three instances, one per DB-backed service) |
 | Cache | Redis |
 | Object Storage | MinIO |
 | AI | Gemini API |
@@ -89,9 +89,14 @@ No login. Cart state is keyed by a session ID (generated client-side or by a coo
 | `ai-feature` | Gemini integration and recommendation logic |
 | `route-service` | Predefined BMW route destination data |
 | `shopping-cart` | Cart state management |
-| `mysql` | Single MySQL instance with per-service schemas |
+| `mysql-configurator` | MySQL instance for `car-configurator` data |
+| `mysql-configurator-seed` | One-shot seed runner for configurator data |
+| `mysql-merch` | MySQL instance for `merch-shop` data |
+| `mysql-merch-seed` | One-shot seed runner for merchandise data |
+| `mysql-route` | MySQL instance for `route-service` data |
+| `mysql-route-seed` | One-shot seed runner for route destination data |
 | `redis` | Cart state store |
-| `minio` | Object storage for configurator images |
+| `minio` | Shared object storage for configurator and merchandise images |
 
 ## 6. Functional Requirements
 
@@ -118,7 +123,7 @@ Minimum response fields for downstream consumers:
 ### 6.2 Merchandise (`merch-shop`)
 
 - Sells car-related **peripheral/accessory products** (e.g. branded apparel, scale models, accessories) — not the cars themselves
-- Stores product catalog in MySQL (`merchandise_db`)
+- Stores product catalog in MySQL (`bmw_merch_shop` on `mysql-merch`)
 - Provides: product list, product detail, price, and metadata
 - Sufficient for display and adding items to cart
 
@@ -191,9 +196,9 @@ Quantity update requirements:
 
 | Schema | Owner | Contents |
 |---|---|---|
-| `configurator_db` | `car-configurator` | model definitions (2 models), option definitions per model, valid combinations, image paths, price data, rationale metadata |
-| `merchandise_db` | `merch-shop` | product catalog, prices, metadata |
-| `bmw_route_service` | `route-service` | predefined BMW route destinations |
+| `bmw_car_configurator` on `mysql-configurator` | `car-configurator` | model definitions (2 models), option definitions per model, valid combinations, image paths, price data, rationale metadata |
+| `bmw_merch_shop` on `mysql-merch` | `merch-shop` | product catalog, prices, metadata |
+| `bmw_route_service` on `mysql-route` | `route-service` | predefined BMW route destinations |
 
 `ai-feature` and `shopping-cart` have no MySQL schemas. Current route calculation is still handled client-side by Google Maps JavaScript API, while predefined route destination data is owned by `route-service`.
 
@@ -203,7 +208,7 @@ Used exclusively by `cart`. Stores cart state as JSON per session key.
 
 ### 7.3 MinIO
 
-Used to store pre-generated configurator images as objects.
+Used as shared object storage for pre-generated configurator images and merchandise image objects.
 
 ## 8. Acceptance Notes for Phase Planning
 

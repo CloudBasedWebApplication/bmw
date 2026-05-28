@@ -20,7 +20,7 @@ Das Projekt hat jetzt eine getrennte Browser- und API-Schicht:
 - `services/web-shop-backend` rendert die EJS-Seiten und leitet `/api/*` same-origin an `api-gateway` weiter.
 - `api-gateway` proxyt APIs, setzt die Cart-Session-Cookie und leitet `/api/destinations` an `route-service` weiter.
 - `car-configurator`, `merch-shop`, `ai-feature`, `route-service` und `shopping-cart` bilden die Backend-Dienste.
-- MySQL, Redis und MinIO sind ueber Docker Compose integriert.
+- Drei service-eigene MySQL-Instanzen, Redis und MinIO sind ueber Docker Compose integriert.
 
 Bereits erledigt und nicht mehr als Next-Phase-Arbeit zu planen:
 
@@ -32,7 +32,7 @@ Bereits erledigt und nicht mehr als Next-Phase-Arbeit zu planen:
 
 Aktuell akzeptierte Vereinfachungen bleiben bestehen:
 
-- Service-eigene MySQL-Schemas fuer Configurator, Merch und Route-Destinationen
+- Service-eigene MySQL-Instanzen fuer Configurator, Merch und Route-Destinationen
 - Keine Authentifizierung und kein Checkout
 - Configurator bleibt im Rahmen des vorhandenen Options- und Datenmodells
 - AI ist ein Orchestrierungsdienst und besitzt kein Datenbankschema
@@ -88,7 +88,7 @@ Aktuell akzeptierte Vereinfachungen bleiben bestehen:
 | Catalog | Status | Komplexitaet | Aufgabe | Abhaengigkeit | Sichtbares Ergebnis |
 |---|---|---|---|---|---|
 | API / Contract | `Abgeschlossen` | `★` | `GET /destinations` fuer aktive BMW-Ziele bereitstellen. | MySQL Seed. | Gateway kann `/api/destinations` an den owning service proxien. |
-| Data / Storage | `Abgeschlossen` | `★★` | `bmw_route_service.destinations` mit BMW-Zielen besitzen und seed-en. | Docker Compose `mysql-seed`. | Ziel-Daten liegen nicht mehr im Gateway-Code. |
+| Data / Storage | `Abgeschlossen` | `★★` | `bmw_route_service.destinations` mit BMW-Zielen besitzen und seed-en. | Docker Compose `mysql-route` und `mysql-route-seed`. | Ziel-Daten liegen nicht mehr im Gateway-Code. |
 | Spaetere Erweiterung | `Spaetere Erweiterung` | `★★` | Server-side route calculation, route history, ETA policy und Provider-Abstraktion hier buendeln. | Produktentscheidung. | Route-Domain-Verhalten hat eine klare kuenftige Service-Grenze. |
 
 ### 3.7 `ai-feature`
@@ -108,6 +108,7 @@ Aktuell akzeptierte Vereinfachungen bleiben bestehen:
 | Merch recommendation URL contract | `Offen` | `★★` | Betrifft `ai-feature`, `web-shop-backend` und `merch-shop`. | AI kennt ein stabiles Produktziel und der Web-Shop kann es direkt rendern. |
 | AI car official resolution | `Offen` | `★★` | Betrifft `ai-feature` und `car-configurator`. | Car-Empfehlungen koennen vor der Antwort gegen Configurator-Daten validiert werden. |
 | Web/API responsibility split | `Abgeschlossen` | `★★` | Betrifft `web-shop-frontend`, `web-shop-backend`, `api-gateway`, Docker Compose und Doku. | Browser-Praesentation, SSR und API-Proxying sind klar getrennt. |
+| Per-service MySQL topology | `Abgeschlossen` | `★★` | Betrifft `car-configurator`, `merch-shop`, `route-service`, Docker Compose und Doku. | Configurator, Merch und Route nutzen je eine eigene MySQL-Instanz mit eigenem Seed-Container; `ai-feature` bleibt DB-los und `shopping-cart` bleibt Redis-only. |
 
 ## 5. Current Key Path
 

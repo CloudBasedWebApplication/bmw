@@ -26,7 +26,9 @@ flowchart LR
     end
 
     subgraph data["Data Stores"]
-        mysql["MySQL"]
+        mysqlConfigurator["MySQL Configurator DB"]
+        mysqlMerch["MySQL Merch DB"]
+        mysqlRoute["MySQL Route DB"]
         redis["Redis"]
         minio["MinIO"]
     end
@@ -48,10 +50,10 @@ flowchart LR
 
     user --> googlemaps
 
-    configurator --> mysql
+    configurator --> mysqlConfigurator
     configurator --> minio
 
-    merchandise --> mysql
+    merchandise --> mysqlMerch
     merchandise --> minio
 
     ai --> gemini
@@ -59,7 +61,7 @@ flowchart LR
     ai --> merchandise
 
     cart --> redis
-    route --> mysql
+    route --> mysqlRoute
 
     route -. "future server-side route calculation" .-> googlemaps
 
@@ -77,9 +79,9 @@ The architecture follows a simple microservice structure:
 - one web-shop backend for EJS page rendering and same-origin API forwarding
 - one API gateway for API request forwarding
 - five backend domain services
-- one relational database for persistent business data
+- three MySQL instances, one per DB-backed service, for persistent business data
 - one cache store for cart state
-- one object storage service for configurator images
+- one shared object storage service for configurator and merchandise images
 - one backend AI integration through the `ai-feature` service
 - one client-side map integration through the Google Maps JavaScript API
 
@@ -183,7 +185,7 @@ Its responsibilities are:
 
 This service is an integration/orchestration service. It does not own a database schema, connect to MySQL, or query another service's tables directly. If AI needs additional domain data, the owning service must expose it through a service endpoint. Official pricing, configuration validity, and image truth remain in the configurator service; merchandise catalog truth remains in the merch shop service.
 
-This boundary also protects `ai-feature` from a future split from one shared database into service-owned databases. Database names, schemas, credentials, containers, and migration strategy are internal details of `car-configurator` and `merch-shop`. `ai-feature` depends on their HTTP API contracts; it should only need changes if those endpoint URLs, response fields, response semantics, or service availability change.
+This boundary also protects `ai-feature` from database topology changes. Database names, schemas, credentials, containers, and migration strategy are internal details of `car-configurator`, `merch-shop`, and other owning services. `ai-feature` depends on their HTTP API contracts; it should only need changes if those endpoint URLs, response fields, response semantics, or service availability change.
 
 ### 4.8 Shopping Cart Service
 
@@ -202,7 +204,7 @@ For car items, the cart should persist enough snapshot data to show the selected
 
 ### 5.1 MySQL
 
-MySQL stores persistent business data:
+The local topology uses three MySQL instances, one per DB-backed service. MySQL stores persistent business data:
 
 - configuration option definitions
 - option values
@@ -213,7 +215,7 @@ MySQL stores persistent business data:
 - merchandise catalog data
 - predefined BMW route destinations
 
-The first version uses a table-driven lookup model instead of a complex rules engine. MySQL is accessed by the domain services that own the data, currently `car-configurator`, `merch-shop`, and `route-service`. If those services later move to separate service-owned databases, the database topology remains hidden behind their APIs. The `ai-feature` service has no direct database dependency and consumes domain data only through those service APIs.
+The first version uses a table-driven lookup model instead of a complex rules engine. MySQL is accessed by the domain services that own the data: `car-configurator` uses `mysql-configurator`, `merch-shop` uses `mysql-merch`, and `route-service` uses `mysql-route`. The database topology remains hidden behind their APIs. The `ai-feature` service has no direct database dependency and consumes domain data only through those service APIs.
 
 ### 5.2 Redis
 
@@ -221,7 +223,7 @@ Redis stores shopping cart state. It is used because the cart is session-oriente
 
 ### 5.3 MinIO
 
-MinIO stores pre-generated configurator and merchandise images. It is used because these images are binary assets rather than relational records. Browser-visible product image delivery is owned by the services that own the image references.
+MinIO stores pre-generated configurator and merchandise images as shared object storage for configurator and merch image objects. It is used because these images are binary assets rather than relational records. Browser-visible product image delivery is owned by the services that own the image references.
 
 Phase 2 keeps the image objects in MinIO, but removes presentation-tier direct access to MinIO. Browser-visible image requests must flow through the application and service boundary:
 
@@ -236,12 +238,12 @@ The implemented Phase 2 route contracts are:
 
 ### 5.4 Database Ownership
 
-- `car-configurator` owns the schema `bmw_car_configurator` (models, options, configurations, prices, image keys).
-- `merch-shop` owns the schema `bmw_merch_shop` (merchandise products).
-- `route-service` owns the schema `bmw_route_service` (predefined BMW route destinations).
-- Both schema names are fixed architecture constants and must not be configured via environment variables.
+- `car-configurator` owns the schema `bmw_car_configurator` in `mysql-configurator` (models, options, configurations, prices, image keys).
+- `merch-shop` owns the schema `bmw_merch_shop` in `mysql-merch` (merchandise products).
+- `route-service` owns the schema `bmw_route_service` in `mysql-route` (predefined BMW route destinations).
+- Schema names are fixed architecture constants and must not be configured via environment variables.
 - Services must not query tables owned by other services directly.
-- Local development may still run one shared MySQL instance in Docker Compose, but ownership is enforced logically by separate schemas with fixed names.
+- Local development runs separate MySQL containers for these service-owned schemas; ownership is enforced by both container topology and fixed schema names.
 
 ## 6. External Integrations
 
