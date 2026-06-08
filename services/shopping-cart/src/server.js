@@ -1,6 +1,7 @@
 const crypto = require("crypto");
 const express = require("express");
 const { createClient } = require("redis");
+const { isDeepStrictEqual } = require("util");
  
 // App setup and cart retention window.
 const app = express();
@@ -16,7 +17,7 @@ const redis = createClient({
 });
  
 redis.on("error", (err) => console.error("Redis error:", err));
-redis.connect();
+redis.connect().catch((err) => console.error("Redis connect error:", err));
  
 // Express JSON parsing and a simple health endpoint.
 app.use(express.json());
@@ -38,27 +39,30 @@ app.get("/cart/:sessionId", async (req, res) => {
 app.post("/cart/:sessionId/items", async (req, res) => {
     try {
         const { type, name, price, imageUrl, quantity = 1, details = {} } = req.body;
- 
+        const parsedPrice = Number(price);
+        const parsedQuantity = Number(quantity);
+
         if (!type || !name || price == null) {
             return res.status(400).json({ error: "type, name and price are required" });
         }
- 
+        if (!Number.isFinite(parsedPrice)) {
+            return res.status(400).json({ error: "price must be a valid number" });
+        }
+        if (!Number.isInteger(parsedQuantity) || parsedQuantity <= 0) {
+            return res.status(400).json({ error: "quantity must be a positive integer" });
+        }
+
         const raw = await redis.get(`cart:${req.params.sessionId}`);
         const items = raw ? JSON.parse(raw) : [];
         // Compare the incoming variant with stored items so identical ones merge.
-        const candidateKey = JSON.stringify({
-            type,
-            name,
-            details,
-        });
-        const existing = items.find((item) => JSON.stringify({
-            type: item.type,
-            name: item.name,
-            details: item.details || {},
-        }) === candidateKey);
- 
+        const existing = items.find((item) => (
+            item.type === type
+            && item.name === name
+            && isDeepStrictEqual(item.details || {}, details)
+        ));
+
         if (existing) {
-            existing.quantity += parseInt(quantity);
+            existing.quantity = Number(existing.quantity) + parsedQuantity;
             await redis.set(`cart:${req.params.sessionId}`, JSON.stringify(items), { EX: CART_TTL });
             return res.status(200).json(existing);
         }
@@ -67,9 +71,9 @@ app.post("/cart/:sessionId/items", async (req, res) => {
             id: crypto.randomUUID(),
             type,
             name,
-            price: parseFloat(price),
+            price: parsedPrice,
             imageUrl: imageUrl || null,
-            quantity: parseInt(quantity),
+            quantity: parsedQuantity,
             details,
             addedAt: new Date().toISOString(),
         };
@@ -98,9 +102,9 @@ app.delete("/cart/:sessionId/items/:itemId", async (req, res) => {
 // Update quantity for one item; quantity 0 deletes it.
 app.patch("/cart/:sessionId/items/:itemId", async (req, res) => {
     try {
-        const qty = parseInt(req.body.quantity);
+        const qty = Number(req.body.quantity);
  
-        if (isNaN(qty) || qty < 0) {
+        if (!Number.isInteger(qty) || qty < 0) {
             return res.status(400).json({ error: "quantity must be a non-negative integer" });
         }
  
