@@ -1,5 +1,6 @@
 <%
   const homeImageBase = "/static/images";
+  const homeVideoBase = "/media/home";
   const merchImageBase = "/api/merch/assets/merch-shop";
 
   const merchPreviewProducts = [
@@ -1028,7 +1029,7 @@
 
 <section class="hero">
   <video class="hero-video" autoplay muted loop playsinline preload="auto">
-    <source src="<%= homeImageBase %>/bmw-m-stage-loop.mp4" type="video/mp4">
+    <source src="<%= homeVideoBase %>/bmw-m-stage-loop.mp4" type="video/mp4">
   </video>
 
   <div class="hero-overlay">
@@ -1125,7 +1126,7 @@
 
   <section class="heritage-section" aria-label="Heritage">
     <video class="heritage-video" autoplay muted loop playsinline preload="metadata">
-      <source src="<%= homeImageBase %>/bmw-group-production-header.mp4" type="video/mp4">
+      <source src="<%= homeVideoBase %>/bmw-group-production-header.mp4" type="video/mp4">
     </video>
     <div class="page-shell heritage-content">
       <div>

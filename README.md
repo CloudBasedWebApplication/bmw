@@ -50,7 +50,7 @@ Contains shared browser assets and EJS templates used by the web-shop presentati
 
 Contains the split web-shop presentation layer and backend microservices.
 
-- `services/web-shop-frontend/`: browser-facing entry service; serves `/static`, exposes host port 3000, and forwards all other requests to `web-shop-backend`
+- `services/web-shop-frontend/`: browser-facing entry service; serves `/static`, streams homepage videos under `/media/home/*.mp4`, exposes host port 3000, and forwards all other requests to `web-shop-backend`
 - `services/web-shop-backend/`: renders all HTML/EJS pages, forwards same-origin `/api/*` calls to `api-gateway`, and fetches merch SSR data through the gateway
 - `services/car-configurator/`: resolves selected options into a pre-generated image, validates combinations, and calculates price
 - `services/merch-shop/`: provides merchandise catalog and product detail data
@@ -98,7 +98,7 @@ Copy-Item .env.example .env # Windows
 After copying the file, fill in at least `GEMINI_API_KEY` and `GOOGLE_MAPS_API_KEY` in `.env`.
 If you want to override the Gemini model selection locally, `GEMINI_MODEL` defaults to `gemini-2.5-flash` and `GEMINI_FALLBACK_MODEL` defaults to `gemini-2.5-flash-lite`.
 
-MinIO API port `9000` is Docker-internal only. Browser-visible product image URLs are owned API asset routes (`/api/configurator/assets/*` and `/api/merch/assets/*`) that flow through the web-shop frontend, web-shop backend, API gateway, and owning service before reading MinIO. Only the MinIO console/debug port `9001` is host-exposed.
+MinIO API port `9000` is Docker-internal only. Browser-visible product image URLs are owned API asset routes (`/api/configurator/assets/*` and `/api/merch/assets/*`) that flow through the web-shop frontend, web-shop backend, API gateway, and owning service before reading MinIO. Homepage `.mp4` videos use the narrow frontend `/media/home/*.mp4` MinIO proxy; still images remain under `/static/images/*`. Only the MinIO console/debug port `9001` is host-exposed.
 
 After changing `.env`, recreate the affected containers:
 
@@ -159,24 +159,24 @@ When `GEMINI_API_KEY` is configured, run the full smoke test:
 ## MinIO Image Sync
 
 Images are imported from the project folders `assets/configurator/` and `assets/merch-shop/` into the MinIO bucket `MINIO_BUCKET`.
-Home page presentation assets live under `web/public/images/` and are served by `web-shop-frontend` as `/static/images/<file>`.
+Home page still images live under `web/public/images/` and are served by `web-shop-frontend` as `/static/images/<file>`. Only the homepage `.mp4` files in that folder are mirrored to MinIO under `home/` and exposed as `/media/home/<file>.mp4`.
 
-Phase 2 keeps product image objects in MinIO, but removes presentation-tier direct access to MinIO. Browser image requests use same-origin API routes:
+Phase 2 keeps product image objects in MinIO, but removes broad presentation-tier direct access to MinIO. Browser product and configurator image requests use same-origin API routes:
 
 - `GET /api/configurator/assets/*`
 - `GET /api/merch/assets/*`
 
-Those routes flow through `web-shop-frontend`, `web-shop-backend`, and `api-gateway` to the owning service, which streams the object from Docker-internal MinIO. The old `/minio/*` browser URL path has been deleted rather than kept as a redirect. MinIO API port `9000` is Docker-internal only; port `9001` remains available for local console/debug access.
+Those routes flow through `web-shop-frontend`, `web-shop-backend`, and `api-gateway` to the owning service, which streams the object from Docker-internal MinIO. Homepage video requests flow only through `web-shop-frontend` to Docker-internal MinIO as `/<bucket>/home/<file>.mp4`. The old `/minio/*` browser URL path has been deleted rather than kept as a redirect. MinIO API port `9000` is Docker-internal only; port `9001` remains available for local console/debug access.
 
 1. Put the car images into `assets/configurator/` and the merchandise images into `assets/merch-shop/`.
-2. Put the Home page images into `web/public/images/`.
+2. Put Home page still images and `.mp4` videos into `web/public/images/`; still images are served locally, while `.mp4` videos are mirrored to MinIO.
 3. Start the infrastructure:
 
 ```bash
 docker compose up -d mysql-configurator mysql-configurator-seed mysql-merch mysql-merch-seed mysql-route mysql-route-seed redis minio minio-init
 ```
 
-The `minio-init` service waits until MinIO is healthy, creates the bucket automatically, and syncs the configurator and merchandise image objects once on startup. MinIO remains shared object storage for image objects; MySQL data is split across service-owned instances.
+The `minio-init` service waits until MinIO is healthy, creates the bucket automatically, syncs configurator and merchandise image objects, and syncs only homepage `.mp4` files once on startup. MinIO remains shared object storage for image and video objects; MySQL data is split across service-owned instances.
 
 4. If you want to re-sync the images later after adding or changing files:
 
@@ -193,11 +193,13 @@ The sync writes object keys with stable prefixes:
 
 - `configurator/<filename>`
 - `merch-shop/<filename>`
+- `home/<homepage-video>.mp4`
 
 Example object keys:
 
 - `configurator/1_front.jpg`
 - `merch-shop/BMW_Merchandise_Sweatshirt.avif`
+- `home/bmw-m-stage-loop.mp4`
 
 For new merch assets, prefer ASCII-only filenames in `assets/merch-shop/` so object keys stay stable across encodings. For example, use `weiss` instead of `weiß` in filenames.
 
