@@ -13,7 +13,7 @@ For product-level expected behavior, refer to `docs/PRD.md`. This architecture d
 ```mermaid
 flowchart LR
     user["User"]
-    frontend["Web Shop Frontend\n/static + browser entry proxy"]
+    frontend["Web Shop Frontend\n/static + /media/home/*.mp4 + browser entry proxy"]
     backendPresentation["Web Shop Backend\nEJS page rendering + /api proxy"]
     gateway["API Gateway\nAPI proxying"]
 
@@ -40,6 +40,7 @@ flowchart LR
 
     user --> frontend
     frontend --> backendPresentation
+    frontend -- "/media/home/*.mp4" --> minio
     backendPresentation --> gateway
 
     gateway --> configurator
@@ -75,17 +76,17 @@ The Mermaid source is also stored separately in `docs/architecture.mmd`.
 
 The architecture follows a simple microservice structure:
 
-- one browser-facing web-shop frontend for `/static`, `/health`, and request forwarding
+- one browser-facing web-shop frontend for `/static`, `/media/home/*.mp4`, `/health`, and request forwarding
 - one web-shop backend for EJS page rendering and same-origin API forwarding
 - one API gateway for API request forwarding
 - five backend domain services
 - three MySQL instances, one per DB-backed service, for persistent business data
 - one cache store for cart state
-- one shared object storage service for configurator and merchandise images
+- one shared object storage service for configurator images, merchandise images, and homepage videos
 - one backend AI integration through the `ai-feature` service
 - one client-side map integration through the Google Maps JavaScript API
 
-The web-shop frontend is the only browser-facing application container in local development. It serves shared static assets and forwards page/API requests to the web-shop backend. Browser API calls use same-origin `/api/*` routes, which pass through the web-shop backend to the API gateway. Business truth remains in the backend services.
+The web-shop frontend is the only browser-facing application container in local development. It serves shared static assets, exposes a narrow `/media/home/*.mp4` reverse proxy for homepage videos, and forwards page/API requests to the web-shop backend. Browser API calls use same-origin `/api/*` routes, which pass through the web-shop backend to the API gateway. Business truth remains in the backend services.
 
 ## 4. Main Components
 
@@ -96,11 +97,12 @@ The `services/web-shop-frontend` service provides the browser-facing entry point
 Its responsibilities are:
 
 - serve static assets for the web experience under `/static`
+- stream homepage videos from MinIO under `/media/home/*.mp4`
 - expose the application host port (`localhost:3000`) in Docker Compose
 - provide a lightweight `/health` endpoint for the browser-facing container
 - forward all non-static browser requests to `web-shop-backend`
 
-It does not render EJS pages and does not call domain microservices directly.
+It does not render EJS pages and does not call domain microservices directly. Its MinIO access is limited to homepage `.mp4` files under the `home/` object prefix; product and configurator images still flow through their owning services.
 
 ### 4.2 Web Shop Backend
 
@@ -223,9 +225,9 @@ Redis stores shopping cart state. It is used because the cart is session-oriente
 
 ### 5.3 MinIO
 
-MinIO stores pre-generated configurator and merchandise images as shared object storage for configurator and merch image objects. It is used because these images are binary assets rather than relational records. Browser-visible product image delivery is owned by the services that own the image references.
+MinIO stores pre-generated configurator images, merchandise images, and homepage videos as shared object storage. It is used because these files are binary assets rather than relational records. Browser-visible product and configurator image delivery is owned by the services that own the image references.
 
-Phase 2 keeps the image objects in MinIO, but removes presentation-tier direct access to MinIO. Browser-visible image requests must flow through the application and service boundary:
+Phase 2 keeps the image objects in MinIO, but removes broad presentation-tier direct access to MinIO. Browser-visible product and configurator image requests must flow through the application and service boundary:
 
 `Browser -> web-shop-frontend -> web-shop-backend -> api-gateway -> owning service -> MinIO`
 
@@ -233,8 +235,9 @@ The implemented Phase 2 route contracts are:
 
 - `GET /api/configurator/assets/*` for configurator-owned images
 - `GET /api/merch/assets/*` for merchandise-owned images
+- `GET /media/home/*.mp4` for homepage-only video files, proxied by `web-shop-frontend` to MinIO `/<bucket>/home/*.mp4`
 
-`car-configurator` and `merch-shop` own the MinIO reads for their image prefixes and stream image responses back through the gateway. The gateway uses a binary/streaming proxy path for these routes, preserving response status, `content-type`, cache headers where present, and response body. The legacy browser-facing `/minio/*` URL contract is removed, not kept as a compatibility redirect.
+`car-configurator` and `merch-shop` own the MinIO reads for their image prefixes. Their asset endpoints, plus the web-shop backend and gateway forwarding chain, preserve binary response status, `content-type`, cache headers where present, and response body, but currently do that with `fetch` plus `arrayBuffer()` buffering rather than an end-to-end streaming proxy. The frontend `/media/home/*.mp4` route is the narrow homepage video proxy and does not apply to product, configurator, or arbitrary MinIO objects. The legacy browser-facing `/minio/*` URL contract is removed, not kept as a compatibility redirect.
 
 ### 5.4 Database Ownership
 
@@ -311,6 +314,13 @@ Its role is to:
 7. the user selects a destination; the browser calls Google Maps `DirectionsService` directly
 8. `DirectionsRenderer` draws the route on the map in the browser
 
+### 7.5 Homepage Video Flow
+
+1. the homepage rendered by `web-shop-backend` references only its two `.mp4` videos under `/media/home/*.mp4`
+2. `web-shop-frontend` validates the requested media path before proxying; empty keys, traversal attempts, and non-`.mp4` extensions are rejected
+3. valid requests are streamed to MinIO as `/<bucket>/home/<file>.mp4`
+4. MinIO response status, headers, and body are streamed back to the browser, including range responses for video playback
+
 ## 8. Key Design Decisions
 
 The architecture reflects the following agreed decisions:
@@ -328,6 +338,7 @@ The architecture reflects the following agreed decisions:
 - cart stores snapshots for display stability
 - route planning runs client-side via Maps JS API; Google Maps owns current route calculation, while `route-service` owns predefined destination data and future route-domain behavior
 - Phase 2 keeps images in MinIO, but only the owning domain services may read MinIO objects for browser-visible image delivery
+- Homepage `.mp4` videos use a narrow `web-shop-frontend` `/media/home/*.mp4` reverse proxy to MinIO; still images remain under `/static/images/*`
 - Phase 2 removes the MinIO API host port `9000`; the MinIO console port `9001` may remain host-exposed for local infrastructure/debug access
 - Phase 2 deletes the legacy `/minio/*` URL contract and validates all browser image paths through `/api/configurator/assets/*` or `/api/merch/assets/*`
 

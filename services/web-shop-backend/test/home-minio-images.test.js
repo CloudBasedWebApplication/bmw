@@ -96,6 +96,8 @@ test("home page uses static presentation assets and owned merch asset paths", as
     const html = await response.text();
 
     assert.doesNotMatch(html, /\/minio\//);
+    assert.match(html, /["']\/media\/home\/bmw-m-stage-loop\.mp4/);
+    assert.match(html, /["']\/media\/home\/bmw-group-production-header\.mp4/);
     assert.match(html, /["']\/static\/images\/bmw_ai\.png/);
     assert.match(html, /["']\/api\/merch\/assets\/merch-shop\/BMW_Merchandise_weiss\.avif/);
   } finally {

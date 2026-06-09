@@ -30,8 +30,14 @@ services:
     environment:
       PORT: 3000
       WEB_SHOP_BACKEND_URL: http://web-shop-backend:3006
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT}
+      MINIO_PORT: ${MINIO_PORT}
+      MINIO_BUCKET: ${MINIO_BUCKET}
     depends_on:
-      - web-shop-backend
+      web-shop-backend:
+        condition: service_started
+      minio-init:
+        condition: service_completed_successfully
     volumes:
       - ./web:/app/web
 
@@ -257,7 +263,7 @@ services:
       mc anonymous set download local/${MINIO_BUCKET};
       mc mirror --overwrite /seed/configurator local/${MINIO_BUCKET}/configurator;
       mc mirror --overwrite /seed/merch-shop local/${MINIO_BUCKET}/merch-shop;
-      mc mirror --overwrite /seed/home-images local/${MINIO_BUCKET}/home;
+      mc mirror --overwrite --include '*.mp4' /seed/home-images local/${MINIO_BUCKET}/home;
       echo 'Done.';
       "
 

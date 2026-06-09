@@ -21,7 +21,7 @@ Update this document in the same PR that changes the code it describes.
 
 This is a course project for a cloud web application, built around an automotive platform. The core purpose is to demonstrate service decomposition, containerized local development, and integration with external infrastructure — databases, object storage, cache, an AI API, and a map API. The product has one browser-facing web app, one API gateway, five backend microservices, and service-owned infrastructure, all orchestrated locally with Docker Compose.
 
-The current implementation has a complete working skeleton. All major pages are reachable through `services/web-shop-frontend`, which forwards page/API requests to `services/web-shop-backend`; browser API calls then flow through `api-gateway`. The main user journeys work end to end, and the infrastructure layer (three service-owned MySQL instances, Redis, MinIO) is integrated. Several design choices were deliberately simplified, including reduced configurator parameter depth. Phase 2 image delivery is complete: product images remain in MinIO, but browser-visible access flows through service-owned API asset routes. The AI service now returns structured recommendation links instead of a free-form string.
+The current implementation has a complete working skeleton. All major pages are reachable through `services/web-shop-frontend`, which forwards page/API requests to `services/web-shop-backend`; browser API calls then flow through `api-gateway`. The main user journeys work end to end, and the infrastructure layer (three service-owned MySQL instances, Redis, MinIO) is integrated. Several design choices were deliberately simplified, including reduced configurator parameter depth. Phase 2 image delivery is complete: product images remain in MinIO, but browser-visible access flows through service-owned API asset routes. Homepage still images remain under `/static/images/*`, while the two homepage `.mp4` videos are streamed through the narrow frontend `/media/home/*.mp4` MinIO proxy. The AI service now returns structured recommendation links instead of a free-form string.
 
 
 ---
@@ -32,11 +32,11 @@ The current implementation has a complete working skeleton. All major pages are 
 
 #### What Is Working
 
-The web-shop presentation layer is split into two services. `web-shop-frontend` is the only browser-facing application container; it serves shared static assets under `/static`, returns `{ ok: true, service: "web-shop-frontend" }` from `/health`, and forwards every other request to `web-shop-backend`.
+The web-shop presentation layer is split into two services. `web-shop-frontend` is the only browser-facing application container; it serves shared static assets under `/static`, streams homepage videos under `/media/home/*.mp4`, returns `{ ok: true, service: "web-shop-frontend" }` from `/health`, and forwards every other request to `web-shop-backend`.
 
 `web-shop-backend` registers page routes for Home, Configurator, Merch Shop, Merch Product Detail, AI Feature, Shopping Cart, and Impressum, renders EJS templates server-side, and proxies same-origin `/api/*` requests to `api-gateway`. The merch pages fetch product data through the gateway at `/api/merch/products` and `/api/merch/products/:productId`; the backend no longer has a direct `MERCH_URL` dependency.
 
-The home page injects the Google Maps API key server-side and fetches destination data through `/api/destinations`. The cart and AI pages consume the same-origin API surface exposed through the gateway.
+The home page injects the Google Maps API key server-side and fetches destination data through `/api/destinations`. Its still images are served from `/static/images/*`; only the two `.mp4` source URLs use `/media/home/*.mp4`. The cart and AI pages consume the same-origin API surface exposed through the gateway.
 
 #### Accepted Simplifications
 
@@ -72,7 +72,7 @@ No page-rendering gaps remain after local issue 8. Browser-facing routes are med
 
 #### What Is Working
 
-The configurator resolves a model + color selection into an official result. It validates the combination against MySQL, retrieves the corresponding image key, returns image URLs under `/api/configurator/assets/*`, streams configurator-owned images from MinIO through `GET /assets/*`, calculates the price, and returns the full result. The service is the sole source of truth for combination validity, image mapping, and price — no other service calculates or stores these.
+The configurator resolves a model + color selection into an official result. It validates the combination against MySQL, retrieves the corresponding image key, returns image URLs under `/api/configurator/assets/*`, reads configurator-owned images from MinIO through `GET /assets/*`, and returns buffered binary responses with the source status, content-type, cache headers where present, and body preserved. It also calculates the price and returns the full result. The service is the sole source of truth for combination validity, image mapping, and price — no other service calculates or stores these.
 
 The configurator page loads available models on open and updates the color options dynamically when a model is selected. The result (image and price) is fetched from the backend on each configuration change, not computed in the browser.
 
@@ -90,7 +90,7 @@ None that block the current user journeys.
 
 #### What Is Working
 
-The merch-shop serves a product catalog from MySQL. The web app pre-fetches the full product list when rendering the merch page, so products are visible without a client-side data fetch. Each product card shows the image through `/api/merch/assets/*`, name, price, and an add-to-cart button. The merch service owns merchandise image URL generation and streams `merch-shop/` objects from MinIO through `GET /assets/*`.
+The merch-shop serves a product catalog from MySQL. The web app pre-fetches the full product list when rendering the merch page, so products are visible without a client-side data fetch. Each product card shows the image through `/api/merch/assets/*`, name, price, and an add-to-cart button. The merch service owns merchandise image URL generation, reads `merch-shop/` objects from MinIO through `GET /assets/*`, and returns buffered binary responses with source response metadata/body preserved.
 
 The merch service exposes `GET /products/:productId`, and the web app exposes `/merch-shop/:productId` for direct product-detail pages. Product identifiers can be numeric IDs or generated slugs, which gives the web application a stable target for direct product links.
 
@@ -218,11 +218,11 @@ The full stack runs locally via Docker Compose with `docker compose up --build`.
 
 **Redis.** Cart state is stored at `cart:{sessionId}` as a JSON-serialized array of item objects. TTL is 24 hours. Session ID is assigned by the gateway as a cookie on first API request.
 
-**MinIO.** The `configurator-images` bucket is shared object storage for configurator and merchandise image objects. Configurator images are uploaded under the `configurator/` prefix; merch images under `merch-shop/`; home/static support images are mirrored under `home/` but the Home page now uses `/static/images/<file>` from `web/public/images`. Images are pre-uploaded using `minio-init` on stack start, or manually re-synced with `docker compose run --rm minio-init`. Use ASCII-only filenames for merch assets to keep object keys stable across encodings.
+**MinIO.** The `configurator-images` bucket is shared object storage for configurator image objects, merchandise image objects, and homepage video objects. Configurator images are uploaded under the `configurator/` prefix; merch images under `merch-shop/`; only homepage `.mp4` videos are mirrored under `home/` and served through `/media/home/*.mp4`. Home page still images remain served from `/static/images/<file>` in `web/public/images`. Objects are pre-uploaded using `minio-init` on stack start, or manually re-synced with `docker compose run --rm minio-init`. Use ASCII-only filenames for merch assets to keep object keys stable across encodings.
 
-**Phase 2 image boundary decision — implemented.** Images remain stored in MinIO, but browser-visible image delivery is owned by the service that owns the image reference. Configurator images are exposed through `GET /api/configurator/assets/*`; merchandise images are exposed through `GET /api/merch/assets/*`. The request path is `Browser -> web-shop-frontend -> web-shop-backend -> api-gateway -> owning service -> MinIO`. The legacy `/minio/*` browser URL was deleted without a compatibility redirect. MinIO API port `9000` is no longer host-exposed; only console port `9001` remains exposed for local infrastructure/debug use.
+**Phase 2 image boundary decision — implemented.** Images remain stored in MinIO, but browser-visible product/configurator image delivery is owned by the service that owns the image reference. Configurator images are exposed through `GET /api/configurator/assets/*`; merchandise images are exposed through `GET /api/merch/assets/*`. The product/configurator image request path is `Browser -> web-shop-frontend -> web-shop-backend -> api-gateway -> owning service -> MinIO`. Homepage `.mp4` videos are the only presentation assets exposed through the narrow `web-shop-frontend` `/media/home/*.mp4` MinIO proxy; still images remain under `/static/images/*`. The legacy `/minio/*` browser URL was deleted without a compatibility redirect. MinIO API port `9000` is no longer host-exposed; only console port `9001` remains exposed for local infrastructure/debug use.
 
-Phase 2 validation covers no runtime browser path using the legacy MinIO URL contract, binary response preservation for the gateway asset routes, configurator and merch image URL prefixes, Home page static presentation assets, and Docker Compose with no host exposure for MinIO API port `9000`.
+Phase 2 validation covers no runtime browser path using the legacy MinIO URL contract, binary response preservation for the gateway asset routes, configurator and merch image URL prefixes, Home page static presentation images, homepage video `/media/home/*.mp4` URLs, and Docker Compose with no host exposure for MinIO API port `9000`.
 
 **Persistence note.** Running `docker compose down -v` destroys all data volumes. MySQL seed and MinIO sync run automatically on the next `docker compose up`.
 

@@ -1,6 +1,6 @@
 flowchart LR
     user["User"]
-    frontend["Web Shop Frontend\n/static + browser entry proxy"]
+    frontend["Web Shop Frontend\n/static + /media/home/*.mp4 + browser entry proxy"]
     backendPresentation["Web Shop Backend\nEJS page rendering + /api proxy"]
     gateway["API Gateway\nAPI proxying"]
 
@@ -27,6 +27,7 @@ flowchart LR
 
     user --> frontend
     frontend --> backendPresentation
+    frontend -- "/media/home/*.mp4" --> minio
     backendPresentation --> gateway
 
     gateway --> configurator
