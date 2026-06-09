@@ -237,7 +237,7 @@ The implemented Phase 2 route contracts are:
 - `GET /api/merch/assets/*` for merchandise-owned images
 - `GET /media/home/*.mp4` for homepage-only video files, proxied by `web-shop-frontend` to MinIO `/<bucket>/home/*.mp4`
 
-`car-configurator` and `merch-shop` own the MinIO reads for their image prefixes and stream image responses back through the gateway. The gateway uses a binary/streaming proxy path for these routes, preserving response status, `content-type`, cache headers where present, and response body. The frontend `/media/home/*.mp4` route is a narrow homepage video proxy and does not apply to product, configurator, or arbitrary MinIO objects. The legacy browser-facing `/minio/*` URL contract is removed, not kept as a compatibility redirect.
+`car-configurator` and `merch-shop` own the MinIO reads for their image prefixes. Their asset endpoints, plus the web-shop backend and gateway forwarding chain, preserve binary response status, `content-type`, cache headers where present, and response body, but currently do that with `fetch` plus `arrayBuffer()` buffering rather than an end-to-end streaming proxy. The frontend `/media/home/*.mp4` route is the narrow homepage video proxy and does not apply to product, configurator, or arbitrary MinIO objects. The legacy browser-facing `/minio/*` URL contract is removed, not kept as a compatibility redirect.
 
 ### 5.4 Database Ownership
 

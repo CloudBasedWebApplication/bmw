@@ -72,7 +72,7 @@ No page-rendering gaps remain after local issue 8. Browser-facing routes are med
 
 #### What Is Working
 
-The configurator resolves a model + color selection into an official result. It validates the combination against MySQL, retrieves the corresponding image key, returns image URLs under `/api/configurator/assets/*`, streams configurator-owned images from MinIO through `GET /assets/*`, calculates the price, and returns the full result. The service is the sole source of truth for combination validity, image mapping, and price — no other service calculates or stores these.
+The configurator resolves a model + color selection into an official result. It validates the combination against MySQL, retrieves the corresponding image key, returns image URLs under `/api/configurator/assets/*`, reads configurator-owned images from MinIO through `GET /assets/*`, and returns buffered binary responses with the source status, content-type, cache headers where present, and body preserved. It also calculates the price and returns the full result. The service is the sole source of truth for combination validity, image mapping, and price — no other service calculates or stores these.
 
 The configurator page loads available models on open and updates the color options dynamically when a model is selected. The result (image and price) is fetched from the backend on each configuration change, not computed in the browser.
 
@@ -90,7 +90,7 @@ None that block the current user journeys.
 
 #### What Is Working
 
-The merch-shop serves a product catalog from MySQL. The web app pre-fetches the full product list when rendering the merch page, so products are visible without a client-side data fetch. Each product card shows the image through `/api/merch/assets/*`, name, price, and an add-to-cart button. The merch service owns merchandise image URL generation and streams `merch-shop/` objects from MinIO through `GET /assets/*`.
+The merch-shop serves a product catalog from MySQL. The web app pre-fetches the full product list when rendering the merch page, so products are visible without a client-side data fetch. Each product card shows the image through `/api/merch/assets/*`, name, price, and an add-to-cart button. The merch service owns merchandise image URL generation, reads `merch-shop/` objects from MinIO through `GET /assets/*`, and returns buffered binary responses with source response metadata/body preserved.
 
 The merch service exposes `GET /products/:productId`, and the web app exposes `/merch-shop/:productId` for direct product-detail pages. Product identifiers can be numeric IDs or generated slugs, which gives the web application a stable target for direct product links.
 

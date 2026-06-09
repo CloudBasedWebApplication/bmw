@@ -166,7 +166,7 @@ Phase 2 keeps product image objects in MinIO, but removes broad presentation-tie
 - `GET /api/configurator/assets/*`
 - `GET /api/merch/assets/*`
 
-Those routes flow through `web-shop-frontend`, `web-shop-backend`, and `api-gateway` to the owning service, which streams the object from Docker-internal MinIO. Homepage video requests flow only through `web-shop-frontend` to Docker-internal MinIO as `/<bucket>/home/<file>.mp4`. The old `/minio/*` browser URL path has been deleted rather than kept as a redirect. MinIO API port `9000` is Docker-internal only; port `9001` remains available for local console/debug access.
+Those routes flow through `web-shop-frontend`, `web-shop-backend`, and `api-gateway` to the owning service, which reads the object from Docker-internal MinIO and returns a buffered binary response while preserving status, content-type, cache headers where present, and body. Homepage video requests flow only through the frontend `/media/home/*.mp4` MinIO proxy to Docker-internal MinIO as `/<bucket>/home/<file>.mp4`. The old `/minio/*` browser URL path has been deleted rather than kept as a redirect. MinIO API port `9000` is Docker-internal only; port `9001` remains available for local console/debug access.
 
 1. Put the car images into `assets/configurator/` and the merchandise images into `assets/merch-shop/`.
 2. Put Home page still images and `.mp4` videos into `web/public/images/`; still images are served locally, while `.mp4` videos are mirrored to MinIO.

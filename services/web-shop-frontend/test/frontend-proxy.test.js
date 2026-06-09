@@ -127,6 +127,7 @@ test("streams homepage mp4 media from MinIO with range headers preserved", async
     minioRequests.push({
       method: req.method,
       url: req.url,
+      host: req.headers.host,
       range: req.headers.range,
     });
     res.statusCode = 206;
@@ -167,9 +168,51 @@ test("streams homepage mp4 media from MinIO with range headers preserved", async
       {
         method: "GET",
         url: "/course-assets/home/bmw-m-stage-loop.mp4?x=1",
+        host: `127.0.0.1:${minioPort}`,
         range: "bytes=0-3",
       },
     ]);
+    assert.deepEqual(backendRequests, []);
+  } finally {
+    if (frontend) await frontend.stop();
+    backend.close();
+    minio.close();
+  }
+});
+
+test("rejects non-read homepage media methods before upstream fallback", async () => {
+  const minioRequests = [];
+  const minio = http.createServer((req, res) => {
+    minioRequests.push({ method: req.method, url: req.url });
+    res.end("minio");
+  });
+  const backendRequests = [];
+  const backend = http.createServer((req, res) => {
+    backendRequests.push({ method: req.method, url: req.url });
+    res.end("backend");
+  });
+  let frontend;
+
+  try {
+    const minioPort = await listen(minio);
+    const backendPort = await listen(backend);
+    frontend = await startFrontend(`http://127.0.0.1:${backendPort}`, {
+      MINIO_ENDPOINT: "127.0.0.1",
+      MINIO_PORT: String(minioPort),
+      MINIO_BUCKET: "course-assets",
+    });
+
+    const response = await requestPath(
+      frontend.baseUrl,
+      "/media/home/bmw-m-stage-loop.mp4",
+      {
+        method: "POST",
+        body: "ignored",
+      }
+    );
+
+    assert.equal(response.status, 405);
+    assert.deepEqual(minioRequests, []);
     assert.deepEqual(backendRequests, []);
   } finally {
     if (frontend) await frontend.stop();

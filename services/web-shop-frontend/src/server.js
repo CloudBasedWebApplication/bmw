@@ -69,11 +69,17 @@ function getHomeMediaKey(req) {
 
 const homeMediaProxy = createProxyMiddleware({
   target: minioBaseUrl,
-  changeOrigin: false,
+  changeOrigin: true,
   xfwd: true,
 });
 
 app.use("/media/home", (req, res, next) => {
+  if (req.method !== "GET" && req.method !== "HEAD") {
+    res.set("Allow", "GET, HEAD");
+    res.status(405).send("Method Not Allowed");
+    return;
+  }
+
   const key = getHomeMediaKey(req);
 
   if (key === undefined) {
